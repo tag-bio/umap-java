@@ -1,3 +1,5 @@
+package com.tagbio.umap;
+
 from umap.umap_ import (
     INT32_MAX,
     INT32_MIN,
