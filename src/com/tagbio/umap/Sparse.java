@@ -23,6 +23,13 @@ package com.tagbio.umap;
 
 // locale.setlocale(locale.LC_NUMERIC, "C")
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.tagbio.umap.metric.Metric;
+
 class Sparse {
 
 // // Just reproduce a simpler version of numpy unique (not numba supported yet)
@@ -576,7 +583,10 @@ class Sparse {
 //         return 1.0 - (dot_product / (norm1 * norm2))
 
 
-// sparse_named_distances = {
+  static final Map<String, Metric> sparse_named_distances = new HashMap<>();
+  static {
+    // todo
+    sparse_named_distances.put("euclidean", null);
 //     // general minkowski distances
 //     "euclidean": sparse_euclidean,
 //     "manhattan": sparse_manhattan,
@@ -603,14 +613,17 @@ class Sparse {
 //     "cosine": sparse_cosine,
 //     "correlation": sparse_correlation,
 // }
+  }
 
-// sparse_need_n_features = (
-//     "hamming",
-//     "matching",
-//     "kulsinski",
-//     "rogerstanimoto",
-//     "russellrao",
-//     "sokalmichener",
-//     "correlation",
-// )
+
+  static final Set<String> sparse_need_n_features = new HashSet<>();
+  static {
+    sparse_need_n_features.add("hamming");
+    sparse_need_n_features.add("matching");
+    sparse_need_n_features.add("kulsinski");
+    sparse_need_n_features.add("rogerstanimoto");
+    sparse_need_n_features.add("russellrao");
+    sparse_need_n_features.add("sokalmichener");
+    sparse_need_n_features.add("correlation");
+  }
 }

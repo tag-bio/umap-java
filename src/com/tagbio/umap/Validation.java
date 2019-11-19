@@ -7,7 +7,7 @@ package com.tagbio.umap;
 // from umap.distances import named_distances
 
 
-private class Validation {
+class Validation {
 
 // @numba.njit()
 // def trustworthiness_vector_bulk(

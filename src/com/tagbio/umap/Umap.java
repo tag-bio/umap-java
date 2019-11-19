@@ -6,6 +6,7 @@ package com.tagbio.umap;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -179,7 +180,6 @@ import com.tagbio.umap.metric.ReducedEuclideanMetric;
 //     Controls verbosity of logging.
 // """
 public class Umap {
-  //class UMAP(BaseEstimator):
 
 // from __future__ import print_function
 // from warnings import warn
@@ -223,10 +223,6 @@ public class Umap {
 // )
 // from umap.spectral import spectral_layout
 
-// import locale
-
-// locale.setlocale(locale.LC_NUMERIC, "C")
-
   private static final int INT32_MIN = Integer.MIN_VALUE + 1;
   private static final int INT32_MAX = Integer.MAX_VALUE - 1;
 
@@ -234,9 +230,8 @@ public class Umap {
   private static final double MIN_K_DIST_SCALE = 1e-3;
   private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
 
-  // @numba.njit(
-//     fastmath=true
-// )  # benchmarking `parallel=true` shows it to *decrease* performance
+  private static Random rng = new Random(42); // todo seed!!!
+
   /*
     """Compute a continuous version of the distance to the kth nearest
     neighbor. That is, this is similar to knn-distance but allows continuous
@@ -277,15 +272,7 @@ public class Umap {
         The distance to the 1st nearest neighbor for each point.
     """
   */
-  private float[][] smooth_knn_dist(float[][] distances, double k) {
-    return smooth_knn_dist(distances, k, 64, 1.0, 1.0);
-  }
-
-  private float[][] smooth_knn_dist(float[][] distances, double k, double local_connectivitiy) {
-    return smooth_knn_dist(distances, k, 64, local_connectivitiy, 1.0);
-  }
-
-  private float[][] smooth_knn_dist(float[][] distances, double k, int n_iter, double local_connectivity, double bandwidth) {
+  private static float[][] smooth_knn_dist(float[][] distances, double k, int n_iter, double local_connectivity, double bandwidth) {
     double target = MathUtils.log2(k) * bandwidth;
     float[] rho = MathUtils.zeros(distances.length);
     float[] result = MathUtils.zeros(distances.length);
@@ -358,6 +345,14 @@ public class Umap {
     return new float[][]{result, rho};
   }
 
+  private static float[][] smooth_knn_dist(float[][] distances, double k) {
+    return smooth_knn_dist(distances, k, 64, 1.0, 1.0);
+  }
+
+  private static float[][] smooth_knn_dist(float[][] distances, double k, double local_connectivitiy) {
+    return smooth_knn_dist(distances, k, 64, local_connectivitiy, 1.0);
+  }
+
 
   // """Compute the ``n_neighbors`` nearest points for each data point in ``X``
   // under ``metric``. This may be exact, but more likely is approximated via
@@ -394,9 +389,8 @@ public class Umap {
   // knn_dists: array of shape (n_samples, n_neighbors)
   //     The distances to the ``n_neighbors`` closest points in the dataset.
   // """
-  private Object[] nearest_neighbors(
-    //float[][] X, // todo Huh? type conflict?
-    CsrMatrix X,
+  private static Object[] nearest_neighbors(
+    Matrix X,
     int n_neighbors,
     Object metric, // either a string or metric
     Map<String, Object> metric_kwds,
@@ -407,16 +401,20 @@ public class Umap {
       Utils.message("Finding Nearest Neighbors");
     }
 
+    int[][] knn_indices;
+    float[][] knn_dists;
+    List<?> rp_forest;
     if (metric.equals("precomputed")) {
-      // Note that this does not support sparse distance matrices yet ...
-      // Compute indices of n nearest neighbors
-      final int[][] knn_indices = Utils.fast_knn_indices(X, n_neighbors);
-      // Compute the nearest neighbor distances
-      //   (equivalent to np.sort(X)[:,:n_neighbors])
-      knn_dists = X[np.arange(X.length())[:,null],knn_indices].copy();
-      rp_forest = [];
+      throw new UnsupportedOperationException();
+//      // Note that this does not support sparse distance matrices yet ...
+//      // Compute indices of n nearest neighbors
+//      knn_indices = Utils.fast_knn_indices(X, n_neighbors);
+//      // Compute the nearest neighbor distances
+//      //   (equivalent to np.sort(X)[:,:n_neighbors])
+//      knn_dists = X[np.arange(X.length())[:,null],knn_indices].copy();
+//      rp_forest = [];
     } else {
-      final Metric distance_func;
+      Metric distance_func;
       if (metric instanceof Metric) {
         distance_func = (Metric) metric;
         // todo following is complicated due to handling of extra params (e.g. see StandardisedEuclideanMetric)
@@ -426,7 +424,6 @@ public class Umap {
         throw new IllegalArgumentException("Metric is neither callable, nor a recognised string");
       }
 
-      angular = distance_func.isAngular();
 //      if (metric in (
 //                     "cosine",
 //                     "correlation",
@@ -435,45 +432,38 @@ public class Umap {
 //                     )) {
 //        angular = true;
 //      }
+      angular = distance_func.isAngular();
 
       //final long[] rng_state = random_state.randint(INT32_MIN, INT32_MAX, 3).astype(np.int64);
-      final long[] rng_state = new long[]{random_state.nextLong(), random_state.nextLong(), random_state.nextLong()};
+      final long[] rng_state = new long[]{rng.nextLong(), rng.nextLong(), rng.nextLong()};
 
-      if (scipy.sparse.isspmatrix_csr(X)) {
-        if (metric in sparse.sparse_named_distances){
-          distance_func = sparse.sparse_named_distances[metric];
-          if (metric in sparse.sparse_need_n_features){
-            metric_kwds.put("n_features", X[0].length);
+      if (X instanceof CsrMatrix) { //scipy.sparse.isspmatrix_csr(X)) {
+        final CsrMatrix Y = (CsrMatrix) X;
+        if (Sparse.sparse_named_distances.containsKey(metric)){
+          distance_func = Sparse.sparse_named_distances.get(metric);
+          if (Sparse.sparse_need_n_features.contains(metric)) {
+            metric_kwds.put("n_features", X.shape()[1]);
           }
         } else{
           throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
         }
         metric_nn_descent = Sparse.make_sparse_nn_descent(distance_func, tuple(metric_kwds.values()));
 
-        int n_trees = 5 + (int) (Math.round(Math.pow(X.length(), 0.5 / 20.0)));
-        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(X.length()))));
+        int n_trees = 5 + (int) (Math.round(Math.pow(Y.length(), 0.5 / 20.0)));
+        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(Y.length()))));
         if (verbose) {
           Utils.message("Building RP forest with " + n_trees + " trees");
         }
 
-        rp_forest = make_forest(X, n_neighbors, n_trees, rng_state, angular);
-        leaf_array = rptree_leaf_array(rp_forest);
+        rp_forest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
+        leaf_array = RpTree.rptree_leaf_array(rp_forest);
 
         if (verbose) {
           Utils.message("NN descent for " + n_iters + " iterations");
         }
-        knn_indices, knn_dists = metric_nn_descent(
-          X.indices,
-          X.indptr,
-          X.data,
-          X.length(),
-          n_neighbors,
-          rng_state,
-          /*max_candidates=*/60,
-          /*rp_tree_init=*/true,
-          /*leaf_array=*/leaf_array,
-          /*n_iters=*/n_iters,
-          verbose);
+        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.length(), n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
+        knn_indices = (int[][]) nn[0];
+        knn_dists = (float[][]) nn[1];
       } else {
         // todo following evilness returns a function to do the nearest neighbour thing
         metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metric_kwds.values()));
@@ -483,20 +473,14 @@ public class Umap {
         if (verbose) {
           Utils.message("Building RP forest with " + n_trees + " trees");
         }
-        rp_forest = make_forest(X, n_neighbors, n_trees, rng_state, angular);
-        leaf_array = rptree_leaf_array(rp_forest);
+        rp_forest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
+        leaf_array = RpTree.rptree_leaf_array(rp_forest);
         if (verbose) {
           Utils.message("NN descent for " + n_iters + " iterations");
         }
-        knn_indices, knn_dists = NearestNeighborDescent.metric_nn_descent(
-          X,
-          n_neighbors,
-          rng_state,
-          /*max_candidates=*/60,
-          /*rp_tree_init=*/true,
-          /*leaf_array=*/leaf_array,
-          /*n_iters=*/n_iters,
-          /*verbose=*/verbose);
+        final Object[] nn = NearestNeighborDescent.metric_nn_descent(X, n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true, /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, /*verbose=*/verbose);
+        knn_indices = (int[][]) nn[0];
+        knn_dists = (float[][]) nn[1];
       }
 
       if (MathUtils.containsNegative(knn_indices)) {
@@ -540,30 +524,28 @@ public class Umap {
   // vals: array of shape (n_samples * n_neighbors)
   //     Entries for the resulting sparse matrix (coo format)
   // """
-  private Object[] compute_membership_strengths(int[][] knn_indices, float[][] knn_dists, float[] sigmas, float[] rhos) {
+  private static Object[] compute_membership_strengths(int[][] knn_indices, float[][] knn_dists, float[] sigmas, float[] rhos) {
     int n_samples = knn_indices.length;
     int n_neighbors = knn_indices[0].length;
+    final int size = n_samples * n_neighbors;
 
-    int[] rows = new int[knn_indices.size]; // todo size == length ???
-    int[] cols = new int[knn_indices.size];
-    float[] vals = new float[knn_indices.size];
+    int[] rows = new int[size];
+    int[] cols = new int[size];
+    float[] vals = new float[size];
 
     for (int i = 0; i < n_samples; ++i) {
       for (int j = 0; j < n_neighbors; ++j) {
         final double val;
         if (knn_indices[i][j] == -1) {
           continue;  // We didn't get the full knn for i
-          if (knn_indices[i][j] == i) {
-            val = 0.0;
-          } else if (knn_dists[i][j] - rhos[i] <= 0.0) {
-            val = 1.0;
-          } else {
-            val = Math.exp(-((knn_dists[i][j] - rhos[i]) / (sigmas[i])));
-          }
-        } else {
-          val = 0;
         }
-
+        if (knn_indices[i][j] == i) {
+          val = 0.0;
+        } else if (knn_dists[i][j] - rhos[i] <= 0.0) {
+          val = 1.0;
+        } else {
+          val = Math.exp(-((knn_dists[i][j] - rhos[i]) / (sigmas[i])));
+        }
         rows[i * n_neighbors + j] = i;
         cols[i * n_neighbors + j] = knn_indices[i][j];
         vals[i * n_neighbors + j] = (float) val;
@@ -677,11 +659,11 @@ public class Umap {
   //     j) entry of the matrix represents the membership strength of the
   //     1-simplex between the ith and jth sample points.
   // """
-  private SparseMatrix fuzzy_simplicial_set(
-    float[][] X,
+  private static Matrix fuzzy_simplicial_set(
+    Matrix X,
     int n_neighbors,
     long[] random_state,
-    String metric,
+    Object metric,  // todo yuck! fix type
     Map<String, Object> metric_kwds /*={}*/,
     int[][] knn_indices /*=null*/,
     float[][] knn_dists /*=null*/,
@@ -690,14 +672,7 @@ public class Umap {
     float local_connectivity /*=1.0*/,
     boolean verbose /*=false*/) {
     if (knn_indices == null || knn_dists == null) {
-      final Object[] nn = nearest_neighbors(
-        X,
-        n_neighbors,
-        metric,
-        metric_kwds,
-        angular,
-        random_state,
-        verbose);
+      final Object[] nn = nearest_neighbors(X, n_neighbors, metric, metric_kwds, angular, random_state, verbose);
       knn_indices = (int[][]) nn[0];
       knn_dists = (float[][]) nn[1];
     }
@@ -711,12 +686,12 @@ public class Umap {
     final int[] cols = (int[]) rcv[1];
     final float[] vals = (float[]) rcv[2];
 
-    SparseMatrix result = new CooMatrix(vals, rows, cols, new int[]{X.length, X.length});
+    Matrix result = new CooMatrix(vals, rows, cols, new int[]{(int) X.length(), (int) X.length()});
     result.eliminate_zeros();
 
-    SparseMatrix transpose = result.transpose();
+    Matrix transpose = result.transpose();
 
-    SparseMatrix prod_matrix = result.multiply(transpose);
+    Matrix prod_matrix = result.multiply(transpose);
 
     result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0 - set_op_mix_ratio));
 
@@ -756,7 +731,7 @@ public class Umap {
   // -------
   // null
   // """
-  private void fast_intersection(int[] rows, int[] cols, float[] values, float[] target, double unknown_dist, double far_dist) {
+  private static void fast_intersection(int[] rows, int[] cols, float[] values, float[] target, double unknown_dist, double far_dist) {
     for (int nz = 0; nz < rows.length; ++nz) {
       final int i = rows[nz];
       final int j = cols[nz];
@@ -768,7 +743,7 @@ public class Umap {
     }
   }
 
-  private void fast_intersection(int[] rows, int[] cols, float[] values, float[] target) {
+  private static void fast_intersection(int[] rows, int[] cols, float[] values, float[] target) {
     fast_intersection(rows, cols, values, target, 1.0, 5.0);
   }
 
@@ -789,10 +764,10 @@ public class Umap {
   //     The recalculated simplicial set, now with the local connectivity
   //     assumption restored.
   // """
-  private SparseMatrix reset_local_connectivity(SparseMatrix simplicial_set) {
-    simplicial_set = normalize(simplicial_set, /*norm=*/"max"); // todo defined in sklearn
-    SparseMatrix transpose = simplicial_set.transpose();
-    SparseMatrix prod_matrix = simplicial_set.multiply(transpose);
+  private static Matrix reset_local_connectivity(Matrix simplicial_set) {
+    simplicial_set = Normalize.normalize(simplicial_set, "max");
+    Matrix transpose = simplicial_set.transpose();
+    Matrix prod_matrix = simplicial_set.multiply(transpose);
     simplicial_set = simplicial_set.add(transpose).subtract(prod_matrix);
     simplicial_set.eliminate_zeros();
 
@@ -825,7 +800,7 @@ public class Umap {
   // simplicial_set: sparse matrix
   //     The resulting intersected fuzzy simplicial set.
   // """
-  private SparseMatrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, float unknown_dist/*=1.0*/, float far_dist/*=5.0*/) {
+  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double unknown_dist, double far_dist/*=5.0*/) {
     simplicial_set = simplicial_set.tocoo();
 
     fast_intersection(
@@ -841,7 +816,11 @@ public class Umap {
     return reset_local_connectivity(simplicial_set);
   }
 
-  private SparseMatrix general_simplicial_set_intersection(SparseMatrix simplicial_set1, SparseMatrix simplicial_set2, float weight) {
+  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double far_dist/*=5.0*/) {
+    return categorical_simplicial_set_intersection(simplicial_set, target, 1.0, far_dist);
+  }
+
+  private static Matrix general_simplicial_set_intersection(Matrix simplicial_set1, Matrix simplicial_set2, float weight) {
 
     CooMatrix result = simplicial_set1.add(simplicial_set2).tocoo();
     CsrMatrix left = simplicial_set1.tocsr();
@@ -877,7 +856,7 @@ public class Umap {
   // -------
   // An array of number of epochs per sample, one for each 1-simplex.
   // """
-  private float[] make_epochs_per_sample(float[] weights, int n_epochs) {
+  private static float[] make_epochs_per_sample(float[] weights, int n_epochs) {
     final float[] result = new float[weights.length]; //-1.0 * np.ones(weights.length, dtype=np.float64);
     Arrays.fill(result, -1.0F);
     final float[] n_samples = MathUtils.multiply(MathUtils.divide(weights, MathUtils.max(weights)), n_epochs);
@@ -903,7 +882,7 @@ public class Umap {
   // -------
   // The clamped value, now fixed to be in the range -4.0 to 4.0.
   // """
-  private double clip(double val) {
+  private static double clip(double val) {
     if (val > 4.0) {
       return 4.0;
     } else if (val < -4.0) {
@@ -924,7 +903,7 @@ public class Umap {
   // -------
   // The squared euclidean distance between x and y
   // """
-  private double rdist(float[] x, float[] y) {
+  private static double rdist(float[] x, float[] y) {
     return ReducedEuclideanMetric.SINGLETON.distance(x, y);
   }
 
@@ -988,9 +967,9 @@ public class Umap {
   // embedding: array of shape (n_samples, n_components)
   //     The optimized embedding.
   // """
-  private Object optimize_layout(
-    float[][] head_embedding,
-    float[][] tail_embedding,
+  private static Matrix optimize_layout(
+    Matrix head_embedding,
+    Matrix tail_embedding,
     int[] head,
     int[] tail,
     int n_epochs,
@@ -1000,12 +979,12 @@ public class Umap {
     float b,
     long[] rng_state,
     float gamma /*=1.0*/,
-    float initial_alpha /*=1.0*/,
+    double initial_alpha /*=1.0*/,
     float negative_sample_rate /*=5.0*/,
     boolean verbose) {
 
-    int dim = head_embedding[0].length;
-    boolean move_other = (head_embedding.length == tail_embedding.length);
+    int dim = head_embedding.shape()[1];
+    boolean move_other = (head_embedding.shape()[0] == tail_embedding.shape()[0]);
     double alpha = initial_alpha;
 
     float[] epochs_per_negative_sample = MathUtils.divide(epochs_per_sample, negative_sample_rate);
@@ -1018,8 +997,8 @@ public class Umap {
           int j = head[i];
           int k = tail[i];
 
-          float[] current = head_embedding[j];
-          float[] other = tail_embedding[k];
+          float[] current = head_embedding.row(j);
+          float[] other = tail_embedding.row(k);
 
           double dist_squared = rdist(current, other);
 
@@ -1046,7 +1025,7 @@ public class Umap {
           for (int p = 0; p < n_neg_samples; ++p) {
             k = Utils.tau_rand_int(rng_state) % n_vertices;
 
-            other = tail_embedding[k];
+            other = tail_embedding.row(k);
 
             dist_squared = rdist(current, other);
 
@@ -1152,28 +1131,28 @@ public class Umap {
   //     The optimized of ``graph`` into an ``n_components`` dimensional
   //     euclidean space.
   // """
-  private Object simplicial_set_embedding(
-    float[][] data,
+  private static Matrix simplicial_set_embedding(
+    Matrix data,
     CooMatrix graph,
     int n_components,
-    float initial_alpha,
+    double initial_alpha,
     float a,
     float b,
     float gamma,
     int negative_sample_rate,
     int n_epochs,
     String init,
-    Random random_state,
-    Metric metric,
-    Map<String, String> metric_kwds,
+    long[] random_state,
+    Object metric, // todo yuck
+    Map<String, Object> metric_kwds,
     boolean verbose) {
     graph = graph.tocoo();
     graph.sum_duplicates();
-    int n_vertices = graph.shape[1];
+    int n_vertices = graph.shape()[1];
 
     if (n_epochs <= 0) {
       // For smaller datasets we can use more epochs
-      if (graph.length <= 10000) {
+      if (graph.length() <= 10000) {
         n_epochs = 500;
       } else {
         n_epochs = 200;
@@ -1183,34 +1162,28 @@ public class Umap {
     MathUtils.zeroEntriesBelowLimit(graph.data, MathUtils.max(graph.data) / (float) n_epochs);
     graph.eliminate_zeros();
 
-    Object embedding;
+    Matrix embedding;
     if (init instanceof String && init.equals("random")) {
-      embedding = random_state.uniform(low = -10.0, high = 10.0, size = (graph.length, n_components)).
-      astype(np.float32);
+      embedding = random_state.uniform(low = -10.0, high = 10.0, size = (graph.length(), n_components)).astype(np.float32);
     } else if (init instanceof String && init.equals("spectral")) {
       // We add a little noise to avoid local minima for optimization to come
-      initialisation = spectral_layout(
-        data,
-        graph,
-        n_components,
-        random_state,
-        /*metric=*/metric,
-        /*metric_kwds=*/metric_kwds);
-      double expansion = 10.0 / Math.abs(initialisation).max();
-      embedding = (initialisation * expansion).astype(np.float32) + random_state.normal(scale = 0.0001, size =[graph.length, n_components]).
-      astype(np.float32);
+      float[][] initialisation = Spectral.spectral_layout(data, graph, n_components, random_state, /*metric=*/metric, /*metric_kwds=*/metric_kwds);
+      float expansion = 10.0 / Math.abs(initialisation).max();
+      embedding = (MathUtils.multiply(initialisation, expansion)).astype(np.float32) + random_state.normal(scale = 0.0001, size =[graph.length(), n_components]).astype(np.float32);
     } else {
-      init_data = np.array(init);
-      if (len(init_data.shape) == 2) {
-        if (np.unique(init_data, axis = 0).length < init_data.length) {
-          tree = KDTree(init_data);
-          dist, ind = tree.query(init_data, k = 2);
-          nndist = MathUtils.mean(dist[:,1]);
-          embedding = init_data + random_state.normal(scale = 0.001 * nndist, size = init_data.shape).astype(np.float32);
-        } else {
-          embedding = init_data;
-        }
-      }
+      // Situation where init contains prepared data
+      throw new UnsupportedOperationException();
+//      init_data = np.array(init);
+//      if (len(init_data.shape) == 2) {
+//        if (np.unique(init_data, /*axis =*/ 0).length < init_data.length) {
+//          tree = KDTree(init_data);
+//          float[][] dist /*, ind*/ = tree.query(init_data, k = 2);
+//          double nndist = MathUtils.mean(dist, 1);
+//          embedding = init_data + random_state.normal(scale = 0.001 * nndist, size = init_data.shape).astype(np.float32);
+//        } else {
+//          embedding = init_data;
+//        }
+//      }
     }
 
     final float[] epochs_per_sample = make_epochs_per_sample(graph.data, n_epochs);
@@ -1218,10 +1191,10 @@ public class Umap {
     int[] tail = graph.col;
 
     //long[]  rng_state = random_state.randint(INT32_MIN, INT32_MAX, 3).astype(np.int64);
-    final long[] rng_state = new long[]{random_state.nextLong(), random_state.nextLong(), random_state.nextLong()};
-    embedding = optimize_layout(
-      (float[][]) embedding,
-      (float[][]) embedding,
+    final long[] rng_state = new long[]{rng.nextLong(), rng.nextLong(), rng.nextLong()};
+    Matrix res_embedding = optimize_layout(
+      embedding,
+      embedding,
       head,
       tail,
       n_epochs,
@@ -1235,7 +1208,7 @@ public class Umap {
       negative_sample_rate,
       verbose);
 
-    return embedding;
+    return res_embedding;
   }
 
 
@@ -1260,21 +1233,17 @@ public class Umap {
   // new_embedding: array of shape (n_new_samples, dim)
   //     An initial embedding of the new sample points.
   // """
-  private float[][] init_transform(int[][] indices, float[][] weights, float[][] embedding) {
-    final float[][] result = new float[indices.length][embedding[0].length];
-//  MathUtils.zeros(
-//    (indices.length, embedding.shape[1]),
-//    dtype = np.float32);
-
+  private static Matrix init_transform(int[][] indices, float[][] weights, Matrix embedding) {
+    final float[][] result = new float[indices.length][embedding.shape()[1]];
     for (int i = 0; i < indices.length; ++i) {
       for (int j = 0; j < indices[i].length; ++j) {
-        for (int d = 0; d < embedding[0].length; ++d) {
-          result[i][d] += (weights[i][j] * embedding[indices[i][j]][d]);
+        for (int d = 0; d < embedding.shape()[1]; ++d) {
+          result[i][d] += (weights[i][j] * embedding.get(indices[i][j], d));
         }
       }
     }
 
-    return result;
+    return new DefaultMatrix(result);
   }
 
   private static double curve(final float x, final float a, final float b) {
@@ -1286,7 +1255,7 @@ public class Umap {
   // smooth curve (from a pre-defined family with simple gradient) that
   // best matches an offset exponential decay.
   // """
-  private float[] find_ab_params(float spread, float min_dist) {
+  private static float[] find_ab_params(float spread, float min_dist) {
     float[] xv = MathUtils.linspace(0, spread * 3, 300);
     float[] yv = new float[xv.length];
     //  yv[xv < min_dist] = 1.0;
@@ -1301,8 +1270,6 @@ public class Umap {
     final float[] params /*, covar*/ = curve_fit(curve, xv, yv); // todo here curve is the function above -- curve_fit in scipy
     return new float[]{params[0], params[1]};
   }
-
-// todo SAI All methods above here can be static?
 
   private boolean angular_rp_forest = false;
   private String init = "spectral";
@@ -1319,7 +1286,7 @@ public class Umap {
   private float local_connectivity = 1.0F;
   private int negative_sample_rate = 5;
   private float transform_queue_size = 4.0F;
-  private String target_metric = "categorical";
+  private Object target_metric = "categorical"; // todo would prefer this to be type Metric
   private int target_n_neighbors = -1;
   private float target_weight = 0.5F;
   private int transform_seed = 42;
@@ -1327,7 +1294,7 @@ public class Umap {
   private boolean verbose = false;
   private Float a = null;
   private Float b = null;
-  private Random random_state = new Random();
+  private long[] random_state = new long[] {rng.nextLong(), rng.nextLong(), rng.nextLong()};
 
   private double _initial_alpha;
   private int _n_neighbors;
@@ -1336,11 +1303,15 @@ public class Umap {
   private float _b;
   private HashMap<String, Object> _metric_kwds;
   private HashMap<String, Object> _target_metric_kwds;
-  private SparseMatrix _raw_data;
+  private Matrix _raw_data;
+  private CsrMatrix _search_graph;
   private int[][] _knn_indices;
+  private float[][] _knn_dists;
+  private List<?> _rp_forest;
   private boolean _small_data;
-  private SparseMatrix graph_;
-  private float[][] embedding_;
+  private Metric _distance_func;
+  private Matrix graph_;
+  private Matrix embedding_;
 
   public void setInit(final String init) {
     this.init = init;
@@ -1418,7 +1389,7 @@ public class Umap {
     this.verbose = verbose;
   }
 
-  public void setRandom_state(final Random random_state) {
+  public void setRandom_state(final long[] random_state) {
     this.random_state = random_state;
   }
 
@@ -1508,7 +1479,7 @@ public class Umap {
   //     The relevant attributes are ``target_metric`` and
   //     ``target_metric_kwds``.
   // """
-  private void fit(SparseMatrix X, float[] y /*=null*/) {
+  private void fit(Matrix X, float[] y /*=null*/) {
 
     //X = check_array(X, dtype = np.float32, accept_sparse = "csr");
     this._raw_data = X;
@@ -1525,54 +1496,54 @@ public class Umap {
       this._metric_kwds = new HashMap<>(this.metric_kwds);
       this._target_metric_kwds = new HashMap<>(this.target_metric_kwds);
 
-      String init;
-      if (isinstance(this.init, np.ndarray)) {
-        init = check_array(this.init,        /*  dtype = */np.float32,         /* accept_sparse =*/ false);
-      } else {
-        init = this.init;
-      }
+//      if (isinstance(this.init, np.ndarray)) {
+//        init = check_array(this.init,        /*  dtype = */np.float32,         /* accept_sparse =*/ false);
+//      } else {
+//        init = this.init;
+//      }
+      String init = this.init;
 
       this._initial_alpha = this.learning_rate;
 
       this._validate_parameters();
 
       if (this.verbose) {
-        print(str(self));
+        Utils.message(this.toString()); // todo?  Huh? will this do anything useful -- there is no toString()
       }
 
       // Error check n_neighbors based on data size
-      if (X.length <= this.n_neighbors) {
-        if (X.length == 1) {
-          this.embedding_ = MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
-          return this;
+      if (X.length() <= this.n_neighbors) {
+        if (X.length() == 1) {
+          this.embedding_ = new DefaultMatrix(new float[1][this.n_components]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
+          return;
         }
 
         Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
-        this._n_neighbors = X.length - 1;
+        this._n_neighbors = (int) (X.length() - 1);
       } else {
         this._n_neighbors = this.n_neighbors;
       }
 
-      if (scipy.sparse.isspmatrix_csr(X)) {
-        if (!X.has_sorted_indices) {
-          X.sort_indices();
+      if (X instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
+        final CsrMatrix Y = (CsrMatrix) X;
+        if (!Y.has_sorted_indices()) {
+          Y.sort_indices();
         }
         this._sparse_data = true;
       } else {
         this._sparse_data = false;
       }
 
-      long[] random_state = check_random_state(this.random_state);
+      long[] random_state = this.random_state; //check_random_state(this.random_state);
 
       if (this.verbose) {
         Utils.message("Construct fuzzy simplicial set");
       }
 
       // Handle small cases efficiently by computing all distances
-      if (X.length < 4096) {
+      if (X.length() < 4096) {
         this._small_data = true;
-        //dmat = pairwise_distances(          X, metric = this.metric, **this._metric_kwds );
-        float[][] dmat = pairwise_distances(X, metric = this.metric, this._metric_kwds);
+        Matrix dmat = PairwiseDistances.pairwise_distances(X, (Metric) this.metric, this._metric_kwds);
         this.graph_ = fuzzy_simplicial_set(
           dmat,
           this._n_neighbors,
@@ -1589,19 +1560,11 @@ public class Umap {
       } else {
         this._small_data = false;
         // Standard case
-        (
-          this._knn_indices,
-          this._knn_dists,
-          this._rp_forest,
-            ) =nearest_neighbors(
-          X,
-          this._n_neighbors,
-          this.metric,
-          this._metric_kwds,
-          this.angular_rp_forest,
-          random_state,
-          this.verbose
-        );
+        final Object[] nn = nearest_neighbors(X, this._n_neighbors, this.metric, this._metric_kwds, this.angular_rp_forest, random_state, this.verbose);
+
+          this._knn_indices = (int[][]) nn[0];
+          this._knn_dists = (float[][]) nn[1];
+          this._rp_forest = (List<?>) nn[2];
 
         this.graph_ = fuzzy_simplicial_set(
           X,
@@ -1617,26 +1580,25 @@ public class Umap {
           this.verbose
         );
 
-        this._search_graph = scipy.sparse.lil_matrix((X.length, X.length), dtype = np.int8      );
+        // todo this starts as LilMatrix type but ends up as a CsrMatrix!
+        // todo according to scipy an efficiency thing -- but bytes ??
+        this._search_graph = scipy.sparse.lil_matrix((X.length(), X.length()), dtype = np.int8      );
         this._search_graph.rows = this._knn_indices;
         this._search_graph.data = (this._knn_dists != 0).astype(np.int8);
-        this._search_graph = this._search_graph.maximum(
-          this._search_graph.transpose()
-        ).tocsr();
+        this._search_graph = this._search_graph.maximum(      this._search_graph.transpose()   ).tocsr();
 
-        if (callable(this.metric)) {
-          this._distance_func = this.metric;
-        } else if (this.metric in dist.named_distances){
-          this._distance_func = dist.named_distances[this.metric];
+        if (this.metric instanceof Metric) {
+          this._distance_func = (Metric) this.metric;
+//        } else if (this.metric in dist.named_distances) {
+//          this._distance_func = dist.named_distances[this.metric];
         } else if (this.metric == "precomputed") {
           Utils.message("Using precomputed metric; transform will be unavailable for new data");
         } else {
           throw new IllegalArgumentException("Metric is neither callable, nor a recognised string");
         }
 
-        if (this.metric != "precomputed") {
-          this._dist_args = tuple(this._metric_kwds.values());
-
+        if (!"precomputed".equals(this.metric)) {
+          this._dist_args = tuple(this._metric_kwds.values()); // todo this is weird? -- how do values get associated with what they are?
           this._random_init, this._tree_init = make_initialisations(this._distance_func, this._dist_args);
           this._search = make_initialized_nnd_search(this._distance_func, this._dist_args);
         }
@@ -1645,10 +1607,11 @@ public class Umap {
 
 
     if (y != null) {
-      if (X.length != y.length) {
-        throw new IllegalArgumentException("Length of x =  " + X.length + ", length of y = " + y.length + ", while it must be equal.");
+      if (X.length() != y.length) {
+        throw new IllegalArgumentException("Length of x =  " + X.length() + ", length of y = " + y.length + ", while it must be equal.");
       }
-      float[] y_ = check_array(y, ensure_2d = false);
+      //float[] y_ = check_array(y, ensure_2d = false);
+      float[] y_ = y;
       if (this.target_metric.equals("categorical")) {
         final double far_dist;
         if (this.target_weight < 1.0) {
@@ -1656,7 +1619,7 @@ public class Umap {
         } else {
           far_dist = 1.0e12;
         }
-        this.graph_ = categorical_simplicial_set_intersection(this.graph_, y_, /*far_dist =*/ far_dist);
+        this.graph_ = categorical_simplicial_set_intersection((CooMatrix) this.graph_, y_, /*far_dist =*/ far_dist);
       } else {
         final int target_n_neighbors;
         if (this.target_n_neighbors == -1) {
@@ -1665,13 +1628,11 @@ public class Umap {
           target_n_neighbors = (this.target_n_neighbors);
         }
 
+        Matrix target_graph;
         // Handle the small case as precomputed as before
         if (y.length < 4096) {
-          ydmat = pairwise_distances(
-            y_[np.newaxis, :].T,
-            metric = this.target_metric,
-                        **this._target_metric_kwds
-                                               );
+          //Matrix ydmat = PairwiseDistances.pairwise_distances(y_[np.newaxis, :].T,  (Metric) this.target_metric,  this._target_metric_kwds);
+          Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_),  (Metric) this.target_metric,  this._target_metric_kwds);
           target_graph = fuzzy_simplicial_set(
             ydmat,
             target_n_neighbors,
@@ -1681,14 +1642,13 @@ public class Umap {
             null,
             null,
             false,
-            1.0,
-            1.0,
-            false
-          );
+            1.0F,
+            1.0F,
+            false);
         } else {
           // Standard case
           target_graph = fuzzy_simplicial_set(
-            y_[np.newaxis, :].T,
+            MathUtils.promoteTranspose(y_),  //y_[np.newaxis, :].T,
             target_n_neighbors,
             random_state,
             this.target_metric,
@@ -1696,8 +1656,8 @@ public class Umap {
             null,
             null,
             false,
-            1.0,
-            1.0,
+            1.0F,
+            1.0F,
             false);
         }
         // product = this.graph_.multiply(target_graph)
@@ -1711,6 +1671,7 @@ public class Umap {
     }
 
 
+    int n_epochs;
     if (this.n_epochs == null) {
       n_epochs = 0;
     } else {
@@ -1723,7 +1684,7 @@ public class Umap {
 
     this.embedding_ = simplicial_set_embedding(
       this._raw_data,
-      this.graph_,
+      (CooMatrix) this.graph_,
       this.n_components,
       this._initial_alpha,
       this._a,
@@ -1742,9 +1703,9 @@ public class Umap {
       Utils.message("Finished embedding");
     }
 
-    this._input_hash = joblib.hash(this._raw_data);
+    //this._input_hash = joblib.hash(this._raw_data);
 
-    return self;
+    //return this;
   }
 
   // """Fit X into an embedded space and return that transformed
@@ -1767,9 +1728,13 @@ public class Umap {
   // X_new : array, shape (n_samples, n_components)
   //     Embedding of the training data in low-dimensional space.
   // """
-  private float[][] fit_transform(float[][] X, float[] y /*=null*/) {
+  Matrix fit_transform(Matrix X, float[] y) {
     fit(X, y);
     return this.embedding_;
+  }
+
+  Matrix fit_transform(Matrix X) {
+    return fit_transform(X, null);
   }
 
   // """Transform X into the existing embedded space and return that
@@ -1786,16 +1751,17 @@ public class Umap {
   //     Embedding of the new data in low-dimensional space.
   // """
   // If we fit just a single instance then error
-  private float[][] transform(float[][] X) {
-    if (this.embedding_.length == 1) {
+  private Matrix transform(Matrix X) {
+    if (this.embedding_.length() == 1) {
       throw new IllegalArgumentException("Transform unavailable when model was fit with only a single data sample.");
     }
     // If we just have the original input then short circuit things
-    X = check_array(X, dtype = np.float32, accept_sparse = "csr");
-    x_hash = joblib.hash(X);
-    if (x_hash == this._input_hash) {
-      return this.embedding_;
-    }
+    //X = check_array(X, dtype = np.float32, accept_sparse = "csr");
+    // todo caching of previous run ?
+//    int x_hash = joblib.hash(X);
+//    if (x_hash == this._input_hash) {
+//      return this.embedding_;
+//    }
 
     if (this._sparse_data) {
       throw new IllegalArgumentException("Transform not available for sparse input.");
@@ -1803,34 +1769,27 @@ public class Umap {
       throw new IllegalArgumentException("Transform  of new data not available for precomputed metric.");
     }
 
-    X = check_array(X, dtype = np.float32, order = "C");
-    random_state = check_random_state(this.transform_seed);
-    // final long[] rng_state = random_state.randint(            INT32_MIN, INT32_MAX, 3               ).astype(np.int64);
-    final long[] rng_state = new long[]{random_state.nextLong(), random_state.nextLong(), random_state.nextLong()};
+    //X = check_array(X, dtype = np.float32, order = "C");
+    //random_state = check_random_state(this.transform_seed); // todo
+    // final long[] rng_state = random_state.randint(INT32_MIN, INT32_MAX, 3).astype(np.int64);
+    final long[] rng_state = new long[]{rng.nextLong(), rng.nextLong(), rng.nextLong()};
 
+    int[][] indices;
+    float[][] dists;
     if (this._small_data) {
-      dmat = pairwise_distances(
-        X,
-        this._raw_data,
-        metric = this.metric,
-        **this._metric_kwds);
-      indices = np.argpartition(dmat, this._n_neighbors)[:, :this._n_neighbors];
-      dmat_shortened = submatrix(dmat, indices, this._n_neighbors);
-      indices_sorted = np.argsort(dmat_shortened);
-      indices = submatrix(indices, indices_sorted, this._n_neighbors);
-      dists = submatrix(
-        dmat_shortened,
-        indices_sorted,
-        this._n_neighbors);
+      Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, /*metric = */this.metric, this._metric_kwds); // todo pairwise_distances from sklearn metrics
+      //indices = np.argpartition(dmat, this._n_neighbors)[:, :this._n_neighbors];
+      indices = MathUtils.subArray(MathUtils.argpartition(dmat, this._n_neighbors), this._n_neighbors);
+      float[][] dmat_shortened = Utils.submatrix(dmat, indices, this._n_neighbors);
+      int[][] indices_sorted = MathUtils.argsort(dmat_shortened);
+      indices = Utils.submatrix(indices, indices_sorted, this._n_neighbors);
+      dists = Utils.submatrix(dmat_shortened, indices_sorted, this._n_neighbors);
     } else {
       init = initialise_search(
         this._rp_forest,
         this._raw_data,
         X,
-        (int) (
-          this._n_neighbors
-            * this.transform_queue_size
-        ),
+        (int) (this._n_neighbors * this.transform_queue_size),
         this._random_init,
         this._tree_init,
         rng_state);
@@ -1842,25 +1801,30 @@ public class Umap {
         X);
 
       indices, dists = deheap_sort(result);
-      indices = indices[:, :this._n_neighbors];
-      dists = dists[:, :this._n_neighbors];
+//      indices = indices[:, :this._n_neighbors];
+//      dists = dists[:, :this._n_neighbors];
+      indices = MathUtils.subArray(indices, this._n_neighbors);
+      dists = MathUtils.subArray(dists, this._n_neighbors);
     }
 
     double adjusted_local_connectivity = Math.max(0, this.local_connectivity - 1.0);
-    final float[][] sigmasRhos = smooth_knn_dist(dists, this._n_neighbors,      /* local_connectivity=*/adjusted_local_connectivity);
+    final float[][] sigmasRhos = smooth_knn_dist(dists, this._n_neighbors, /* local_connectivity=*/adjusted_local_connectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];
-    rows, cols, vals = compute_membership_strengths(indices, dists, sigmas, rhos);
+    final Object[] rcv = compute_membership_strengths(indices, dists, sigmas, rhos);
+    final int[] rows = (int[]) rcv[0];
+    final int[] cols = (int[]) rcv[1];
+    final float[] vals = (float[]) rcv[2];
 
-    CooMatrix graph = new CooMatrix(vals, rows, cols, new int[]{X.length, this._raw_data.length});
+    CooMatrix graph = new CooMatrix(vals, rows, cols, new int[]{(int) X.length(), (int) this._raw_data.length()});
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
-    CsrMatrix csr_graph = normalize(graph.tocsr(), norm = "l1");
-    inds = csr_graph.indices.reshape(X.length, this._n_neighbors);
-    weights = csr_graph.data.reshape(X.length, this._n_neighbors);
-    embedding = init_transform(inds, weights, this.embedding_);
+    CsrMatrix csr_graph = (CsrMatrix) Normalize.normalize(graph.tocsr(), "l1");
+    int[][] inds = csr_graph.indices.reshape(X.length(), this._n_neighbors);
+    float[][] weights = csr_graph.data.reshape(X.length(), this._n_neighbors);
+    Matrix embedding = init_transform(inds, weights, this.embedding_);
 
     final int n_epochs;
     if (this.n_epochs == null) {
@@ -1879,16 +1843,16 @@ public class Umap {
 
     final float[] epochs_per_sample = make_epochs_per_sample(graph.data, n_epochs);
 
-    int head = graph.row;
-    int tail = graph.col;
+    int[] head = graph.row;
+    int[] tail = graph.col;
 
-    embedding = optimize_layout(
+    Matrix res_embedding = optimize_layout(
       embedding,
-      this.embedding_.astype(np.float32, copy = true),  // Fixes #179 & #217
+      this.embedding_.copy(), //.astype(np.float32, copy = true),  // Fixes #179 & #217
       head,
       tail,
       n_epochs,
-      graph.shape[1],
+      graph.shape()[1],
       epochs_per_sample,
       this._a,
       this._b,
@@ -1896,9 +1860,9 @@ public class Umap {
       this.repulsion_strength,
       this._initial_alpha,
       this.negative_sample_rate,
-      this.verbose,
+      this.verbose
       );
 
-    return embedding;
+    return res_embedding;
   }
 }

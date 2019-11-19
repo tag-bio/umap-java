@@ -3,7 +3,7 @@ package com.tagbio.umap;
 /**
  * @author Sean A. Irvine
  */
-class CooMatrix extends SparseMatrix {
+class CooMatrix extends Matrix {
   // todo -- replacement fo scipy coo_matrix
 
   CooMatrix(final float[] vals, final int[] rows, final int[] cols, final int[] lengths) {

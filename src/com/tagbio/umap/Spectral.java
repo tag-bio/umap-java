@@ -9,7 +9,7 @@ package com.tagbio.umap;
 // from sklearn.metrics import pairwise_distances
 // from warnings import warn
 
-private class Spectral {
+class Spectral {
 
 // def component_layout(
 //     data, n_components, component_labels, dim, metric="euclidean", metric_kwds={}

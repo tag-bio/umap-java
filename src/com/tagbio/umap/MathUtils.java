@@ -1,5 +1,7 @@
 package com.tagbio.umap;
 
+import java.util.Arrays;
+
 /**
  * Math utilities equivalent to Python numpy functionality.
  * @author Sean A. Irvine
@@ -63,6 +65,14 @@ class MathUtils {
     return s / c;
   }
 
+  static double mean(final float[][] x, final int col) {
+    double s = 0;
+    for (final float[] row : x) {
+        s += row[col];
+    }
+    return s / x.length;
+  }
+
   /**
    * Retain only positive members of x in a new array.
    * @param x array
@@ -85,9 +95,9 @@ class MathUtils {
     return res;
   }
 
-  static boolean containsNegative(final float[][] x) {
-    for (final float[] row : x) {
-      for (final float v : row) {
+  static boolean containsNegative(final int[][] x) {
+    for (final int[] row : x) {
+      for (final int v : row) {
         if (v < 0) {
           return true;
         }
@@ -100,6 +110,14 @@ class MathUtils {
     final float[] res = new float[x.length];
     for (int k = 0; k < x.length; ++k) {
       res[k] = x[k] * s;
+    }
+    return res;
+  }
+
+  static float[][] multiply(final float[][] x, final float s) {
+    final float[][] res = new float[x.length][];
+    for (int k = 0; k < x.length; ++k) {
+      res[k] = multiply(x[k], s);
     }
     return res;
   }
@@ -121,8 +139,21 @@ class MathUtils {
 
   static int[] argsort(final float[] x) {
     // todo return an array of indices that would sort x (i.e. effectively satellite sort on identity array)
-    // todo perhaps do this in another clasee
-    // todo note funcitonality exists in some libraries
+    // todo perhaps do this in another class
+    // todo note functionality exists in some libraries
+    return null;
+  }
+
+  static int[][] argsort(final float[][] x) {
+    // todo return an array of indices that would sort x (i.e. effectively satellite sort on identity array)
+    // todo perhaps do this in another class
+    // todo note functionality exists in some libraries
+    return null;
+  }
+
+  static int[][] argpartition(final Matrix x, final int n) {
+    // todo https://docs.scipy.org/doc/numpy/reference/generated/numpy.argpartition.html
+    // todo Yikes!
     return null;
   }
 
@@ -132,5 +163,30 @@ class MathUtils {
         x[k] = 0;
       }
     }
+  }
+
+  static float[][] subArray(final float[][] x, final int cols) {
+    final float[][] res = new float[x.length][];
+    for (int k = 0; k < x.length; ++k) {
+      res[k] = Arrays.copyOf(x[k], cols);
+    }
+    return res;
+  }
+
+  static int[][] subArray(final int[][] x, final int cols) {
+    final int[][] res = new int[x.length][];
+    for (int k = 0; k < x.length; ++k) {
+      res[k] = Arrays.copyOf(x[k], cols);
+    }
+    return res;
+  }
+
+  // Do equivalent of numpy: x[np.newaxis, :].T
+  static Matrix promoteTranspose(final float[] x) {
+    final float[][] res = new float[x.length][1];
+    for (int k = 0; k < x.length; ++k) {
+      res[k][0] = x[k];
+    }
+    return new DefaultMatrix(res);
   }
 }

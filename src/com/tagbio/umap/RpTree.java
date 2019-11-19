@@ -17,7 +17,7 @@ package com.tagbio.umap;
 // import scipy.sparse
 // import locale
 
-private class RpTree {
+class RpTree {
   
 // locale.setlocale(locale.LC_NUMERIC, "C")
 
