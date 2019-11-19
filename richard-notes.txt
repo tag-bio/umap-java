@@ -22,3 +22,16 @@ curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False, check_fini
 * things like _check_func not needed, as we are in control of the shape of the matricies?
 
 * What exceptions/errors to throw?
+
+
+Debug of iris dataset run.
+
+UMAP.fit_transform(X, y)
+  - X : 2D ndarray of float64 (150,4)
+  - y : None
+
+find_ab_params(spread, min_dist)
+  - spread : 1.0
+  - min_dist : 0.1
+curve_fit()
+  - always called with default settings, so always returns same values
