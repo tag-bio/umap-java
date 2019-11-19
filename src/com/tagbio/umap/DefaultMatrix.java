@@ -5,9 +5,20 @@ package com.tagbio.umap;
  */
 class DefaultMatrix extends Matrix {
 
-  // todo
+  private final float[][] data;
 
   DefaultMatrix(final float[][] vals) {
-    // todo
+    super(vals.length, vals[0].length);
+    data = vals;
+  }
+
+  @Override
+  float get(final int row, final int col) {
+    return data[row][col];
+  }
+
+  @Override
+  void set(final int row, final int col, final float val) {
+    data[row][col] = val;
   }
 }

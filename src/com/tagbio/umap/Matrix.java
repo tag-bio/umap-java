@@ -1,81 +1,85 @@
 package com.tagbio.umap;
 
 /**
+ * Base class for matrices.
  * @author Sean A. Irvine
  */
-class Matrix {
+abstract class Matrix {
 
   // todo perhaps should be an interface or at least abstract
   // subclasses CooMatrix, CsrMatrix (pos LilMatrix) + a non-sparse float[][] backed implementation
 
-  float get(final int row, final int col) {
-    // todo
-    return 0;
+  protected int[] shape;
+
+  Matrix(final int... shape) {
+    this.shape = shape;
   }
 
-  void set(final int row, final int col, final float val) {
-    // todo need to be supported for all types
+  abstract float get(final int row, final int col);
+
+  abstract void set(final int row, final int col, final float val);
+
+  int[] shape() {
+    return shape;
+  }
+
+  long length() {
+    long len = 0;
+    for (final int dim : shape()) {
+      len *= dim;
+    }
+    return len;
   }
 
   void eliminate_zeros() {
-    // todo
+    throw new UnsupportedOperationException();
   }
 
   Matrix transpose() {
     // todo
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix multiply(final Matrix m) {
-    return null; // todo
+    throw new UnsupportedOperationException();
   }
 
   Matrix multiply(final double x) {
     // scalar multiply
-    return null; // todo
+    throw new UnsupportedOperationException();
   }
 
   Matrix add(final Matrix m) {
     // todo
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix subtract(final Matrix m) {
     // todo
-    return null;
-  }
-
-  long length() {
-    // todo --  total number of entries
-    return 0;
+    throw new UnsupportedOperationException();
   }
 
   CooMatrix tocoo() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   CsrMatrix tocsr() {
-    return null;
-  }
-
-  int[] shape() {
-    // todo length of dimensions
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix copy() {
     // todo this should be a copy of the matrix of same type -- generics on params?
-    return this;
+    throw new UnsupportedOperationException();
   }
 
   float[] row(int row) {
     // return entire row as a vector
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix take(int[] indicies) {
     // todo return elements from array along selected axes
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   static Matrix eye(int n, int m, int k) {
@@ -91,42 +95,42 @@ class Matrix {
       a positive value refers to an upper diagonal, and a negative value
       to a lower diagonal.
     */
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix dot(Matrix x) {
     // todo dot product
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix inv() {
     // todo invert
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix triu(int k) {
     // todo Upper triangle of an array.
     // Return a copy of a matrix with the elements below the `k`-th diagonal zeroed.
     // may want tri and tril versions as well
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Float max() {
     // todo maximum value in matrix
     // this might only be wanted for float[], not matrix...
     // min as well?
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Float sum() {
     // todo sum of values in matrix
     // return double?
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   Matrix max(final Matrix other) {
     // todo element-wise maximum between two matrices
     // todo other should be same shape as this
-    return null;
+    throw new UnsupportedOperationException();
   }
 }
