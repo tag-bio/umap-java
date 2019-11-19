@@ -56,7 +56,7 @@ package com.tagbio.umap;
 //
 //warnings.filterwarnings("ignore", category=UserWarning)
 
-public class UmapTest extends TestCase {
+public class UmapTest /*extends TestCase*/ {
 
 //np.random.seed(42)
 //spatial_data = np.random.randn(10, 20)

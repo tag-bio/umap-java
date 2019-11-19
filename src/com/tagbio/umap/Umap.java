@@ -402,9 +402,9 @@ public class Umap {
       Utils.message("Finding Nearest Neighbors");
     }
 
-    int[][] knn_indices;
-    float[][] knn_dists;
-    List<?> rp_forest;
+    int[][] knn_indices = null;
+    float[][] knn_dists = null;
+    List<?> rp_forest = null;
     if (metric.equals("precomputed")) {
       throw new UnsupportedOperationException();
 //      // Note that this does not support sparse distance matrices yet ...
@@ -448,40 +448,41 @@ public class Umap {
         } else{
           throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
         }
-        metric_nn_descent = Sparse.make_sparse_nn_descent(distance_func, tuple(metric_kwds.values()));
-
-        int n_trees = 5 + (int) (Math.round(Math.pow(Y.shape()[0], 0.5 / 20.0)));
-        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(Y.shape()[0]))));
-        if (verbose) {
-          Utils.message("Building RP forest with " + n_trees + " trees");
-        }
-
-        rp_forest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
-        leaf_array = RpTree.rptree_leaf_array(rp_forest);
-
-        if (verbose) {
-          Utils.message("NN descent for " + n_iters + " iterations");
-        }
-        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.shape()[0], n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
-        knn_indices = (int[][]) nn[0];
-        knn_dists = (float[][]) nn[1];
-      } else {
-        // todo following evilness returns a function to do the nearest neighbour thing
-        metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metric_kwds.values()));
-        int n_trees = 5 + (int) (Math.round(Math.pow(X.shape()[0], 0.5 / 20.0)));
-        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(X.shape()[0]))));
-
-        if (verbose) {
-          Utils.message("Building RP forest with " + n_trees + " trees");
-        }
-        rp_forest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
-        leaf_array = RpTree.rptree_leaf_array(rp_forest);
-        if (verbose) {
-          Utils.message("NN descent for " + n_iters + " iterations");
-        }
-        final Object[] nn = NearestNeighborDescent.metric_nn_descent(X, n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true, /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, /*verbose=*/verbose);
-        knn_indices = (int[][]) nn[0];
-        knn_dists = (float[][]) nn[1];
+        throw new UnsupportedOperationException();
+//        metric_nn_descent = Sparse.make_sparse_nn_descent(distance_func, tuple(metric_kwds.values()));
+//
+//        int n_trees = 5 + (int) (Math.round(Math.pow(Y.shape()[0], 0.5 / 20.0)));
+//        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(Y.shape()[0]))));
+//        if (verbose) {
+//          Utils.message("Building RP forest with " + n_trees + " trees");
+//        }
+//
+//        rp_forest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
+//        leaf_array = RpTree.rptree_leaf_array(rp_forest);
+//
+//        if (verbose) {
+//          Utils.message("NN descent for " + n_iters + " iterations");
+//        }
+//        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.shape()[0], n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
+//        knn_indices = (int[][]) nn[0];
+//        knn_dists = (float[][]) nn[1];
+//      } else {
+//        // todo following evilness returns a function to do the nearest neighbour thing
+//        metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metric_kwds.values()));
+//        int n_trees = 5 + (int) (Math.round(Math.pow(X.shape()[0], 0.5 / 20.0)));
+//        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(X.shape()[0]))));
+//
+//        if (verbose) {
+//          Utils.message("Building RP forest with " + n_trees + " trees");
+//        }
+//        rp_forest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
+//        leaf_array = RpTree.rptree_leaf_array(rp_forest);
+//        if (verbose) {
+//          Utils.message("NN descent for " + n_iters + " iterations");
+//        }
+//        final Object[] nn = NearestNeighborDescent.metric_nn_descent(X, n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true, /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, /*verbose=*/verbose);
+//        knn_indices = (int[][]) nn[0];
+//        knn_dists = (float[][]) nn[1];
       }
 
       if (MathUtils.containsNegative(knn_indices)) {
@@ -687,7 +688,7 @@ public class Umap {
     final int[] cols = (int[]) rcv[1];
     final float[] vals = (float[]) rcv[2];
 
-    Matrix result = new CooMatrix(vals, rows, cols, new int[]{(int) X.shape()[0], (int) X.shape()[0]});
+    Matrix result = new CooMatrix(vals, rows, cols, new int[]{X.shape()[0], X.shape()[0]});
     result.eliminate_zeros();
 
     Matrix transpose = result.transpose();
@@ -1529,7 +1530,7 @@ public class Umap {
         }
 
         Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
-        this._n_neighbors = (int) (X.shape()[0] - 1);
+        this._n_neighbors = X.shape()[0] - 1;
       } else {
         this._n_neighbors = this.n_neighbors;
       }
@@ -1618,8 +1619,9 @@ public class Umap {
 
         if (!"precomputed".equals(this.metric)) {
           this._dist_args = this._metric_kwds.values(); // todo this is weird? -- how do values get associated with what they are?
-          this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func, this._dist_args);
-          this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func, this._dist_args);
+         // this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func, this._dist_args);
+         // this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func, this._dist_args);
+          throw new UnsupportedOperationException();
         }
       }
     }
@@ -1836,14 +1838,17 @@ public class Umap {
     final int[] cols = (int[]) rcv[1];
     final float[] vals = (float[]) rcv[2];
 
-    CooMatrix graph = new CooMatrix(vals, rows, cols, new int[]{(int) X.shape()[0], (int) this._raw_data.shape()[0]});
+    CooMatrix graph = new CooMatrix(vals, rows, cols, new int[]{X.shape()[0], this._raw_data.shape()[0]});
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
     CsrMatrix csr_graph = (CsrMatrix) Normalize.normalize(graph.tocsr(), "l1");
-    int[][] inds = csr_graph.indices.reshape(X.shape()[0], this._n_neighbors);
-    float[][] weights = csr_graph.data.reshape(X.shape()[0], this._n_neighbors);
+//    int[][] inds = csr_graph.indices.reshape(X.shape()[0], this._n_neighbors);
+//    float[][] weights = csr_graph.data.reshape(X.shape()[0], this._n_neighbors);
+    // todo following need to be "reshape" as above
+    int[][] inds = null;
+    float[][] weights = null;
     Matrix embedding = init_transform(inds, weights, this.embedding_);
 
     final int n_epochs;

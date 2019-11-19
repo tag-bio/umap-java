@@ -21,7 +21,7 @@ class Curve {
     }
 
     public static float[] curve_fit(float[] xdata, float[] ydata) {
-        // Used curve method above
+      // Used curve method above
 
 //        def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
 //                check_finite=True, bounds=(-np.inf, np.inf), method=None,
@@ -206,15 +206,15 @@ class Curve {
 //    else:
 //        p0 = np.atleast_1d(p0)
 //        n = p0.size
-        final int n = 2;  // number of fit parameters
+      final int n = 2;  // number of fit parameters
 
-        //lb, ub = prepare_bounds(bounds, n)
-        final float[] lb = {Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY};
-        final float[] ub = {Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY};
+      //lb, ub = prepare_bounds(bounds, n)
+      final float[] lb = {Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY};
+      final float[] ub = {Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY};
 
-        //if p0 is None:
-        //p0 = _initialize_feasible(lb, ub)
-        float[] p0 = {1.0F, 1.0F};
+      //if p0 is None:
+      //p0 = _initialize_feasible(lb, ub)
+      float[] p0 = {1.0F, 1.0F};
 
 //        bounded_problem = np.any((lb > -np.inf) | (ub < np.inf))
 //        if method is None:
@@ -222,25 +222,25 @@ class Curve {
 //        method = 'trf'
 //        else:
 //        method = 'lm'
-        final String method = "lm";
+      final String method = "lm";
 
-        // NO NEED TO TEST
+      // NO NEED TO TEST
 //        if method == 'lm' and bounded_problem:
 //        raise ValueError("Method 'lm' only works for unconstrained problems. "
 //        "Use 'trf' or 'dogbox' instead.")
 
-    //# optimization may produce garbage for float32 inputs, cast them to float64
+      //# optimization may produce garbage for float32 inputs, cast them to float64
 
-    //# NaNs can not be handled
+      //# NaNs can not be handled
 //        if check_finite:
 //        ydata = np.asarray_chkfinite(ydata, float)
 //    else:
 //        ydata = np.asarray(ydata, float)
-        for (final float value : ydata) {
-            if (Float.isNaN(value) || Float.isInfinite(value)) {
-                throw new IllegalArgumentException("Array cannot contain NaN or Infinity.");
-            }
+      for (final float value : ydata) {
+        if (Float.isNaN(value) || Float.isInfinite(value)) {
+          throw new IllegalArgumentException("Array cannot contain NaN or Infinity.");
         }
+      }
 
 //        if isinstance(xdata, (list, tuple, np.ndarray)):
 //        //# `xdata` is passed straight to the user-defined `f`, so allow
@@ -249,19 +249,19 @@ class Curve {
 //        xdata = np.asarray_chkfinite(xdata, float)
 //        else:
 //        xdata = np.asarray(xdata, float)
-        for (final float value : xdata) {
-            if (Float.isNaN(value) || Float.isInfinite(value)) {
-                throw new IllegalArgumentException("Array cannot contain NaN or Infinity.");
-            }
+      for (final float value : xdata) {
+        if (Float.isNaN(value) || Float.isInfinite(value)) {
+          throw new IllegalArgumentException("Array cannot contain NaN or Infinity.");
         }
+      }
 
 //        if ydata.size == 0:
 //        raise ValueError("`ydata` must not be empty!")
-        if (ydata.length == 0) {
-            throw new IllegalArgumentException("ydata must not be empty.");
-        }
+      if (ydata.length == 0) {
+        throw new IllegalArgumentException("ydata must not be empty.");
+      }
 
-    //# Determine type of sigma
+      //# Determine type of sigma
 //        if sigma is not None:
 //        sigma = np.asarray(sigma)
 //
@@ -281,25 +281,25 @@ class Curve {
 //    else:
 //        transform = None
 
-        //func = _wrap_func(f, xdata, ydata, transform)
-        // TODO want func(xdata, *params) - ydata - see wrap_curve above
+      //func = _wrap_func(f, xdata, ydata, transform)
+      // TODO want func(xdata, *params) - ydata - see wrap_curve above
 
 //        if callable(jac):
 //        jac = _wrap_jac(jac, xdata, transform)
 //        elif jac is None and method != 'lm':
 //        jac = '2-point'
-        // jac is None
+      // jac is None
 
- //       if method == 'lm':
-        //# Remove full_output from kwargs, otherwise we're passing it in twice.
-        //return_full = kwargs.pop('full_output', False)
-
-        res = leastsq(func, p0, Dfun=jac, full_output=1, **kwargs)
-
-        popt, pcov, infodict, errmsg, ier = res
-        cost = np.sum(infodict['fvec'] ** 2)
-        if ier not in [1, 2, 3, 4]:
-        raise RuntimeError("Optimal parameters not found: " + errmsg)
+      //       if method == 'lm':
+      //# Remove full_output from kwargs, otherwise we're passing it in twice.
+      //return_full = kwargs.pop('full_output', False)
+//
+//        res = leastsq(func, p0, Dfun=jac, full_output=1, **kwargs)
+//
+//        popt, pcov, infodict, errmsg, ier = res
+//        cost = np.sum(infodict['fvec'] ** 2)
+//        if ier not in [1, 2, 3, 4]:
+//        raise RuntimeError("Optimal parameters not found: " + errmsg)
 //    else:
 //        //# Rename maxfev (leastsq) to max_nfev (least_squares), if specified.
 //        if 'max_nfev' not in kwargs:
@@ -321,219 +321,221 @@ class Curve {
 //        VT = VT[:s.size]
 //        pcov = np.dot(VT.T / s**2, VT)
 //        return_full = False
-
-        warn_cov = False
-        if pcov is None:
-        //# indeterminate covariance
-        pcov = zeros((len(popt), len(popt)), dtype=float)
-        pcov.fill(inf)
-        warn_cov = True
-        elif not absolute_sigma:
-        if ydata.size > p0.size:
-        s_sq = cost / (ydata.size - p0.size)
-        pcov = pcov * s_sq
-        else:
-        pcov.fill(inf)
-        warn_cov = True
-
-        if warn_cov:
-        warnings.warn('Covariance of the parameters could not be estimated',
-                category=OptimizeWarning)
-
-        if return_full:
-        return popt, pcov, infodict, errmsg, ier
-    else:
-        return popt, pcov
-        return null;
+//
+//        warn_cov = False
+//        if pcov is None:
+//        //# indeterminate covariance
+//        pcov = zeros((len(popt), len(popt)), dtype=float)
+//        pcov.fill(inf)
+//        warn_cov = True
+//        elif not absolute_sigma:
+//        if ydata.size > p0.size:
+//        s_sq = cost / (ydata.size - p0.size)
+//        pcov = pcov * s_sq
+//        else:
+//        pcov.fill(inf)
+//        warn_cov = True
+//
+//        if warn_cov:
+//        warnings.warn('Covariance of the parameters could not be estimated',
+//                category=OptimizeWarning)
+//
+//        if return_full:
+//        return popt, pcov, infodict, errmsg, ier
+//    else:
+//        return popt, pcov
+//        return null;
+//    }
+//
+//
+//    static float[] leastsq(func, x0, args=(), Dfun=None, full_output=0,
+//    col_deriv=0, ftol=1.49012e-8, xtol=1.49012e-8,
+//    gtol=0.0, maxfev=0, epsfcn=None, factor=100, diag=None):
+//            """
+//    Minimize the sum of squares of a set of equations.
+//
+//    ::
+//
+//        x = arg min(sum(func(y)**2,axis=0))
+//                 y
+//
+//    Parameters
+//    ----------
+//    func : callable
+//        should take at least one (possibly length N vector) argument and
+//        returns M floating point numbers. It must not return NaNs or
+//        fitting might fail.
+//    x0 : ndarray
+//        The starting estimate for the minimization.
+//    args : tuple, optional
+//        Any extra arguments to func are placed in this tuple.
+//    Dfun : callable, optional
+//        A function or method to compute the Jacobian of func with derivatives
+//        across the rows. If this is None, the Jacobian will be estimated.
+//    full_output : bool, optional
+//        non-zero to return all optional outputs.
+//    col_deriv : bool, optional
+//        non-zero to specify that the Jacobian function computes derivatives
+//        down the columns (faster, because there is no transpose operation).
+//    ftol : float, optional
+//        Relative error desired in the sum of squares.
+//    xtol : float, optional
+//        Relative error desired in the approximate solution.
+//    gtol : float, optional
+//        Orthogonality desired between the function vector and the columns of
+//        the Jacobian.
+//    maxfev : int, optional
+//        The maximum number of calls to the function. If `Dfun` is provided
+//        then the default `maxfev` is 100*(N+1) where N is the number of elements
+//        in x0, otherwise the default `maxfev` is 200*(N+1).
+//    epsfcn : float, optional
+//        A variable used in determining a suitable step length for the forward-
+//        difference approximation of the Jacobian (for Dfun=None).
+//        Normally the actual step length will be sqrt(epsfcn)*x
+//        If epsfcn is less than the machine precision, it is assumed that the
+//        relative errors are of the order of the machine precision.
+//    factor : float, optional
+//        A parameter determining the initial step bound
+//        (``factor * || diag * x||``). Should be in interval ``(0.1, 100)``.
+//    diag : sequence, optional
+//        N positive entries that serve as a scale factors for the variables.
+//
+//    Returns
+//    -------
+//    x : ndarray
+//        The solution (or the result of the last iteration for an unsuccessful
+//        call).
+//    cov_x : ndarray
+//        The inverse of the Hessian. `fjac` and `ipvt` are used to construct an
+//        estimate of the Hessian. A value of None indicates a singular matrix,
+//        which means the curvature in parameters `x` is numerically flat. To
+//        obtain the covariance matrix of the parameters `x`, `cov_x` must be
+//        multiplied by the variance of the residuals -- see curve_fit.
+//    infodict : dict
+//        a dictionary of optional outputs with the keys:
+//
+//        ``nfev``
+//            The number of function calls
+//        ``fvec``
+//            The function evaluated at the output
+//        ``fjac``
+//            A permutation of the R matrix of a QR
+//            factorization of the final approximate
+//            Jacobian matrix, stored column wise.
+//            Together with ipvt, the covariance of the
+//            estimate can be approximated.
+//        ``ipvt``
+//            An integer array of length N which defines
+//            a permutation matrix, p, such that
+//            fjac*p = q*r, where r is upper triangular
+//            with diagonal elements of nonincreasing
+//            magnitude. Column j of p is column ipvt(j)
+//            of the identity matrix.
+//        ``qtf``
+//            The vector (transpose(q) * fvec).
+//
+//    mesg : str
+//        A string message giving information about the cause of failure.
+//    ier : int
+//        An integer flag.  If it is equal to 1, 2, 3 or 4, the solution was
+//        found.  Otherwise, the solution was not found. In either case, the
+//        optional output variable 'mesg' gives more information.
+//
+//    Notes
+//    -----
+//    "leastsq" is a wrapper around MINPACK's lmdif and lmder algorithms.
+//
+//    cov_x is a Jacobian approximation to the Hessian of the least squares
+//    objective function.
+//    This approximation assumes that the objective function is based on the
+//    difference between some observed target data (ydata) and a (non-linear)
+//    function of the parameters `f(xdata, params)` ::
+//
+//           func(params) = ydata - f(xdata, params)
+//
+//    so that the objective function is ::
+//
+//           min   sum((ydata - f(xdata, params))**2, axis=0)
+//         params
+//
+//    The solution, `x`, is always a 1D array, regardless of the shape of `x0`,
+//    or whether `x0` is a scalar.
+//    """
+//    x0 = asarray(x0).flatten()
+//    n = len(x0)
+//    if not isinstance(args, tuple):
+//    args = (args,)
+//    shape, dtype = _check_func('leastsq', 'func', func, x0, args, n)
+//    m = shape[0]
+//
+//            if n > m:
+//    raise TypeError('Improper input: N=%s must not exceed M=%s' % (n, m))
+//
+//            if epsfcn is None:
+//    epsfcn = finfo(dtype).eps
+//
+//    if Dfun is None:
+//            if maxfev == 0:
+//    maxfev = 200*(n + 1)
+//    retval = _minpack._lmdif(func, x0, args, full_output, ftol, xtol,
+//    gtol, maxfev, epsfcn, factor, diag)
+//            else:
+//            if col_deriv:
+//    _check_func('leastsq', 'Dfun', Dfun, x0, args, n, (n, m))
+//            else:
+//    _check_func('leastsq', 'Dfun', Dfun, x0, args, n, (m, n))
+//            if maxfev == 0:
+//    maxfev = 100 * (n + 1)
+//    retval = _minpack._lmder(func, Dfun, x0, args, full_output,
+//    col_deriv, ftol, xtol, gtol, maxfev,
+//    factor, diag)
+//
+//    errors = {0: ["Improper input parameters.", TypeError],
+//        1: ["Both actual and predicted relative reductions "
+//        "in the sum of squares\n  are at most %f" % ftol, None],
+//        2: ["The relative error between two consecutive "
+//        "iterates is at most %f" % xtol, None],
+//        3: ["Both actual and predicted relative reductions in "
+//        "the sum of squares\n  are at most %f and the "
+//        "relative error between two consecutive "
+//        "iterates is at \n  most %f" % (ftol, xtol), None],
+//        4: ["The cosine of the angle between func(x) and any "
+//        "column of the\n  Jacobian is at most %f in "
+//        "absolute value" % gtol, None],
+//        5: ["Number of calls to function has reached "
+//        "maxfev = %d." % maxfev, ValueError],
+//        6: ["ftol=%f is too small, no further reduction "
+//        "in the sum of squares\n  is possible.""" % ftol,
+//                ValueError],
+//        7: ["xtol=%f is too small, no further improvement in "
+//        "the approximate\n  solution is possible." % xtol,
+//                ValueError],
+//        8: ["gtol=%f is too small, func(x) is orthogonal to the "
+//        "columns of\n  the Jacobian to machine "
+//        "precision." % gtol, ValueError]}
+//
+//    # The FORTRAN return value (possible return values are >= 0 and <= 8)
+//    info = retval[-1]
+//
+//            if full_output:
+//    cov_x = None
+//        if info in LEASTSQ_SUCCESS:
+//    from numpy.dual import inv
+//            perm = take(eye(n), retval[1]['ipvt'] - 1, 0)
+//    r = triu(transpose(retval[1]['fjac'])[:n, :])
+//    R = dot(r, perm)
+//            try:
+//    cov_x = inv(dot(transpose(R), R))
+//    except (LinAlgError, ValueError):
+//    pass
+//        return (retval[0], cov_x) + retval[1:-1] + (errors[info][0], info)
+//            else:
+//            if info in LEASTSQ_FAILURE:
+//            warnings.warn(errors[info][0], RuntimeWarning)
+//    elif info == 0:
+//    raise errors[info][1](errors[info][0])
+//            return retval[0], info
+      return null;
     }
-
-
-    static float[] leastsq(func, x0, args=(), Dfun=None, full_output=0,
-    col_deriv=0, ftol=1.49012e-8, xtol=1.49012e-8,
-    gtol=0.0, maxfev=0, epsfcn=None, factor=100, diag=None):
-            """
-    Minimize the sum of squares of a set of equations.
-
-    ::
-
-        x = arg min(sum(func(y)**2,axis=0))
-                 y
-
-    Parameters
-    ----------
-    func : callable
-        should take at least one (possibly length N vector) argument and
-        returns M floating point numbers. It must not return NaNs or
-        fitting might fail.
-    x0 : ndarray
-        The starting estimate for the minimization.
-    args : tuple, optional
-        Any extra arguments to func are placed in this tuple.
-    Dfun : callable, optional
-        A function or method to compute the Jacobian of func with derivatives
-        across the rows. If this is None, the Jacobian will be estimated.
-    full_output : bool, optional
-        non-zero to return all optional outputs.
-    col_deriv : bool, optional
-        non-zero to specify that the Jacobian function computes derivatives
-        down the columns (faster, because there is no transpose operation).
-    ftol : float, optional
-        Relative error desired in the sum of squares.
-    xtol : float, optional
-        Relative error desired in the approximate solution.
-    gtol : float, optional
-        Orthogonality desired between the function vector and the columns of
-        the Jacobian.
-    maxfev : int, optional
-        The maximum number of calls to the function. If `Dfun` is provided
-        then the default `maxfev` is 100*(N+1) where N is the number of elements
-        in x0, otherwise the default `maxfev` is 200*(N+1).
-    epsfcn : float, optional
-        A variable used in determining a suitable step length for the forward-
-        difference approximation of the Jacobian (for Dfun=None).
-        Normally the actual step length will be sqrt(epsfcn)*x
-        If epsfcn is less than the machine precision, it is assumed that the
-        relative errors are of the order of the machine precision.
-    factor : float, optional
-        A parameter determining the initial step bound
-        (``factor * || diag * x||``). Should be in interval ``(0.1, 100)``.
-    diag : sequence, optional
-        N positive entries that serve as a scale factors for the variables.
-
-    Returns
-    -------
-    x : ndarray
-        The solution (or the result of the last iteration for an unsuccessful
-        call).
-    cov_x : ndarray
-        The inverse of the Hessian. `fjac` and `ipvt` are used to construct an
-        estimate of the Hessian. A value of None indicates a singular matrix,
-        which means the curvature in parameters `x` is numerically flat. To
-        obtain the covariance matrix of the parameters `x`, `cov_x` must be
-        multiplied by the variance of the residuals -- see curve_fit.
-    infodict : dict
-        a dictionary of optional outputs with the keys:
-
-        ``nfev``
-            The number of function calls
-        ``fvec``
-            The function evaluated at the output
-        ``fjac``
-            A permutation of the R matrix of a QR
-            factorization of the final approximate
-            Jacobian matrix, stored column wise.
-            Together with ipvt, the covariance of the
-            estimate can be approximated.
-        ``ipvt``
-            An integer array of length N which defines
-            a permutation matrix, p, such that
-            fjac*p = q*r, where r is upper triangular
-            with diagonal elements of nonincreasing
-            magnitude. Column j of p is column ipvt(j)
-            of the identity matrix.
-        ``qtf``
-            The vector (transpose(q) * fvec).
-
-    mesg : str
-        A string message giving information about the cause of failure.
-    ier : int
-        An integer flag.  If it is equal to 1, 2, 3 or 4, the solution was
-        found.  Otherwise, the solution was not found. In either case, the
-        optional output variable 'mesg' gives more information.
-
-    Notes
-    -----
-    "leastsq" is a wrapper around MINPACK's lmdif and lmder algorithms.
-
-    cov_x is a Jacobian approximation to the Hessian of the least squares
-    objective function.
-    This approximation assumes that the objective function is based on the
-    difference between some observed target data (ydata) and a (non-linear)
-    function of the parameters `f(xdata, params)` ::
-
-           func(params) = ydata - f(xdata, params)
-
-    so that the objective function is ::
-
-           min   sum((ydata - f(xdata, params))**2, axis=0)
-         params
-
-    The solution, `x`, is always a 1D array, regardless of the shape of `x0`,
-    or whether `x0` is a scalar.
-    """
-    x0 = asarray(x0).flatten()
-    n = len(x0)
-    if not isinstance(args, tuple):
-    args = (args,)
-    shape, dtype = _check_func('leastsq', 'func', func, x0, args, n)
-    m = shape[0]
-
-            if n > m:
-    raise TypeError('Improper input: N=%s must not exceed M=%s' % (n, m))
-
-            if epsfcn is None:
-    epsfcn = finfo(dtype).eps
-
-    if Dfun is None:
-            if maxfev == 0:
-    maxfev = 200*(n + 1)
-    retval = _minpack._lmdif(func, x0, args, full_output, ftol, xtol,
-    gtol, maxfev, epsfcn, factor, diag)
-            else:
-            if col_deriv:
-    _check_func('leastsq', 'Dfun', Dfun, x0, args, n, (n, m))
-            else:
-    _check_func('leastsq', 'Dfun', Dfun, x0, args, n, (m, n))
-            if maxfev == 0:
-    maxfev = 100 * (n + 1)
-    retval = _minpack._lmder(func, Dfun, x0, args, full_output,
-    col_deriv, ftol, xtol, gtol, maxfev,
-    factor, diag)
-
-    errors = {0: ["Improper input parameters.", TypeError],
-        1: ["Both actual and predicted relative reductions "
-        "in the sum of squares\n  are at most %f" % ftol, None],
-        2: ["The relative error between two consecutive "
-        "iterates is at most %f" % xtol, None],
-        3: ["Both actual and predicted relative reductions in "
-        "the sum of squares\n  are at most %f and the "
-        "relative error between two consecutive "
-        "iterates is at \n  most %f" % (ftol, xtol), None],
-        4: ["The cosine of the angle between func(x) and any "
-        "column of the\n  Jacobian is at most %f in "
-        "absolute value" % gtol, None],
-        5: ["Number of calls to function has reached "
-        "maxfev = %d." % maxfev, ValueError],
-        6: ["ftol=%f is too small, no further reduction "
-        "in the sum of squares\n  is possible.""" % ftol,
-                ValueError],
-        7: ["xtol=%f is too small, no further improvement in "
-        "the approximate\n  solution is possible." % xtol,
-                ValueError],
-        8: ["gtol=%f is too small, func(x) is orthogonal to the "
-        "columns of\n  the Jacobian to machine "
-        "precision." % gtol, ValueError]}
-
-    # The FORTRAN return value (possible return values are >= 0 and <= 8)
-    info = retval[-1]
-
-            if full_output:
-    cov_x = None
-        if info in LEASTSQ_SUCCESS:
-    from numpy.dual import inv
-            perm = take(eye(n), retval[1]['ipvt'] - 1, 0)
-    r = triu(transpose(retval[1]['fjac'])[:n, :])
-    R = dot(r, perm)
-            try:
-    cov_x = inv(dot(transpose(R), R))
-    except (LinAlgError, ValueError):
-    pass
-        return (retval[0], cov_x) + retval[1:-1] + (errors[info][0], info)
-            else:
-            if info in LEASTSQ_FAILURE:
-            warnings.warn(errors[info][0], RuntimeWarning)
-    elif info == 0:
-    raise errors[info][1](errors[info][0])
-            return retval[0], info
 }
 
