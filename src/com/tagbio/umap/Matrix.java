@@ -13,6 +13,10 @@ class Matrix {
     return 0;
   }
 
+  void set(final int row, final int col, final float val) {
+    // todo need to be supported for all types
+  }
+
   void eliminate_zeros() {
     // todo
   }
@@ -117,6 +121,12 @@ class Matrix {
   Float sum() {
     // todo sum of values in matrix
     // return double?
+    return null;
+  }
+
+  Matrix max(final Matrix other) {
+    // todo element-wise maximum between two matrices
+    // todo other should be same shape as this
     return null;
   }
 }

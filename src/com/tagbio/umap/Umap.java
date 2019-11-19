@@ -5,6 +5,7 @@ package com.tagbio.umap;
 // # License: BSD 3 clause
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -449,8 +450,8 @@ public class Umap {
         }
         metric_nn_descent = Sparse.make_sparse_nn_descent(distance_func, tuple(metric_kwds.values()));
 
-        int n_trees = 5 + (int) (Math.round(Math.pow(Y.length(), 0.5 / 20.0)));
-        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(Y.length()))));
+        int n_trees = 5 + (int) (Math.round(Math.pow(Y.shape()[0], 0.5 / 20.0)));
+        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(Y.shape()[0]))));
         if (verbose) {
           Utils.message("Building RP forest with " + n_trees + " trees");
         }
@@ -461,14 +462,14 @@ public class Umap {
         if (verbose) {
           Utils.message("NN descent for " + n_iters + " iterations");
         }
-        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.length(), n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
+        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.shape()[0], n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
         knn_indices = (int[][]) nn[0];
         knn_dists = (float[][]) nn[1];
       } else {
         // todo following evilness returns a function to do the nearest neighbour thing
         metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metric_kwds.values()));
-        int n_trees = 5 + (int) (Math.round(Math.pow(X.length(), 0.5 / 20.0)));
-        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(X.length()))));
+        int n_trees = 5 + (int) (Math.round(Math.pow(X.shape()[0], 0.5 / 20.0)));
+        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(X.shape()[0]))));
 
         if (verbose) {
           Utils.message("Building RP forest with " + n_trees + " trees");
@@ -686,7 +687,7 @@ public class Umap {
     final int[] cols = (int[]) rcv[1];
     final float[] vals = (float[]) rcv[2];
 
-    Matrix result = new CooMatrix(vals, rows, cols, new int[]{(int) X.length(), (int) X.length()});
+    Matrix result = new CooMatrix(vals, rows, cols, new int[]{(int) X.shape()[0], (int) X.shape()[0]});
     result.eliminate_zeros();
 
     Matrix transpose = result.transpose();
@@ -1152,7 +1153,7 @@ public class Umap {
 
     if (n_epochs <= 0) {
       // For smaller datasets we can use more epochs
-      if (graph.length() <= 10000) {
+      if (graph.shape()[0] <= 10000) {
         n_epochs = 500;
       } else {
         n_epochs = 200;
@@ -1164,12 +1165,14 @@ public class Umap {
 
     Matrix embedding;
     if (init instanceof String && init.equals("random")) {
-      embedding = random_state.uniform(low = -10.0, high = 10.0, size = (graph.length(), n_components)).astype(np.float32);
+      //embedding = random_state.uniform(low = -10.0, high = 10.0, size = (graph.shape()[0], n_components)).astype(np.float32);
+      embedding = new DefaultMatrix(MathUtils.uniform(rng, -10, 10, graph.shape()[0], n_components));
     } else if (init instanceof String && init.equals("spectral")) {
-      // We add a little noise to avoid local minima for optimization to come
-      float[][] initialisation = Spectral.spectral_layout(data, graph, n_components, random_state, /*metric=*/metric, /*metric_kwds=*/metric_kwds);
-      float expansion = 10.0 / Math.abs(initialisation).max();
-      embedding = (MathUtils.multiply(initialisation, expansion)).astype(np.float32) + random_state.normal(scale = 0.0001, size =[graph.length(), n_components]).astype(np.float32);
+      throw new UnsupportedOperationException();
+//      // We add a little noise to avoid local minima for optimization to come
+//      float[][] initialisation = Spectral.spectral_layout(data, graph, n_components, random_state, /*metric=*/metric, /*metric_kwds=*/metric_kwds);
+//      float expansion = 10.0 / Math.abs(initialisation).max();
+//      embedding = (MathUtils.multiply(initialisation, expansion)).astype(np.float32) + random_state.normal(scale = 0.0001, size =[graph.shape()[0], n_components]).astype(np.float32);
     } else {
       // Situation where init contains prepared data
       throw new UnsupportedOperationException();
@@ -1316,6 +1319,7 @@ public class Umap {
   private List<?> _rp_forest;
   private boolean _small_data;
   private Metric _distance_func;
+  private Collection<?> _dist_args;
   private Matrix graph_;
   private Matrix embedding_;
 
@@ -1518,14 +1522,14 @@ public class Umap {
       }
 
       // Error check n_neighbors based on data size
-      if (X.length() <= this.n_neighbors) {
-        if (X.length() == 1) {
+      if (X.shape()[0] <= this.n_neighbors) {
+        if (X.shape()[0] == 1) {
           this.embedding_ = new DefaultMatrix(new float[1][this.n_components]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
           return;
         }
 
         Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
-        this._n_neighbors = (int) (X.length() - 1);
+        this._n_neighbors = (int) (X.shape()[0] - 1);
       } else {
         this._n_neighbors = this.n_neighbors;
       }
@@ -1547,7 +1551,7 @@ public class Umap {
       }
 
       // Handle small cases efficiently by computing all distances
-      if (X.length() < 4096) {
+      if (X.shape()[0] < 4096) {
         this._small_data = true;
         Matrix dmat = PairwiseDistances.pairwise_distances(X, (Metric) this.metric, this._metric_kwds);
         this.graph_ = fuzzy_simplicial_set(
@@ -1587,11 +1591,20 @@ public class Umap {
         );
 
         // todo this starts as LilMatrix type but ends up as a CsrMatrix!
-        // todo according to scipy an efficiency thing -- but bytes ??
-        this._search_graph = scipy.sparse.lil_matrix((X.length(), X.length()), dtype = np.int8      );
-        this._search_graph.rows = this._knn_indices;
-        this._search_graph.data = (this._knn_dists != 0).astype(np.int8);
-        this._search_graph = this._search_graph.maximum(      this._search_graph.transpose()   ).tocsr();
+        // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
+        // todo overall seems to make (0,1)-matrix with a 1 at (x,y) whenever dists(x,y)!=0 or dists(y,x)!=0
+        // todo highly unsure about handling of indices below and relation of shapes
+//        Matrix tmp_search_graph = //scipy.sparse.lil_matrix((X.shape()[0], X.shape()[0]), dtype = np.int8      );
+//        tmp_search_graph.rows = this._knn_indices;
+//        tmp_search_graph.data = (this._knn_dists != 0).astype(np.int8);  // todo what does this do? -- tests each element to be 0, returns True or False for each element
+        final float[][] tmp_data = new float[X.shape()[0]][X.shape()[0]];
+        for (int k = 0; k < this._knn_indices.length; ++k) {
+          final int x = this._knn_indices[k][0];
+          final int y2 = this._knn_indices[k][1];
+          tmp_data[x][y2] = this._knn_dists[x][y2] != 0 ? 1.0F : 0.0F;
+        }
+        final Matrix tmp_matrix = new DefaultMatrix(tmp_data);
+        this._search_graph = tmp_matrix.max(tmp_matrix.transpose()).tocsr();
 
         if (this.metric instanceof Metric) {
           this._distance_func = (Metric) this.metric;
@@ -1604,9 +1617,9 @@ public class Umap {
         }
 
         if (!"precomputed".equals(this.metric)) {
-          this._dist_args = tuple(this._metric_kwds.values()); // todo this is weird? -- how do values get associated with what they are?
-          this._random_init, this._tree_init = make_initialisations(this._distance_func, this._dist_args);
-          this._search = make_initialized_nnd_search(this._distance_func, this._dist_args);
+          this._dist_args = this._metric_kwds.values(); // todo this is weird? -- how do values get associated with what they are?
+          this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func, this._dist_args);
+          this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func, this._dist_args);
         }
       }
     }
@@ -1758,7 +1771,7 @@ public class Umap {
   // """
   // If we fit just a single instance then error
   private Matrix transform(Matrix X) {
-    if (this.embedding_.length() == 1) {
+    if (this.embedding_.shape()[0] == 1) {
       throw new IllegalArgumentException("Transform unavailable when model was fit with only a single data sample.");
     }
     // If we just have the original input then short circuit things
@@ -1783,7 +1796,7 @@ public class Umap {
     int[][] indices;
     float[][] dists;
     if (this._small_data) {
-      Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, /*metric = */this.metric, this._metric_kwds); // todo pairwise_distances from sklearn metrics
+      Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, /*metric = */(Metric) this.metric, this._metric_kwds); // todo pairwise_distances from sklearn metrics
       //indices = np.argpartition(dmat, this._n_neighbors)[:, :this._n_neighbors];
       indices = MathUtils.subArray(MathUtils.argpartition(dmat, this._n_neighbors), this._n_neighbors);
       float[][] dmat_shortened = Utils.submatrix(dmat, indices, this._n_neighbors);
@@ -1791,26 +1804,27 @@ public class Umap {
       indices = Utils.submatrix(indices, indices_sorted, this._n_neighbors);
       dists = Utils.submatrix(dmat_shortened, indices_sorted, this._n_neighbors);
     } else {
-      init = initialise_search(
-        this._rp_forest,
-        this._raw_data,
-        X,
-        (int) (this._n_neighbors * this.transform_queue_size),
-        this._random_init,
-        this._tree_init,
-        rng_state);
-      result = this._search(
-        this._raw_data,
-        this._search_graph.indptr,
-        this._search_graph.indices,
-        init,
-        X);
-
-      indices, dists = deheap_sort(result);
-//      indices = indices[:, :this._n_neighbors];
-//      dists = dists[:, :this._n_neighbors];
-      indices = MathUtils.subArray(indices, this._n_neighbors);
-      dists = MathUtils.subArray(dists, this._n_neighbors);
+      throw new UnsupportedOperationException();
+//      init = initialise_search(
+//        this._rp_forest,
+//        this._raw_data,
+//        X,
+//        (int) (this._n_neighbors * this.transform_queue_size),
+//        this._random_init,
+//        this._tree_init,
+//        rng_state);
+//      Matrix[] result = this._search(
+//        this._raw_data,
+//        this._search_graph.indptr,
+//        this._search_graph.indices,
+//        init,
+//        X);
+//
+//      indices, dists = Utils.deheap_sort(result);
+////      indices = indices[:, :this._n_neighbors];
+////      dists = dists[:, :this._n_neighbors];
+//      indices = MathUtils.subArray(indices, this._n_neighbors);
+//      dists = MathUtils.subArray(dists, this._n_neighbors);
     }
 
     double adjusted_local_connectivity = Math.max(0, this.local_connectivity - 1.0);
@@ -1822,20 +1836,20 @@ public class Umap {
     final int[] cols = (int[]) rcv[1];
     final float[] vals = (float[]) rcv[2];
 
-    CooMatrix graph = new CooMatrix(vals, rows, cols, new int[]{(int) X.length(), (int) this._raw_data.length()});
+    CooMatrix graph = new CooMatrix(vals, rows, cols, new int[]{(int) X.shape()[0], (int) this._raw_data.shape()[0]});
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
     CsrMatrix csr_graph = (CsrMatrix) Normalize.normalize(graph.tocsr(), "l1");
-    int[][] inds = csr_graph.indices.reshape(X.length(), this._n_neighbors);
-    float[][] weights = csr_graph.data.reshape(X.length(), this._n_neighbors);
+    int[][] inds = csr_graph.indices.reshape(X.shape()[0], this._n_neighbors);
+    float[][] weights = csr_graph.data.reshape(X.shape()[0], this._n_neighbors);
     Matrix embedding = init_transform(inds, weights, this.embedding_);
 
     final int n_epochs;
     if (this.n_epochs == null) {
       // For smaller datasets we can use more epochs
-      if (graph.length() <= 10000) {
+      if (graph.shape()[0] <= 10000) {
         n_epochs = 100;
       } else {
         n_epochs = 30;

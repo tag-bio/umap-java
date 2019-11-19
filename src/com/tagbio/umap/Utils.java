@@ -376,7 +376,6 @@ class Utils {
 //     return 1
 
 
-// @numba.njit()
 // def siftdown(heap1, heap2, elt):
 //     """Restore the heap property for a heap with an out of place element
 //     at position ``elt``. This works with a heap pair where heap1 carries
@@ -409,52 +408,46 @@ class Utils {
 //             elt = swap
 
 
-// @numba.njit()
-// def deheap_sort(heap):
-//     """Given an array of heaps (of indices and weights), unpack the heap
+  //     """Given an array of heaps (of indices and weights), unpack the heap
 //     out to give and array of sorted lists of indices and weights by increasing
 //     weight. This is effectively just the second half of heap sort (the first
 //     half not being required since we already have the data in a heap).
-
+//
 //     Parameters
 //     ----------
 //     heap : array of shape (3, n_samples, n_neighbors)
 //         The heap to turn into sorted lists.
-
+//
 //     Returns
 //     -------
 //     indices, weights: arrays of shape (n_samples, n_neighbors)
 //         The indices and weights sorted by increasing weight.
 //     """
-//     indices = heap[0]
-//     weights = heap[1]
-
-//     for i in range(indices.shape[0]):
-
-//         ind_heap = indices[i]
-//         dist_heap = weights[i]
-
-//         for j in range(ind_heap.shape[0] - 1):
-//             ind_heap[0], ind_heap[
-//                 ind_heap.shape[0] - j - 1
-//             ] = (
-//                 ind_heap[ind_heap.shape[0] - j - 1],
-//                 ind_heap[0],
-//             )
-//             dist_heap[0], dist_heap[
-//                 dist_heap.shape[0] - j - 1
-//             ] = (
-//                 dist_heap[dist_heap.shape[0] - j - 1],
-//                 dist_heap[0],
-//             )
-
-//             siftdown(
-//                 dist_heap[: dist_heap.shape[0] - j - 1],
-//                 ind_heap[: ind_heap.shape[0] - j - 1],
-//                 0,
-//             )
-
-//     return indices.astype(np.int64), weights
+//  static Matrix[] deheap_sort(Matrix[] heap) {
+//    Matrix indices = heap[0];
+//    Matrix weights = heap[1];
+//
+//    for (int i = 0; i < indices.shape()[0]; ++i) {
+//
+//      float[] ind_heap = indices.row(i);
+//      float[] dist_heap = weights.row(i);
+//
+//      for (int j = 0; j < ind_heap.length - 1; ++j) {
+//        //ind_heap[0], ind_heap[ ind_heap.shape[0] - j - 1 ] = ( ind_heap[ind_heap.shape[0] - j - 1],   ind_heap[0]       );
+//        float t = ind_heap[0];
+//        ind_heap[0] = ind_heap[ind_heap.length - j - 1];
+//        ind_heap[ind_heap.length - j - 1] = t;
+//        // dist_heap[0], dist_heap[   dist_heap.shape[0] - j - 1  ] = (  dist_heap[dist_heap.shape[0] - j - 1], dist_heap[0]     );
+//        t = dist_heap[0];
+//        dist_heap[0] = dist_heap[dist_heap.length - j - 1];
+//        dist_heap[dist_heap.length - j - 1] = t;
+//
+//        siftdown(dist_heap[:dist_heap.shape[0] - j - 1], ind_heap[:ind_heap.shape[0] - j - 1],  0    );
+//      }
+//    }
+//
+//    return new Matrix[]{indices, wights};
+//  }
 
 
 // @numba.njit("i8(f8[:, :, :],i8)")

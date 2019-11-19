@@ -1,6 +1,7 @@
 package com.tagbio.umap;
 
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * Math utilities equivalent to Python numpy functionality.
@@ -188,5 +189,20 @@ class MathUtils {
       res[k][0] = x[k];
     }
     return new DefaultMatrix(res);
+  }
+
+  static float[][] uniform(final Random random, final float lo, final float hi, final int n, final int m) {
+    // replacement for numpy.random.RandomState.uniform (2D specialization)
+    final float len = hi - lo;
+    if (len <= 0) {
+      throw new IllegalArgumentException("lo must be smaller than hi");
+    }
+    final float[][] res = new float[n][m];
+    for (int k = 0; k < n; ++k) {
+      for (int j = 0; j < m; ++j) {
+        res[k][j] = lo + random.nextFloat() * len;
+      }
+    }
+    return res;
   }
 }
