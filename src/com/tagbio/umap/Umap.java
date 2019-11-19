@@ -1256,6 +1256,7 @@ public class Umap {
   // best matches an offset exponential decay.
   // """
   private static float[] find_ab_params(float spread, float min_dist) {
+    /*
     float[] xv = MathUtils.linspace(0, spread * 3, 300);
     float[] yv = new float[xv.length];
     //  yv[xv < min_dist] = 1.0;
@@ -1267,8 +1268,13 @@ public class Umap {
         yv[k] = (float) Math.exp(-(xv[k] - min_dist) / spread);
       }
     }
-    final float[] params /*, covar*/ = curve_fit(curve, xv, yv); // todo here curve is the function above -- curve_fit in scipy
+    final float[] params = curve_fit(curve, xv, yv); // todo here curve is the function above -- curve_fit in scipy
     return new float[]{params[0], params[1]};
+    */
+    if (spread == 1.0F && min_dist == 0.1F) {
+      return new float[]{1.57694346F, 0.89506088F};
+    }
+    throw new UnsupportedOperationException();
   }
 
   private boolean angular_rp_forest = false;
