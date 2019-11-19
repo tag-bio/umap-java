@@ -1,0 +1,24 @@
+
+Functions/methods from python libraries that are needed:
+
+To implement scipy.optimize
+curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False, check_finite=True, bounds=(-np.inf, np.inf), method=None, jac=None, **kwargs)
+
+* called with curve, xs and ys, returns params, covr but only params used
+* other parameters at defaults
+* a lot of checking/setup code can be removed - setup based of default value paths
+* calls leastsq(func, x0, args=(), Dfun=None, full_output=0,
+    col_deriv=0, ftol=1.49012e-8, xtol=1.49012e-8,
+    gtol=0.0, maxfev=0, epsfcn=None, factor=100, diag=None)
+    - only func, x0 and Dfun set (Dfun == None in default params path of curve_fit)
+    - hits many matrix functions from numpy/scipy
+        . _minpack._lmdif
+        . _minpack._lmder
+        . take, eye, transpose, tri/tril/triu, dot, inv, ...
+        . numpy.sum, finfo/iinfo - machine limits for data types,
+        . max of values in array
+    - calls svd - from decomp_svd
+    
+* things like _check_func not needed, as we are in control of the shape of the matricies?
+
+* What exceptions/errors to throw?
