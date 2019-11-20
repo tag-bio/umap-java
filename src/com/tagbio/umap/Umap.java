@@ -684,6 +684,7 @@ public class Umap {
     result.eliminate_zeros();
 
     final Matrix transpose = result.transpose();
+
     final Matrix prod_matrix = result.multiply(transpose);
 
     result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio));
@@ -1478,7 +1479,7 @@ public class Umap {
   //     The relevant attributes are ``target_metric`` and
   //     ``target_metric_kwds``.
   // """
-  private void fit(Matrix X, float[] y /*=null*/) {
+  private void fit(Matrix X, float[] y) {
 
     //X = check_array(X, dtype = np.float32, accept_sparse = "csr");
     this._raw_data = X;
@@ -1576,7 +1577,6 @@ public class Umap {
         throw new UnsupportedOperationException();
       }
     }
-
 
     if (y != null) {
       if (X.length() != y.length) {

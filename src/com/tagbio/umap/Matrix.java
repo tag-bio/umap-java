@@ -77,25 +77,6 @@ abstract class Matrix {
     return new DefaultMatrix(res);
   }
 
-  Matrix multiply(final Matrix m) {
-    if (shape[1] != m.shape[0]) {
-      throw new IllegalArgumentException("Incompatible matrix sizes");
-    }
-    final int rows = shape[0];
-    final int cols = m.shape[1];
-    final Matrix product = new DefaultMatrix(rows, cols);
-    for (int i = 0; i < rows; ++i) {
-      for (int j = 0; j < cols; ++j) {
-        float sum = 0;
-        for (int k = 0; k < shape[1]; ++k) {
-          sum += get(i, k) * m.get(k, j);
-        }
-        product.set(i, j, sum);
-      }
-    }
-    return product;
-  }
-
   Matrix add(final Matrix m) {
     if (!Arrays.equals(shape, m.shape)) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
@@ -133,6 +114,25 @@ abstract class Matrix {
     for (int i = 0; i < rows; ++i) {
       for (int j = 0; j < cols; ++j) {
         res.set(i, j, get(i, j) * x);
+      }
+    }
+    return res;
+  }
+
+  Matrix multiply(final Matrix m) {
+    if (shape[1] != m.shape[0]) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final int rows = shape[0];
+    final int cols = m.shape[1];
+    final Matrix res = new DefaultMatrix(rows, cols);
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        float sum = 0;
+        for (int k = 0; k < shape[1]; ++k) {
+          sum += get(i, k) * m.get(k, j);
+        }
+        res.set(i, j, sum);
       }
     }
     return res;

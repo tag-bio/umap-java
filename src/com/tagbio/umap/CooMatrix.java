@@ -108,8 +108,28 @@ class CooMatrix extends Matrix {
 
   @Override
   Matrix multiply(final Matrix m) {
-    // todo this could do this without using super
-    return super.multiply(m).tocoo();
+    if (!(m instanceof CooMatrix)) {
+      return super.multiply(m).tocoo();
+    }
+    // We are multiplying two CooMatrices together
+    // todo can this be made faster?
+    final CooMatrix a = (CooMatrix) m;
+    if (shape[1] != m.shape[0]) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final int rows = shape[0];
+    final int cols = m.shape[1];
+    final float[][] res = new float[rows][cols];
+    for (int k = 0; k < data.length; ++k) {
+      final int r = row[k];
+      final int c = col[k];
+      for (int j = 0; j < a.data.length; ++j) {
+        if (a.row[j] == c) {
+          res[r][a.col[j]] += data[k] * a.data[j];
+        }
+      }
+    }
+    return new DefaultMatrix(res).tocoo();
   }
 
   @Override

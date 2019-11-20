@@ -3,6 +3,7 @@ package com.tagbio.umap;
 import java.util.Map;
 
 import com.tagbio.umap.metric.Metric;
+import com.tagbio.umap.metric.PrecomputedMetric;
 
 /**
  * @author Sean A. Irvine
@@ -12,38 +13,32 @@ class PairwiseDistances {
   // replacement for sklearn.pairwise_distances
   // todo testing
   // todo possibly smarter version for sparse data
+  // todo can this assume symmetric metric (i.e. d(x,y)=d(y,x)) ?
 
   private PairwiseDistances() { }
 
-  private static float[] instance(final Matrix data, final int row) {
-    final float[] r = new float[data.shape()[1]];
-    for (int col = 0; col < r.length; ++col) {
-      r[col] = data.get(row, col);
-    }
-    return r;
-  }
-
   static Matrix pairwise_distances(final Matrix x, final Metric metric, final Map<String, Object> keywords) {
     // todo special metric precomputed
-    if (metric.equals("precomputed")) {
+    if (PrecomputedMetric.SINGLETON.equals(metric)) {
       return x;
     }
     // todo keywords
     // todo potential parallel
+    //Utils.message("Starting distance calculation");
     final int n = x.shape()[0];
     final float[][] distances = new float[n][n];
     for (int k = 0; k < n; ++k) {
-      final float[] xk = instance(x, k);
+      final float[] xk = x.row(k);
       for (int j = 0; j < n; ++j) {
-        distances[k][j] = (float) metric.distance(xk, instance(x, j));
+        distances[k][j] = (float) metric.distance(xk, x.row(j));
       }
     }
+    //Utils.message("Finished distance calculation");
     return new DefaultMatrix(distances);
   }
 
   static Matrix pairwise_distances(final Matrix x, final Matrix y, final Metric metric, final Map<String, Object> keywords) {
-    // todo special metric precomputed
-    if (metric.equals("precomputed")) {
+    if (PrecomputedMetric.SINGLETON.equals(metric)) {
       throw new IllegalArgumentException("Cannot use this method with precomputed");
     }
     // todo keywords
@@ -52,9 +47,9 @@ class PairwiseDistances {
     final int yn = y.shape()[0];
     final float[][] distances = new float[xn][yn];
     for (int k = 0; k < xn; ++k) {
-      final float[] xk = instance(x, k);
+      final float[] xk = x.row(k);
       for (int j = 0; j < yn; ++j) {
-        distances[k][j] = (float) metric.distance(xk, instance(y, j));
+        distances[k][j] = (float) metric.distance(xk, y.row(j));
       }
     }
     return new DefaultMatrix(distances);

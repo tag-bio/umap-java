@@ -47,4 +47,9 @@ class DefaultMatrix extends Matrix {
   float[] row(int row) {
     return Arrays.copyOf(data[row], data[row].length);
   }
+
+  @Override
+  void eliminate_zeros() {
+    // There is nothing to be done in this implementation (zeros cannot be removed)
+  }
 }
