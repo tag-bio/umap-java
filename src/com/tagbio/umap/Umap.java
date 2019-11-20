@@ -1148,6 +1148,7 @@ public class Umap {
     Object metric, // todo yuck
     Map<String, Object> metric_kwds,
     boolean verbose) {
+
     graph = graph.tocoo();
     graph.sum_duplicates();
     int n_vertices = graph.shape()[1];
@@ -1503,7 +1504,7 @@ public class Umap {
     } else {
       this._a = this.a;
       this._b = this.b;
-
+    }
       this._metric_kwds = new HashMap<>(this.metric_kwds);
       this._target_metric_kwds = new HashMap<>(this.target_metric_kwds);
 
@@ -1624,7 +1625,7 @@ public class Umap {
           throw new UnsupportedOperationException();
         }
       }
-    }
+
 
 
     if (y != null) {
