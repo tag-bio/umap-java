@@ -1,5 +1,7 @@
 package com.tagbio.umap;
 
+import java.util.Arrays;
+
 /**
  * @author Sean A. Irvine
  */
@@ -43,6 +45,11 @@ class CsrMatrix extends Matrix {
   @Override
   void set(final int row, final int col, final float val) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  Matrix copy() {
+    return new CsrMatrix(Arrays.copyOf(data, data.length), Arrays.copyOf(indptr, indptr.length), Arrays.copyOf(indices, indices.length), Arrays.copyOf(shape, shape.length));
   }
 
   @Override

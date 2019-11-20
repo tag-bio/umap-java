@@ -1,5 +1,7 @@
 package com.tagbio.umap;
 
+import java.util.Arrays;
+
 /**
  * @author Sean A. Irvine
  */
@@ -41,6 +43,11 @@ class CooMatrix extends Matrix {
   @Override
   void set(final int row, final int col, final float val) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  Matrix copy() {
+    return new CsrMatrix(Arrays.copyOf(data, data.length), Arrays.copyOf(row, row.length), Arrays.copyOf(col, col.length), Arrays.copyOf(shape, shape.length));
   }
 
   @Override

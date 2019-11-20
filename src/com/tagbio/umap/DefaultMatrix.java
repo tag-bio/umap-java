@@ -1,5 +1,7 @@
 package com.tagbio.umap;
 
+import java.util.Arrays;
+
 /**
  * @author Sean A. Irvine
  */
@@ -20,6 +22,15 @@ class DefaultMatrix extends Matrix {
   @Override
   void set(final int row, final int col, final float val) {
     data[row][col] = val;
+  }
+
+  @Override
+  Matrix copy() {
+    final float[][] copy = new float[data.length][];
+    for (int k = 0; k < copy.length; ++k) {
+      copy[k] = Arrays.copyOf(data[k], data[k].length);
+    }
+    return new DefaultMatrix(copy);
   }
 
   @Override
