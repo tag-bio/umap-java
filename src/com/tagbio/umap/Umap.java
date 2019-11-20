@@ -529,7 +529,7 @@ public class Umap {
   // vals: array of shape (n_samples * n_neighbors)
   //     Entries for the resulting sparse matrix (coo format)
   // """
-  private static Object[] compute_membership_strengths(int[][] knn_indices, float[][] knn_dists, float[] sigmas, float[] rhos) {
+  private static CooMatrix compute_membership_strengths(int[][] knn_indices, float[][] knn_dists, float[] sigmas, float[] rhos, final int[] shape) {
     int n_samples = knn_indices.length;
     int n_neighbors = knn_indices[0].length;
     final int size = n_samples * n_neighbors;
@@ -556,8 +556,7 @@ public class Umap {
         vals[i * n_neighbors + j] = (float) val;
       }
     }
-
-    return new Object[]{rows, cols, vals};
+    return new CooMatrix(vals, rows, cols, shape);
   }
 
 
@@ -664,39 +663,28 @@ public class Umap {
   //     j) entry of the matrix represents the membership strength of the
   //     1-simplex between the ith and jth sample points.
   // """
-  private static Matrix fuzzy_simplicial_set(
-    Matrix X,
-    int n_neighbors,
-    long[] random_state,
-    Metric metric,
-    Map<String, Object> metric_kwds /*={}*/,
-    int[][] knn_indices /*=null*/,
-    float[][] knn_dists /*=null*/,
-    boolean angular /*=false*/,
-    float set_op_mix_ratio /*=1.0*/,
-    float local_connectivity /*=1.0*/,
-    boolean verbose /*=false*/) {
+  private static Matrix fuzzy_simplicial_set(final Matrix X, final int n_neighbors, final long[] random_state, final Metric metric, final Map<String, Object> metric_kwds, int[][] knn_indices, float[][] knn_dists, final boolean angular, final float set_op_mix_ratio, final float local_connectivity, final boolean verbose) {
+
     if (knn_indices == null || knn_dists == null) {
       final Object[] nn = nearest_neighbors(X, n_neighbors, metric, metric_kwds, angular, random_state, verbose);
       knn_indices = (int[][]) nn[0];
       knn_dists = (float[][]) nn[1];
     }
 
-    final float[][] sigmasRhos = smooth_knn_dist(knn_dists, n_neighbors,  /*local_connectivity=*/local_connectivity);
-    float[] sigmas = sigmasRhos[0];
-    float[] rhos = sigmasRhos[1];
+    final float[][] sigmasRhos = smooth_knn_dist(knn_dists, n_neighbors, local_connectivity);
+    final float[] sigmas = sigmasRhos[0];
+    final float[] rhos = sigmasRhos[1];
 
-    final Object[] rcv = compute_membership_strengths(knn_indices, knn_dists, sigmas, rhos);
-    final int[] rows = (int[]) rcv[0];
-    final int[] cols = (int[]) rcv[1];
-    final float[] vals = (float[]) rcv[2];
-
-    Matrix result = new CooMatrix(vals, rows, cols, new int[]{X.shape()[0], X.shape()[0]});
+    Matrix result = compute_membership_strengths(knn_indices, knn_dists, sigmas, rhos, new int[]{X.shape()[0], X.shape()[0]});
+//    final Object[] rcv = compute_membership_strengths(knn_indices, knn_dists, sigmas, rhos);
+//    final int[] rows = (int[]) rcv[0];
+//    final int[] cols = (int[]) rcv[1];
+//    final float[] vals = (float[]) rcv[2];
+//    Matrix result = new CooMatrix(vals, rows, cols, new int[]{X.shape()[0], X.shape()[0]});
     result.eliminate_zeros();
 
-    Matrix transpose = result.transpose();
-
-    Matrix prod_matrix = result.multiply(transpose);
+    final Matrix transpose = result.transpose();
+    final Matrix prod_matrix = result.multiply(transpose);
 
     result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio));
 
@@ -1518,10 +1506,6 @@ public class Umap {
 
     this._validate_parameters();
 
-    if (this.verbose) {
-      Utils.message(this.toString()); // todo?  Huh? will this do anything useful -- there is no toString()
-    }
-
     // Error check n_neighbors based on data size
     if (X.shape()[0] <= this.n_neighbors) {
       if (X.shape()[0] == 1) {
@@ -1553,43 +1537,18 @@ public class Umap {
 
     // Handle small cases efficiently by computing all distances
     if (X.shape()[0] < 4096) {
-      this._small_data = true;
-      Matrix dmat = PairwiseDistances.pairwise_distances(X, this.metric, this._metric_kwds);
-      this.graph_ = fuzzy_simplicial_set(
-        dmat,
-        this._n_neighbors,
-        random_state,
-        PrecomputedMetric.SINGLETON,
-        this._metric_kwds,
-        null,
-        null,
-        this.angular_rp_forest,
-        this.set_op_mix_ratio,
-        this.local_connectivity,
-        this.verbose
-      );
+      _small_data = true;
+      final Matrix dmat = PairwiseDistances.pairwise_distances(X, this.metric, this._metric_kwds);
+      graph_ = fuzzy_simplicial_set(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, _metric_kwds, null, null, angular_rp_forest, set_op_mix_ratio, local_connectivity, verbose);
     } else {
-      this._small_data = false;
+      _small_data = false;
       // Standard case
-      final Object[] nn = nearest_neighbors(X, this._n_neighbors, this.metric, this._metric_kwds, this.angular_rp_forest, random_state, this.verbose);
+      final Object[] nn = nearest_neighbors(X, _n_neighbors, this.metric, _metric_kwds, this.angular_rp_forest, random_state, verbose);
+      _knn_indices = (int[][]) nn[0];
+      _knn_dists = (float[][]) nn[1];
+      _rp_forest = (List<?>) nn[2];
 
-      this._knn_indices = (int[][]) nn[0];
-      this._knn_dists = (float[][]) nn[1];
-      this._rp_forest = (List<?>) nn[2];
-
-      this.graph_ = fuzzy_simplicial_set(
-        X,
-        this.n_neighbors,
-        random_state,
-        this.metric,
-        this._metric_kwds,
-        this._knn_indices,
-        this._knn_dists,
-        this.angular_rp_forest,
-        this.set_op_mix_ratio,
-        this.local_connectivity,
-        this.verbose
-      );
+      graph_ = fuzzy_simplicial_set(X, n_neighbors, random_state, metric, _metric_kwds, _knn_indices, _knn_dists, angular_rp_forest, set_op_mix_ratio, local_connectivity, verbose);
 
       // todo this starts as LilMatrix type but ends up as a CsrMatrix!
       // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
@@ -1684,12 +1643,7 @@ public class Umap {
     }
 
 
-    int n_epochs;
-    if (this.n_epochs == null) {
-      n_epochs = 0;
-    } else {
-      n_epochs = this.n_epochs;
-    }
+    int n_epochs = this.n_epochs == null ? 0 : this.n_epochs;
 
     if (this.verbose) {
       Utils.message("Construct embedding");
@@ -1825,12 +1779,7 @@ public class Umap {
     final float[][] sigmasRhos = smooth_knn_dist(dists, this._n_neighbors, /* local_connectivity=*/adjusted_local_connectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];
-    final Object[] rcv = compute_membership_strengths(indices, dists, sigmas, rhos);
-    final int[] rows = (int[]) rcv[0];
-    final int[] cols = (int[]) rcv[1];
-    final float[] vals = (float[]) rcv[2];
-
-    CooMatrix graph = new CooMatrix(vals, rows, cols, new int[]{X.shape()[0], this._raw_data.shape()[0]});
+    final CooMatrix graph = compute_membership_strengths(indices, dists, sigmas, rhos, new int[]{X.shape()[0], this._raw_data.shape()[0]});
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
