@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.tagbio.umap.metric.CategoricalMetric;
+import com.tagbio.umap.metric.EuclideanMetric;
 import com.tagbio.umap.metric.Metric;
+import com.tagbio.umap.metric.PrecomputedMetric;
 import com.tagbio.umap.metric.ReducedEuclideanMetric;
 
 // """Uniform Manifold Approximation and Projection
@@ -393,7 +396,7 @@ public class Umap {
   private static Object[] nearest_neighbors(
     Matrix X,
     int n_neighbors,
-    Object metric, // either a string or metric
+    Metric metric,
     Map<String, Object> metric_kwds,
     boolean angular,
     long[] random_state, // todo Huh? type conflict // Random
@@ -405,7 +408,7 @@ public class Umap {
     int[][] knn_indices = null;
     float[][] knn_dists = null;
     List<?> rp_forest = null;
-    if (metric.equals("precomputed")) {
+    if (metric.equals(PrecomputedMetric.SINGLETON)) {
       throw new UnsupportedOperationException();
 //      // Note that this does not support sparse distance matrices yet ...
 //      // Compute indices of n nearest neighbors
@@ -415,15 +418,8 @@ public class Umap {
 //      knn_dists = X[np.arange(X.length())[:,null],knn_indices].copy();
 //      rp_forest = [];
     } else {
-      Metric distance_func;
-      if (metric instanceof Metric) {
-        distance_func = (Metric) metric;
-        // todo following is complicated due to handling of extra params (e.g. see StandardisedEuclideanMetric)
-//      } else if (metric in dist.named_distances) {
-//        distance_func = dist.named_distances[metric];
-      } else {
-        throw new IllegalArgumentException("Metric is neither callable, nor a recognised string");
-      }
+      Metric distance_func = metric;
+
 
 //      if (metric in (
 //                     "cosine",
@@ -440,6 +436,7 @@ public class Umap {
 
       if (X instanceof CsrMatrix) { //scipy.sparse.isspmatrix_csr(X)) {
         final CsrMatrix Y = (CsrMatrix) X;
+        // todo this is nonense now, since metric cannot be a string at this point
         if (Sparse.sparse_named_distances.containsKey(metric)){
           distance_func = Sparse.sparse_named_distances.get(metric);
           if (Sparse.sparse_need_n_features.contains(metric)) {
@@ -665,7 +662,7 @@ public class Umap {
     Matrix X,
     int n_neighbors,
     long[] random_state,
-    Object metric,  // todo yuck! fix type
+    Metric metric,
     Map<String, Object> metric_kwds /*={}*/,
     int[][] knn_indices /*=null*/,
     float[][] knn_dists /*=null*/,
@@ -1145,7 +1142,7 @@ public class Umap {
     int n_epochs,
     String init,
     long[] random_state,
-    Object metric, // todo yuck
+    Metric metric,
     Map<String, Object> metric_kwds,
     boolean verbose) {
 
@@ -1287,7 +1284,7 @@ public class Umap {
   private int n_neighbors = 15;
   private int n_components = 2;
   private Integer n_epochs = null;
-  private Object metric = "euclidean";
+  private Metric metric = EuclideanMetric.SINGLETON;
   private final Map<String, String> metric_kwds = new HashMap<>();
   private float learning_rate = 1.0F;
   private float repulsion_strength = 1.0F;
@@ -1297,7 +1294,7 @@ public class Umap {
   private float local_connectivity = 1.0F;
   private int negative_sample_rate = 5;
   private float transform_queue_size = 4.0F;
-  private Object target_metric = "categorical"; // todo would prefer this to be type Metric
+  private Metric target_metric = CategoricalMetric.SINGLETON;
   private int target_n_neighbors = -1;
   private float target_weight = 0.5F;
   private int transform_seed = 42;
@@ -1345,10 +1342,6 @@ public class Umap {
     this.metric = metric;
   }
 
-  public void setMetric(final String metric) {
-    this.metric = metric;
-  }
-
   public void clearMetricKeywords() {
     metric_kwds.clear();
   }
@@ -1393,7 +1386,7 @@ public class Umap {
     this.negative_sample_rate = negative_sample_rate;
   }
 
-  public void setTarget_metric(final String target_metric) {
+  public void setTarget_metric(final Metric target_metric) {
     this.target_metric = target_metric;
   }
 
@@ -1447,9 +1440,9 @@ public class Umap {
 //    if (isinstance(init, np.ndarray) && init.shape[1] != n_components) {
 //      throw new IllegalArgumentException("init ndarray must match n_components value");
 //    }
-    if (!(metric instanceof String) && !(metric instanceof Metric)) {
-      throw new IllegalArgumentException("metric must be string || callable");
-    }
+//    if (!(metric instanceof String) && !(metric instanceof Metric)) {
+//      throw new IllegalArgumentException("metric must be string || callable");
+//    }
     if (negative_sample_rate < 0) {
       throw new IllegalArgumentException("negative sample rate must be positive");
     }
@@ -1505,127 +1498,119 @@ public class Umap {
       this._a = this.a;
       this._b = this.b;
     }
-      this._metric_kwds = new HashMap<>(this.metric_kwds);
-      this._target_metric_kwds = new HashMap<>(this.target_metric_kwds);
+    this._metric_kwds = new HashMap<>(this.metric_kwds);
+    this._target_metric_kwds = new HashMap<>(this.target_metric_kwds);
 
 //      if (isinstance(this.init, np.ndarray)) {
 //        init = check_array(this.init,        /*  dtype = */np.float32,         /* accept_sparse =*/ false);
 //      } else {
 //        init = this.init;
 //      }
-      String init = this.init;
+    String init = this.init;
 
-      this._initial_alpha = this.learning_rate;
+    this._initial_alpha = this.learning_rate;
 
-      this._validate_parameters();
+    this._validate_parameters();
 
-      if (this.verbose) {
-        Utils.message(this.toString()); // todo?  Huh? will this do anything useful -- there is no toString()
+    if (this.verbose) {
+      Utils.message(this.toString()); // todo?  Huh? will this do anything useful -- there is no toString()
+    }
+
+    // Error check n_neighbors based on data size
+    if (X.shape()[0] <= this.n_neighbors) {
+      if (X.shape()[0] == 1) {
+        this.embedding_ = new DefaultMatrix(new float[1][this.n_components]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
+        return;
       }
 
-      // Error check n_neighbors based on data size
-      if (X.shape()[0] <= this.n_neighbors) {
-        if (X.shape()[0] == 1) {
-          this.embedding_ = new DefaultMatrix(new float[1][this.n_components]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
-          return;
-        }
+      Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
+      this._n_neighbors = X.shape()[0] - 1;
+    } else {
+      this._n_neighbors = this.n_neighbors;
+    }
 
-        Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
-        this._n_neighbors = X.shape()[0] - 1;
-      } else {
-        this._n_neighbors = this.n_neighbors;
+    if (X instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
+      final CsrMatrix Y = (CsrMatrix) X;
+      if (!Y.has_sorted_indices()) {
+        Y.sort_indices();
       }
+      this._sparse_data = true;
+    } else {
+      this._sparse_data = false;
+    }
 
-      if (X instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
-        final CsrMatrix Y = (CsrMatrix) X;
-        if (!Y.has_sorted_indices()) {
-          Y.sort_indices();
-        }
-        this._sparse_data = true;
-      } else {
-        this._sparse_data = false;
-      }
+    long[] random_state = this.random_state; //check_random_state(this.random_state);
 
-      long[] random_state = this.random_state; //check_random_state(this.random_state);
+    if (this.verbose) {
+      Utils.message("Construct fuzzy simplicial set");
+    }
 
-      if (this.verbose) {
-        Utils.message("Construct fuzzy simplicial set");
-      }
+    // Handle small cases efficiently by computing all distances
+    if (X.shape()[0] < 4096) {
+      this._small_data = true;
+      Matrix dmat = PairwiseDistances.pairwise_distances(X, this.metric, this._metric_kwds);
+      this.graph_ = fuzzy_simplicial_set(
+        dmat,
+        this._n_neighbors,
+        random_state,
+        PrecomputedMetric.SINGLETON,
+        this._metric_kwds,
+        null,
+        null,
+        this.angular_rp_forest,
+        this.set_op_mix_ratio,
+        this.local_connectivity,
+        this.verbose
+      );
+    } else {
+      this._small_data = false;
+      // Standard case
+      final Object[] nn = nearest_neighbors(X, this._n_neighbors, this.metric, this._metric_kwds, this.angular_rp_forest, random_state, this.verbose);
 
-      // Handle small cases efficiently by computing all distances
-      if (X.shape()[0] < 4096) {
-        this._small_data = true;
-        Matrix dmat = PairwiseDistances.pairwise_distances(X, (Metric) this.metric, this._metric_kwds);
-        this.graph_ = fuzzy_simplicial_set(
-          dmat,
-          this._n_neighbors,
-          random_state,
-          "precomputed",
-          this._metric_kwds,
-          null,
-          null,
-          this.angular_rp_forest,
-          this.set_op_mix_ratio,
-          this.local_connectivity,
-          this.verbose
-        );
-      } else {
-        this._small_data = false;
-        // Standard case
-        final Object[] nn = nearest_neighbors(X, this._n_neighbors, this.metric, this._metric_kwds, this.angular_rp_forest, random_state, this.verbose);
+      this._knn_indices = (int[][]) nn[0];
+      this._knn_dists = (float[][]) nn[1];
+      this._rp_forest = (List<?>) nn[2];
 
-          this._knn_indices = (int[][]) nn[0];
-          this._knn_dists = (float[][]) nn[1];
-          this._rp_forest = (List<?>) nn[2];
+      this.graph_ = fuzzy_simplicial_set(
+        X,
+        this.n_neighbors,
+        random_state,
+        this.metric,
+        this._metric_kwds,
+        this._knn_indices,
+        this._knn_dists,
+        this.angular_rp_forest,
+        this.set_op_mix_ratio,
+        this.local_connectivity,
+        this.verbose
+      );
 
-        this.graph_ = fuzzy_simplicial_set(
-          X,
-          this.n_neighbors,
-          random_state,
-          this.metric,
-          this._metric_kwds,
-          this._knn_indices,
-          this._knn_dists,
-          this.angular_rp_forest,
-          this.set_op_mix_ratio,
-          this.local_connectivity,
-          this.verbose
-        );
-
-        // todo this starts as LilMatrix type but ends up as a CsrMatrix!
-        // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
-        // todo overall seems to make (0,1)-matrix with a 1 at (x,y) whenever dists(x,y)!=0 or dists(y,x)!=0
-        // todo highly unsure about handling of indices below and relation of shapes
+      // todo this starts as LilMatrix type but ends up as a CsrMatrix!
+      // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
+      // todo overall seems to make (0,1)-matrix with a 1 at (x,y) whenever dists(x,y)!=0 or dists(y,x)!=0
+      // todo highly unsure about handling of indices below and relation of shapes
 //        Matrix tmp_search_graph = //scipy.sparse.lil_matrix((X.shape()[0], X.shape()[0]), dtype = np.int8      );
 //        tmp_search_graph.rows = this._knn_indices;
 //        tmp_search_graph.data = (this._knn_dists != 0).astype(np.int8);  // todo what does this do? -- tests each element to be 0, returns True or False for each element
-        final float[][] tmp_data = new float[X.shape()[0]][X.shape()[0]];
-        for (int k = 0; k < this._knn_indices.length; ++k) {
-          final int x = this._knn_indices[k][0];
-          final int y2 = this._knn_indices[k][1];
-          tmp_data[x][y2] = this._knn_dists[x][y2] != 0 ? 1.0F : 0.0F;
-        }
-        final Matrix tmp_matrix = new DefaultMatrix(tmp_data);
-        this._search_graph = tmp_matrix.max(tmp_matrix.transpose()).tocsr();
-
-        if (this.metric instanceof Metric) {
-          this._distance_func = (Metric) this.metric;
-//        } else if (this.metric in dist.named_distances) {
-//          this._distance_func = dist.named_distances[this.metric];
-        } else if (this.metric == "precomputed") {
-          Utils.message("Using precomputed metric; transform will be unavailable for new data");
-        } else {
-          throw new IllegalArgumentException("Metric is neither callable, nor a recognised string");
-        }
-
-        if (!"precomputed".equals(this.metric)) {
-          this._dist_args = this._metric_kwds.values(); // todo this is weird? -- how do values get associated with what they are?
-         // this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func, this._dist_args);
-         // this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func, this._dist_args);
-          throw new UnsupportedOperationException();
-        }
+      final float[][] tmp_data = new float[X.shape()[0]][X.shape()[0]];
+      for (int k = 0; k < this._knn_indices.length; ++k) {
+        final int x = this._knn_indices[k][0];
+        final int y2 = this._knn_indices[k][1];
+        tmp_data[x][y2] = this._knn_dists[x][y2] != 0 ? 1.0F : 0.0F;
       }
+      final Matrix tmp_matrix = new DefaultMatrix(tmp_data);
+      this._search_graph = tmp_matrix.max(tmp_matrix.transpose()).tocsr();
 
+      this._distance_func = this.metric;
+      if (this.metric == PrecomputedMetric.SINGLETON) {
+        Utils.message("Using precomputed metric; transform will be unavailable for new data");
+      } else {
+        this._dist_args = this._metric_kwds.values(); // todo this is weird? -- how do values get associated with what they are?
+        // this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func, this._dist_args);
+        // this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func, this._dist_args);
+        throw new UnsupportedOperationException();
+      }
+    }
 
 
     if (y != null) {
@@ -1654,12 +1639,12 @@ public class Umap {
         // Handle the small case as precomputed as before
         if (y.length < 4096) {
           //Matrix ydmat = PairwiseDistances.pairwise_distances(y_[np.newaxis, :].T,  (Metric) this.target_metric,  this._target_metric_kwds);
-          Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_),  (Metric) this.target_metric,  this._target_metric_kwds);
+          Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_), (Metric) this.target_metric, this._target_metric_kwds);
           target_graph = fuzzy_simplicial_set(
             ydmat,
             target_n_neighbors,
             random_state,
-            "precomputed",
+            PrecomputedMetric.SINGLETON,
             this._target_metric_kwds,
             null,
             null,
@@ -1799,7 +1784,7 @@ public class Umap {
     int[][] indices;
     float[][] dists;
     if (this._small_data) {
-      Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, /*metric = */(Metric) this.metric, this._metric_kwds); // todo pairwise_distances from sklearn metrics
+      Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, /*metric = */this.metric, this._metric_kwds); // todo pairwise_distances from sklearn metrics
       //indices = np.argpartition(dmat, this._n_neighbors)[:, :this._n_neighbors];
       indices = MathUtils.subArray(MathUtils.argpartition(dmat, this._n_neighbors), this._n_neighbors);
       float[][] dmat_shortened = Utils.submatrix(dmat, indices, this._n_neighbors);
