@@ -28,7 +28,7 @@ class CooMatrix extends Matrix {
     // todo for now ugliness ...
 
     final DefaultMatrix res = new DefaultMatrix(shape);
-    for (int k = 0; k < row.length; ++k) {
+    for (int k = 0; k < data.length; ++k) {
       res.set(row[k], col[k], res.get(row[k], col[k]) + data[k]);
     }
     CooMatrix coo = res.tocoo(); // todo yikes!!
@@ -40,8 +40,8 @@ class CooMatrix extends Matrix {
   @Override
   float get(final int r, final int c) {
     // todo this could be made faster if can assume sorted row[] col[]
-    // todo there may be duplicate coords, need to sum result?
-    for (int k = 0; k < row.length; ++k) {
+    // todo there may be duplicate coords, need to sum result? (or doc this problem away!)
+    for (int k = 0; k < data.length; ++k) {
       if (row[k] == r && col[k] == c) {
         return data[k];
       }
