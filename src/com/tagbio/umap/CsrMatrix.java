@@ -11,8 +11,11 @@ class CsrMatrix extends Matrix {
   int[] indices; // positions of actual data
   float[] data;
 
-  CsrMatrix(final int[] lengths) {
+  CsrMatrix(final float[] data, final int[] indptr, final int[] indices, final int[] lengths) {
     super(lengths);
+    this.indptr = indptr;
+    this.indices = indices;
+    this.data = data;
   }
 
   boolean has_sorted_indices() {
@@ -40,5 +43,10 @@ class CsrMatrix extends Matrix {
   @Override
   void set(final int row, final int col, final float val) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  CsrMatrix tocsr() {
+    return this;
   }
 }

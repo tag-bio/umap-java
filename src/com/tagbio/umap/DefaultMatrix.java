@@ -21,4 +21,9 @@ class DefaultMatrix extends Matrix {
   void set(final int row, final int col, final float val) {
     data[row][col] = val;
   }
+
+  @Override
+  float[] row(int row) {
+    return data[row];
+  }
 }

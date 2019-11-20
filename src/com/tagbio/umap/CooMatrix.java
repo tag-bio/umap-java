@@ -23,6 +23,7 @@ class CooMatrix extends Matrix {
 
   void sum_duplicates() {
     // todo -- semantics?  possibly just merge identical entries?
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -40,5 +41,16 @@ class CooMatrix extends Matrix {
   @Override
   void set(final int row, final int col, final float val) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  Matrix transpose() {
+    // todo note this is not copying the arrays -- might be a mutability issue
+    return new CooMatrix(data, col, row, new int[] {shape[1], shape[0]});
+  }
+
+  @Override
+  CooMatrix tocoo() {
+    return this;
   }
 }

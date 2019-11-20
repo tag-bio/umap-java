@@ -59,12 +59,53 @@ abstract class Matrix {
     throw new UnsupportedOperationException();
   }
 
+  private int countZeros() {
+    int cnt = 0;
+    for (int r = 0; r < shape[0]; ++r) {
+      for (int c = 0; c < shape[1]; ++c) {
+        if (get(r, c) == 0) {
+          ++cnt;
+        }
+      }
+    }
+    return cnt;
+  }
+
   CooMatrix tocoo() {
-    throw new UnsupportedOperationException();
+    final int len = (int) (length() - countZeros());
+    final int[] row = new int[len];
+    final int[] col = new int[len];
+    final float[] data = new float[len];
+    for (int k = 0, r = 0; r < shape[0]; ++r) {
+      for (int c = 0; c < shape[1]; ++c) {
+        final float x = get(r, c);
+        if (x != 0) {
+          row[k] = r;
+          col[k] = c;
+          data[k++] = x;
+        }
+      }
+    }
+    return new CooMatrix(data, row, col, shape);
   }
 
   CsrMatrix tocsr() {
-    throw new UnsupportedOperationException();
+    final int len = (int) (length() - countZeros());
+    final int[] indptr = new int[shape[0] + 1];
+    final int[] indices = new int[len];
+    final float[] data = new float[len];
+    for (int k = 0, r = 0; r < shape[0]; ++r) {
+      indptr[r] = k;
+      for (int c = 0; c < shape[1]; ++c) {
+        final float x = get(r, c);
+        if (x != 0) {
+          indices[k] = c;
+          data[k++] = x;
+        }
+      }
+    }
+    indptr[shape[0]] = len;
+    return new CsrMatrix(data, indptr, indices, shape);
   }
 
   Matrix copy() {
@@ -73,8 +114,11 @@ abstract class Matrix {
   }
 
   float[] row(int row) {
-    // return entire row as a vector
-    throw new UnsupportedOperationException();
+    final float[] data = new float[shape[1]];
+    for (int k = 0; k < data.length; ++k) {
+      data[k] = get(row, k);
+    }
+    return data;
   }
 
   Matrix take(int[] indicies) {
