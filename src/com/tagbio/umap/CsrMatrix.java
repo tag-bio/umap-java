@@ -34,7 +34,7 @@ class CsrMatrix extends Matrix {
   float get(final int row, final int col) {
     final int colStart = indptr[row];
     final int colEnd = indptr[row + 1];
-    for (int p = colStart; p <= colEnd; ++p) {
+    for (int p = colStart; p < colEnd; ++p) {
       if (indices[p] == col) {
         return data[p];
       }
@@ -73,6 +73,12 @@ class CsrMatrix extends Matrix {
   Matrix multiply(final Matrix m) {
     // todo this could do this without using super
     return super.multiply(m).tocsr();
+  }
+
+  @Override
+  Matrix transpose() {
+    // todo this could do this without using super
+    return super.transpose().tocsr();
   }
 
   @Override

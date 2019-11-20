@@ -21,6 +21,40 @@ abstract class Matrix {
 
   abstract void set(final int row, final int col, final float val);
 
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    for (int row = 0; row < shape[0]; ++row) {
+      for (int col = 0; col < shape[1]; ++col) {
+        if (col > 0) {
+          sb.append(',');
+        }
+        sb.append(get(row, col));
+      }
+      sb.append('\n');
+    }
+    return sb.toString();
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof Matrix)) {
+      return false;
+    }
+    final Matrix m = (Matrix) obj;
+    if (!Arrays.equals(shape(), m.shape())) {
+      return false;
+    }
+    for (int i = 0; i < shape[0]; ++i) {
+      for (int j = 0; j < shape[1]; ++j) {
+        if (get(i, j) != m.get(i, j)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   int[] shape() {
     return shape;
   }
@@ -33,13 +67,14 @@ abstract class Matrix {
     return len;
   }
 
-  void eliminate_zeros() {
-    throw new UnsupportedOperationException();
-  }
-
   Matrix transpose() {
-    // todo
-    throw new UnsupportedOperationException();
+    final float[][] res = new float[shape[1]][shape[0]];
+    for (int i = 0; i < shape[0]; ++i) {
+      for (int j = 0; j < shape[1]; ++j) {
+        res[j][i] = get(i, j);
+      }
+    }
+    return new DefaultMatrix(res);
   }
 
   Matrix multiply(final Matrix m) {
@@ -59,18 +94,6 @@ abstract class Matrix {
       }
     }
     return product;
-  }
-
-  Matrix multiply(final float x) {
-    final DefaultMatrix res = new DefaultMatrix(shape);
-    final int rows = shape[0];
-    final int cols = shape[1];
-    for (int i = 0; i < rows; ++i) {
-      for (int j = 0; j < cols; ++j) {
-        res.set(i, j, get(i, j) * x);
-      }
-    }
-    return res;
   }
 
   Matrix add(final Matrix m) {
@@ -103,6 +126,18 @@ abstract class Matrix {
     return res;
   }
 
+  Matrix multiply(final float x) {
+    final DefaultMatrix res = new DefaultMatrix(shape);
+    final int rows = shape[0];
+    final int cols = shape[1];
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        res.set(i, j, get(i, j) * x);
+      }
+    }
+    return res;
+  }
+
   private int countZeros() {
     int cnt = 0;
     for (int r = 0; r < shape[0]; ++r) {
@@ -113,6 +148,10 @@ abstract class Matrix {
       }
     }
     return cnt;
+  }
+
+  void eliminate_zeros() {
+    throw new UnsupportedOperationException();
   }
 
   CooMatrix tocoo() {
@@ -227,18 +266,4 @@ abstract class Matrix {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    for (int row = 0; row < shape[0]; ++row) {
-      for (int col = 0; col < shape[1]; ++col) {
-        if (col > 0) {
-          sb.append(',');
-        }
-        sb.append(get(row, col));
-      }
-      sb.append('\n');
-    }
-    return sb.toString();
-  }
 }
