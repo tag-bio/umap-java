@@ -24,8 +24,17 @@ class CooMatrix extends Matrix {
   }
 
   void sum_duplicates() {
-    // todo -- semantics?  possibly just merge identical entries?
-    throw new UnsupportedOperationException();
+    // todo add identical entries -- this would be fairly easy if we knew arrays we sorted by (row,col)
+    // todo for now ugliness ...
+
+    final DefaultMatrix res = new DefaultMatrix(shape);
+    for (int k = 0; k < row.length; ++k) {
+      res.set(row[k], col[k], res.get(row[k], col[k]) + data[k]);
+    }
+    CooMatrix coo = res.tocoo(); // todo yikes!!
+    row = coo.row;
+    col = coo.col;
+    data = coo.data;
   }
 
   @Override
@@ -59,5 +68,56 @@ class CooMatrix extends Matrix {
   @Override
   CooMatrix tocoo() {
     return this;
+  }
+
+  void eliminate_zeros() {
+    int zeros = 0;
+    for (final float v : data) {
+      if (v == 0) {
+        ++zeros;
+      }
+    }
+    if (zeros > 0) {
+      final int[] r = new int[row.length - zeros];
+      final int[] c = new int[row.length - zeros];
+      final float[] d = new float[row.length - zeros];
+      for (int k = 0, j = 0; k < data.length; ++k) {
+        if (data[k] != 0) {
+          r[j] = row[k];
+          c[j] = col[k];
+          d[j++] = data[k];
+        }
+      }
+      row = r;
+      col = c;
+      data = d;
+    }
+  }
+
+  @Override
+  Matrix add(final Matrix m) {
+    // todo this could do this without using super
+    return super.add(m).tocoo();
+  }
+
+  @Override
+  Matrix subtract(final Matrix m) {
+    // todo this could do this without using super
+    return super.subtract(m).tocoo();
+  }
+
+  @Override
+  Matrix multiply(final Matrix m) {
+    // todo this could do this without using super
+    return super.multiply(m).tocoo();
+  }
+
+  @Override
+  Matrix multiply(final float x) {
+    final float[] newData = Arrays.copyOf(data, data.length);
+    for (int i = 0; i < newData.length; ++i) {
+      newData[i] *= x;
+    }
+    return new CooMatrix(newData, row, col, shape);
   }
 }

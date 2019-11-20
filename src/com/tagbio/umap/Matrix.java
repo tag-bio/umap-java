@@ -1,5 +1,7 @@
 package com.tagbio.umap;
 
+import java.util.Arrays;
+
 /**
  * Base class for matrices.
  * @author Sean A. Irvine
@@ -24,7 +26,7 @@ abstract class Matrix {
   }
 
   long length() {
-    long len = 0;
+    long len = 1;
     for (final int dim : shape()) {
       len *= dim;
     }
@@ -41,22 +43,64 @@ abstract class Matrix {
   }
 
   Matrix multiply(final Matrix m) {
-    throw new UnsupportedOperationException();
+    if (shape[1] != m.shape[0]) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final int rows = shape[0];
+    final int cols = m.shape[1];
+    final Matrix product = new DefaultMatrix(rows, cols);
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        float sum = 0;
+        for (int k = 0; k < shape[1]; ++k) {
+          sum += get(i, k) * m.get(k, j);
+        }
+        product.set(i, j, sum);
+      }
+    }
+    return product;
   }
 
-  Matrix multiply(final double x) {
-    // scalar multiply
-    throw new UnsupportedOperationException();
+  Matrix multiply(final float x) {
+    final DefaultMatrix res = new DefaultMatrix(shape);
+    final int rows = shape[0];
+    final int cols = shape[1];
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        res.set(i, j, get(i, j) * x);
+      }
+    }
+    return res;
   }
 
   Matrix add(final Matrix m) {
-    // todo
-    throw new UnsupportedOperationException();
+    if (!Arrays.equals(shape, m.shape)) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final DefaultMatrix res = new DefaultMatrix(shape);
+    final int rows = shape[0];
+    final int cols = shape[1];
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        res.set(i, j, get(i, j) + m.get(i, j));
+      }
+    }
+    return res;
   }
 
   Matrix subtract(final Matrix m) {
-    // todo
-    throw new UnsupportedOperationException();
+    if (!Arrays.equals(shape, m.shape)) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final DefaultMatrix res = new DefaultMatrix(shape);
+    final int rows = shape[0];
+    final int cols = shape[1];
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        res.set(i, j, get(i, j) - m.get(i, j));
+      }
+    }
+    return res;
   }
 
   private int countZeros() {
@@ -181,5 +225,20 @@ abstract class Matrix {
     // todo element-wise maximum between two matrices
     // todo other should be same shape as this
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    for (int row = 0; row < shape[0]; ++row) {
+      for (int col = 0; col < shape[1]; ++col) {
+        if (col > 0) {
+          sb.append(',');
+        }
+        sb.append(get(row, col));
+      }
+      sb.append('\n');
+    }
+    return sb.toString();
   }
 }

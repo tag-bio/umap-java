@@ -415,9 +415,14 @@ public class Umap {
       knn_indices = Utils.fast_knn_indices(X, n_neighbors);
       // Compute the nearest neighbor distances
       //   (equivalent to np.sort(X)[:,:n_neighbors])
-      //knn_dists = X[np.arange(X.shape()[0])[:,null],knn_indices].copy();
+      //knn_dists = X[np.arange(X.shape()[0])[:, None],knn_indices].copy();
+      knn_dists = new float[knn_indices.length][n_neighbors];
+      for (int i = 0; i < knn_dists.length; ++i) {
+        for (int j = 0; j < n_neighbors; ++j) {
+          knn_dists[i][j] = X.get(i, knn_indices[i][j]);
+        }
+      }
       rp_forest = Collections.emptyList();
-      throw new UnsupportedOperationException();
     } else {
       Metric distance_func = metric;
 
@@ -437,7 +442,7 @@ public class Umap {
 
       if (X instanceof CsrMatrix) { //scipy.sparse.isspmatrix_csr(X)) {
         final CsrMatrix Y = (CsrMatrix) X;
-        // todo this is nonense now, since metric cannot be a string at this point
+        // todo this is nonsense now, since metric cannot be a string at this point
         if (Sparse.sparse_named_distances.containsKey(metric)){
           distance_func = Sparse.sparse_named_distances.get(metric);
           if (Sparse.sparse_need_n_features.contains(metric)) {
@@ -693,7 +698,7 @@ public class Umap {
 
     Matrix prod_matrix = result.multiply(transpose);
 
-    result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0 - set_op_mix_ratio));
+    result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio));
 
     result.eliminate_zeros();
 
@@ -1023,7 +1028,7 @@ public class Umap {
           int n_neg_samples = (int) ((n - epoch_of_next_negative_sample[i]) / epochs_per_negative_sample[i]);
 
           for (int p = 0; p < n_neg_samples; ++p) {
-            k = Utils.tau_rand_int(rng_state) % n_vertices;
+            k = Math.abs(Utils.tau_rand_int(rng_state)) % n_vertices;
 
             other = tail_embedding.row(k);
 
@@ -1640,7 +1645,7 @@ public class Umap {
         // Handle the small case as precomputed as before
         if (y.length < 4096) {
           //Matrix ydmat = PairwiseDistances.pairwise_distances(y_[np.newaxis, :].T,  (Metric) this.target_metric,  this._target_metric_kwds);
-          Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_), (Metric) this.target_metric, this._target_metric_kwds);
+          Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_), this.target_metric, this._target_metric_kwds);
           target_graph = fuzzy_simplicial_set(
             ydmat,
             target_n_neighbors,

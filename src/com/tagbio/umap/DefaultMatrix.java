@@ -14,6 +14,16 @@ class DefaultMatrix extends Matrix {
     data = vals;
   }
 
+  DefaultMatrix(final int rows, final int cols) {
+    super(rows, cols);
+    data = new float[rows][cols];
+  }
+
+  DefaultMatrix(final int[] shape) {
+    super(shape);
+    data = new float[shape[0]][shape[1]];
+  }
+
   @Override
   float get(final int row, final int col) {
     return data[row][col];

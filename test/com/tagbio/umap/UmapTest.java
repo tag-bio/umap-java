@@ -60,13 +60,15 @@ import junit.framework.TestCase;
 
 public class UmapTest extends TestCase {
 
-    public void testIris() {
-        final IrisData irisData = new IrisData();
-        final Umap umap = new Umap();
-        umap.setInit("random");
-        umap.fit_transform(new DefaultMatrix(irisData.getData()));
-        assertEquals("foo", "bar");
-    }
+  public void testIris() {
+    final IrisData irisData = new IrisData();
+    final Umap umap = new Umap();
+    umap.setInit("random");
+    final Matrix matrix = umap.fit_transform(new DefaultMatrix(irisData.getData()));
+    System.out.println(matrix);
+    assertEquals(150, matrix.shape()[0]);
+    assertEquals(2, matrix.shape()[1]);
+  }
 
 //np.random.seed(42)
 //spatial_data = np.random.randn(10, 20)

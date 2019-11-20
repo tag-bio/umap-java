@@ -56,4 +56,31 @@ class CsrMatrix extends Matrix {
   CsrMatrix tocsr() {
     return this;
   }
+
+  @Override
+  Matrix add(final Matrix m) {
+    // todo this could do this without using super
+    return super.add(m).tocsr();
+  }
+
+  @Override
+  Matrix subtract(final Matrix m) {
+    // todo this could do this without using super
+    return super.subtract(m).tocsr();
+  }
+
+  @Override
+  Matrix multiply(final Matrix m) {
+    // todo this could do this without using super
+    return super.multiply(m).tocsr();
+  }
+
+  @Override
+  Matrix multiply(final float x) {
+    final float[] newData = Arrays.copyOf(data, data.length);
+    for (int i = 0; i < newData.length; ++i) {
+      newData[i] *= x;
+    }
+    return new CsrMatrix(newData, indptr, indices, shape);
+  }
 }
