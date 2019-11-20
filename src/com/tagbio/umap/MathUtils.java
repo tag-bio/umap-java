@@ -138,24 +138,31 @@ class MathUtils {
     return res;
   }
 
+  static int[] identity(final int n) {
+    final int[] id = new int[n];
+    for (int k = 0; k < n; ++k) {
+      id[k] = k;
+    }
+    return id;
+  }
+
   static int[] argsort(final float[] x) {
-    // todo return an array of indices that would sort x (i.e. effectively satellite sort on identity array)
-    // todo perhaps do this in another class
-    // todo note functionality exists in some libraries
-    return null;
+    final int[] id = identity(x.length);
+    Sort.sort(x, id);
+    return id;
   }
 
   static int[][] argsort(final float[][] x) {
     // todo return an array of indices that would sort x (i.e. effectively satellite sort on identity array)
     // todo perhaps do this in another class
     // todo note functionality exists in some libraries
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   static int[][] argpartition(final Matrix x, final int n) {
     // todo https://docs.scipy.org/doc/numpy/reference/generated/numpy.argpartition.html
     // todo Yikes!
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   static void zeroEntriesBelowLimit(final float[] x, final float limit) {

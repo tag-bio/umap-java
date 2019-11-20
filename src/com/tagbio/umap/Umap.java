@@ -6,6 +6,7 @@ package com.tagbio.umap;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -409,14 +410,14 @@ public class Umap {
     float[][] knn_dists = null;
     List<?> rp_forest = null;
     if (metric.equals(PrecomputedMetric.SINGLETON)) {
+      // Note that this does not support sparse distance matrices yet ...
+      // Compute indices of n nearest neighbors
+      knn_indices = Utils.fast_knn_indices(X, n_neighbors);
+      // Compute the nearest neighbor distances
+      //   (equivalent to np.sort(X)[:,:n_neighbors])
+      //knn_dists = X[np.arange(X.shape()[0])[:,null],knn_indices].copy();
+      rp_forest = Collections.emptyList();
       throw new UnsupportedOperationException();
-//      // Note that this does not support sparse distance matrices yet ...
-//      // Compute indices of n nearest neighbors
-//      knn_indices = Utils.fast_knn_indices(X, n_neighbors);
-//      // Compute the nearest neighbor distances
-//      //   (equivalent to np.sort(X)[:,:n_neighbors])
-//      knn_dists = X[np.arange(X.length())[:,null],knn_indices].copy();
-//      rp_forest = [];
     } else {
       Metric distance_func = metric;
 

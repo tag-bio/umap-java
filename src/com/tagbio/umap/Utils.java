@@ -76,13 +76,11 @@ class Utils {
 //     knn_indices: array of shape (n_samples, n_neighbors)
 //         The indices on the ``n_neighbors`` closest points in the dataset.
 //     """
-  static int[][] fast_knn_indices(final float[][] X, final int n_neighbors) {
-    final int[][] knn_indices = new int[X.length][n_neighbors];
-    // todo parallelize this
-    for (int row = 0; row < X.length; ++row) {
-      //int[] v = X[row].argsort(kind = "quicksort");
-      final float[] x = Arrays.copyOf(X[row], X[row].length);
-      final int[] v = MathUtils.argsort(x);
+  static int[][] fast_knn_indices(final Matrix X, final int n_neighbors) {
+    final int[][] knn_indices = new int[X.shape()[0]][n_neighbors];
+    // todo could parallelize this
+    for (int row = 0; row < X.shape()[0]; ++row) {
+      final int[] v = MathUtils.argsort(X.row(row));
       //v = v[:n_neighbors];
       knn_indices[row] = Arrays.copyOf(v, n_neighbors);
     }

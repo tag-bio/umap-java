@@ -113,6 +113,11 @@ abstract class Matrix {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Return a copy of 1-dimensional row slice from the matrix.
+   * @param row row number to get
+   * @return row
+   */
   float[] row(int row) {
     final float[] data = new float[shape[1]];
     for (int k = 0; k < data.length; ++k) {
