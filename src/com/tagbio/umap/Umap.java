@@ -400,7 +400,7 @@ public class Umap {
     Metric metric,
     Map<String, Object> metric_kwds,
     boolean angular,
-    long[] random_state, // todo Huh? type conflict // Random
+    long[] random_state,
     boolean verbose) {
     if (verbose) {
       Utils.message("Finding Nearest Neighbors");
@@ -671,9 +671,14 @@ public class Umap {
       knn_dists = (float[][]) nn[1];
     }
 
+    //System.out.println("knn_dists: " + Arrays.deepToString(knn_dists));
+
     final float[][] sigmasRhos = smooth_knn_dist(knn_dists, n_neighbors, local_connectivity);
     final float[] sigmas = sigmasRhos[0];
     final float[] rhos = sigmasRhos[1];
+
+//    System.out.println("sigmas: " + Arrays.toString(sigmas));
+//    System.out.println("rhos: " + Arrays.toString(rhos));
 
     Matrix result = compute_membership_strengths(knn_indices, knn_dists, sigmas, rhos, new int[]{X.shape()[0], X.shape()[0]});
 //    final Object[] rcv = compute_membership_strengths(knn_indices, knn_dists, sigmas, rhos);
@@ -682,10 +687,12 @@ public class Umap {
 //    final float[] vals = (float[]) rcv[2];
 //    Matrix result = new CooMatrix(vals, rows, cols, new int[]{X.shape()[0], X.shape()[0]});
     result.eliminate_zeros();
+    //System.out.println("res: " + ((CooMatrix) result).sparseToString());
 
     final Matrix transpose = result.transpose();
 
-    final Matrix prod_matrix = result.multiply(transpose);
+    final Matrix prod_matrix = result.pointwiseMultiply(transpose);
+    //System.out.println("prod_matrix: " + ((CooMatrix) prod_matrix).sparseToString());
 
     result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio));
 
@@ -761,7 +768,7 @@ public class Umap {
   private static Matrix reset_local_connectivity(Matrix simplicial_set) {
     simplicial_set = Normalize.normalize(simplicial_set, "max");
     Matrix transpose = simplicial_set.transpose();
-    Matrix prod_matrix = simplicial_set.multiply(transpose);
+    Matrix prod_matrix = simplicial_set.pointwiseMultiply(transpose);
     simplicial_set = simplicial_set.add(transpose).subtract(prod_matrix);
     simplicial_set.eliminate_zeros();
 
@@ -963,6 +970,8 @@ public class Umap {
   // """
   private static Matrix optimize_layout(final Matrix head_embedding, final Matrix tail_embedding, final int[] head, final int[] tail, final int n_epochs, final int n_vertices, final float[] epochs_per_sample, final float a, final float b, final long[] rng_state, final float gamma, final double initial_alpha, final float negative_sample_rate, final boolean verbose) {
 
+    assert head_embedding instanceof DefaultMatrix;
+
     final int dim = head_embedding.shape()[1];
     final boolean move_other = (head_embedding.shape()[0] == tail_embedding.shape()[0]);
     double alpha = initial_alpha;
@@ -976,6 +985,7 @@ public class Umap {
         if (epoch_of_next_sample[i] <= n) {
           final int j = head[i];
           int k = tail[i];
+          // todo this assumes that current is a pointer to the internal matrix data
           final float[] current = head_embedding.row(j);
           float[] other = tail_embedding.row(k);
 
@@ -1173,7 +1183,8 @@ public class Umap {
     final int[] tail = graph.col;
 
     //long[]  rng_state = random_state.randint(INT32_MIN, INT32_MAX, 3).astype(np.int64);
-    final long[] rng_state = new long[]{rng.nextLong(), rng.nextLong(), rng.nextLong()};
+    final long[] rng_state = new long[]{-98034986, -1627358721,  1894564757}; //rng.nextInt(), rng.nextInt(), rng.nextInt()};
+    // so (head, tail, epochs_per_sample) is like a CooMatrix
     final Matrix res_embedding = optimize_layout(embedding, embedding, head, tail, n_epochs, n_vertices, epochs_per_sample, a, b, rng_state, gamma, initial_alpha, negative_sample_rate, verbose);
 
     return res_embedding;
@@ -1504,7 +1515,7 @@ public class Umap {
     final long[] random_state = this.random_state; //check_random_state(this.random_state);
 
     if (verbose) {
-      Utils.message("Construct fuzzy simplicial set");
+      Utils.message("Construct fuzzy simplicial set: " + X.shape()[0]);
     }
 
     // Handle small cases efficiently by computing all distances
@@ -1512,6 +1523,7 @@ public class Umap {
       _small_data = true;
       final Matrix dmat = PairwiseDistances.pairwise_distances(X, metric, _metric_kwds);
       graph_ = fuzzy_simplicial_set(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, _metric_kwds, null, null, angular_rp_forest, set_op_mix_ratio, local_connectivity, verbose);
+      // System.out.println("graph: " + ((CooMatrix) graph_).sparseToString());
     } else {
       _small_data = false;
       // Standard case

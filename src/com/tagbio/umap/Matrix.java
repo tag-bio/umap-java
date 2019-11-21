@@ -107,6 +107,21 @@ abstract class Matrix {
     return res;
   }
 
+  Matrix pointwiseMultiply(final Matrix m) {
+    if (!Arrays.equals(shape, m.shape)) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final DefaultMatrix res = new DefaultMatrix(shape);
+    final int rows = shape[0];
+    final int cols = shape[1];
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        res.set(i, j, get(i, j) * m.get(i, j));
+      }
+    }
+    return res;
+  }
+
   Matrix multiply(final float x) {
     final DefaultMatrix res = new DefaultMatrix(shape);
     final int rows = shape[0];

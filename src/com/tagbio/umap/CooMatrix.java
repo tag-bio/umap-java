@@ -62,7 +62,8 @@ class CooMatrix extends Matrix {
   @Override
   Matrix transpose() {
     // todo note this is not copying the arrays -- might be a mutability issue
-    return new CooMatrix(data, col, row, new int[] {shape[1], shape[0]});
+    //return new CooMatrix(data, col, row, new int[] {shape[1], shape[0]});
+    return super.transpose().tocoo();
   }
 
   @Override
@@ -107,6 +108,12 @@ class CooMatrix extends Matrix {
   }
 
   @Override
+  Matrix pointwiseMultiply(final Matrix m) {
+    // todo this could do this without using super
+    return super.pointwiseMultiply(m).tocoo();
+  }
+
+  @Override
   Matrix multiply(final Matrix m) {
     if (!(m instanceof CooMatrix)) {
       return super.multiply(m).tocoo();
@@ -139,5 +146,13 @@ class CooMatrix extends Matrix {
       newData[i] *= x;
     }
     return new CooMatrix(newData, row, col, shape);
+  }
+
+  String sparseToString() {
+    final StringBuilder sb = new StringBuilder();
+    for (int k = 0; k < data.length; ++k) {
+      sb.append('(').append(row[k]).append(", ").append(col[k]).append(") ").append(data[k]).append('\n');
+    }
+    return sb.toString();
   }
 }

@@ -45,7 +45,8 @@ class DefaultMatrix extends Matrix {
 
   @Override
   float[] row(int row) {
-    return Arrays.copyOf(data[row], data[row].length);
+    return data[row];
+    //return Arrays.copyOf(data[row], data[row].length);
   }
 
   @Override
