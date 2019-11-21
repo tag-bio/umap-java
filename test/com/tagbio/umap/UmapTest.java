@@ -64,6 +64,7 @@ public class UmapTest extends TestCase {
     final IrisData irisData = new IrisData();
     final Umap umap = new Umap();
     umap.setInit("random");
+    umap.setVerbose(true);
     final Matrix matrix = umap.fit_transform(new DefaultMatrix(irisData.getData()));
     System.out.println(matrix);
     assertEquals(150, matrix.shape()[0]);

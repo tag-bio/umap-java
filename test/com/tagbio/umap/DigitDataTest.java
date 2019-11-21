@@ -5,14 +5,15 @@ import junit.framework.TestCase;
 public class DigitDataTest extends TestCase {
     public void testData() {
     final DigitData digitData = new DigitData();
-    final String[] targetNames = digitData.getTargetNames();
-    assertEquals(10, targetNames.length);
-    assertEquals("0", targetNames[0]);
-    final int[] targets = digitData.getTargets();
-    assertEquals(1797, targets.length);
-    for (int target : targets) {
-      assertTrue(target >= 0);
-      assertTrue(target <= 9);
+    final String[] attributes = digitData.getAttributes();
+    assertEquals(64, attributes.length);
+    for (String att : attributes) {
+      assertTrue(att, att.matches("att[0-9]+"));
+    }
+    final String[] names = digitData.getSampleNames();
+    assertEquals(1797, names.length);
+    for (String name : names) {
+      assertTrue(name, name.matches("[0-9]:[0-9]+"));
     }
     final float[][] data = digitData.getData();
     assertEquals(1797, data.length);

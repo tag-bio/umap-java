@@ -14,6 +14,8 @@ public class AllTests extends TestSuite {
     suite.addTestSuite(CooMatrixTest.class);
     suite.addTestSuite(CsrMatrixTest.class);
     suite.addTestSuite(DefaultMatrixTest.class);
+    suite.addTestSuite(DigitDataTest.class);
+    suite.addTestSuite(IrisDataTest.class);
     suite.addTestSuite(SortTest.class);
     suite.addTestSuite(UmapTest.class);
     return suite;

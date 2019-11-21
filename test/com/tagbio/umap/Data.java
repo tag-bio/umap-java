@@ -6,75 +6,64 @@ import java.util.List;
 import java.util.Scanner;
 
 abstract class Data {
-    private float[][] data;
-    private int[] targets;
-    private String[] targetNames;
+    private float[][] mData;
+    private final List<String> mAttributes= new ArrayList<>();
+    private final List<String> mSampleNames= new ArrayList<>();
 
     Data(String dataFile) {
         final ClassLoader classloader = Thread.currentThread().getContextClassLoader();
         final InputStream is = classloader.getResourceAsStream(dataFile);
+
         final List<List<String>> records = new ArrayList<>();
-        String section = null;
+
         try (final Scanner scanner = new Scanner(is)) {
-            while (scanner.hasNextLine()) {
+            if (scanner.hasNextLine()) {
+                // header line
                 final String line = scanner.nextLine().trim();
-                if (line.startsWith("[")) {
-                    saveSection(section, records);
-                    section = line;
-                    records.clear();
-                } else {
-                    final List<String> values = new ArrayList<>();
-                    try (final Scanner rowScanner = new Scanner(line)) {
-                        rowScanner.useDelimiter(",");
-                        while (rowScanner.hasNext()) {
-                            values.add(rowScanner.next());
-                        }
+                try (final Scanner rowScanner = new Scanner(line)) {
+                    rowScanner.useDelimiter("\t");
+                    if (rowScanner.hasNext()) {
+                        assert("sample".equals(rowScanner.next()));
                     }
-                    records.add(values);
+                    while (rowScanner.hasNext()) {
+                        mAttributes.add(rowScanner.next());
+                    }
                 }
             }
-        }
-        saveSection(section, records);
-    }
-
-    private void saveSection(final String section, final List<List<String>> records) {
-        if (section != null) {
-            if ("[data]".equals(section)) {
-                // convert to float[][]
-                this.data = new float[records.size()][records.get(0).size()];
-                for (int j = 0; j < records.size(); j++) {
-                    final List<String> row = records.get(j);
-                    for (int i = 0; i < row.size(); i++) {
-                        this.data[j][i] = Float.parseFloat(row.get(i));
+            while (scanner.hasNextLine()) {
+                final String line = scanner.nextLine().trim();
+                final List<String> values = new ArrayList<>();
+                try (final Scanner rowScanner = new Scanner(line)) {
+                    rowScanner.useDelimiter("\t");
+                    if (rowScanner.hasNext()) {
+                        mSampleNames.add(rowScanner.next().trim());
+                    }
+                    while (rowScanner.hasNext()) {
+                        values.add(rowScanner.next());
                     }
                 }
-            } else if ("[targets]".equals(section)) {
-                // convert to int[]
-                final List<String> row = records.get(0);
-                this.targets = new int[row.size()];
-                for (int i = 0; i < row.size(); i++) {
-                    this.targets[i] = Integer.parseInt(row.get(i));
-                }
-            } else if ("[targetNames]".equals(section)) {
-                // convert to String[]
-                final int length = records.get(0).size();
-                this.targetNames = records.get(0).toArray(new String[length]);
-            } else {
-                throw new IllegalArgumentException("Bad section " + section);
+                records.add(values);
+             }
+        }
+        this.mData = new float[records.size()][records.get(0).size()];
+        for (int j = 0; j < records.size(); j++) {
+            final List<String> row = records.get(j);
+            for (int i = 0; i < row.size(); i++) {
+                this.mData[j][i] = Float.parseFloat(row.get(i));
             }
         }
     }
 
     public float[][] getData() {
-        return this.data;
+        return this.mData;
     }
 
-    public int[] getTargets() {
-        return this.targets;
+    public String[] getAttributes() {
+        return mAttributes.toArray(new String[mAttributes.size()]);
     }
 
-    public String[] getTargetNames() {
-        return this.targetNames;
+    public String[] getSampleNames() {
+        return mSampleNames.toArray(new String[mSampleNames.size()]);
     }
 }
 

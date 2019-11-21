@@ -5,22 +5,23 @@ import junit.framework.TestCase;
 public class IrisDataTest extends TestCase {
   public void testData() {
     final IrisData irisData = new IrisData();
-    final String[] targetNames = irisData.getTargetNames();
-    assertEquals(3, targetNames.length);
-    assertEquals("setosa", targetNames[0]);
-    final int[] targets = irisData.getTargets();
-    assertEquals(150, targets.length);
-    for (int target : targets) {
-      assertTrue(target >= 0);
-      assertTrue(target < 3);
+    final String[] attributes = irisData.getAttributes();
+    assertEquals(4, attributes.length);
+    for (String att : attributes) {
+      assertTrue(att, att.matches("att[0-9]+"));
+    }
+    final String[] names = irisData.getSampleNames();
+    assertEquals(150, names.length);
+    for (String name : names) {
+      assertTrue(name, name.matches("[a-z]*:[0-9]+"));
     }
     final float[][] data = irisData.getData();
     assertEquals(150, data.length);
     assertEquals(4, data[0].length);
     for (float[] row : data) {
       for (float val : row) {
-        assertTrue("Value < 0: " + val,val >= 0.0F);
-        assertTrue("Value > 7.9: " + val,val <= 7.9F);
+        assertTrue("Value < 0: " + val, val >= 0.0F);
+        assertTrue("Value > 16: " + val, val <= 16.0F);
       }
     }
   }

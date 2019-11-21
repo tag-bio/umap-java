@@ -2,21 +2,21 @@ package com.tagbio.umap;
 
 public class IrisData extends Data {
     public IrisData() {
-        super("com/tagbio/umap/iris.csv");
+        super("com/tagbio/umap/iris.tsv");
     }
 
 
     public static void main(String[] args) {
         Data id = new IrisData();
 
-        System.out.println("Targets:");
-        for (int target : id.getTargets()) {
-            System.out.print(" " + target);
+        System.out.println("Attributes:");
+        for (String att : id.getAttributes()) {
+            System.out.print(" " + att);
         }
         System.out.println();
 
-        System.out.println("TargetNames:");
-        for (String name : id.getTargetNames()) {
+        System.out.println("Sample Names:");
+        for (String name : id.getSampleNames()) {
             System.out.println(name);
         }
     }
