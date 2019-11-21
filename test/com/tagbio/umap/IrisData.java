@@ -5,7 +5,6 @@ public class IrisData extends Data {
         super("com/tagbio/umap/iris.tsv");
     }
 
-
     public static void main(String[] args) {
         Data id = new IrisData();
 

@@ -11,8 +11,7 @@ abstract class Data {
     private final List<String> mSampleNames= new ArrayList<>();
 
     Data(String dataFile) {
-        final ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        final InputStream is = classloader.getResourceAsStream(dataFile);
+        final InputStream is = this.getClass().getClassLoader().getResourceAsStream(dataFile);
 
         final List<List<String>> records = new ArrayList<>();
 
@@ -23,7 +22,8 @@ abstract class Data {
                 try (final Scanner rowScanner = new Scanner(line)) {
                     rowScanner.useDelimiter("\t");
                     if (rowScanner.hasNext()) {
-                        assert("sample".equals(rowScanner.next()));
+                        final String next = rowScanner.next();
+                        assert("sample".equals(next));
                     }
                     while (rowScanner.hasNext()) {
                         mAttributes.add(rowScanner.next());
