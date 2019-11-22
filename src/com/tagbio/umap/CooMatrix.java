@@ -13,9 +13,9 @@ import java.util.Arrays;
 class CooMatrix extends Matrix {
 
   // todo  currently some direct external access
-  int[] row;
-  int[] col;
-  float[] data;
+  final int[] row;
+  final int[] col;
+  final float[] data;
 
   CooMatrix(final float[] vals, final int[] rows, final int[] cols, final int[] lengths) {
     super(lengths);
@@ -32,12 +32,12 @@ class CooMatrix extends Matrix {
   private void checkDataValid() {
     for (int r : row) {
       if (r < 0 || r >= rows()) {
-        throw new IllegalArgumentException("Row index out of bounds: 0 <= " + r + " < " + shape[0]);
+        throw new IllegalArgumentException("Row index out of bounds: 0 <= " + r + " < " + rows());
       }
     }
     for (int c : col) {
       if (c < 0 || c >= cols()) {
-        throw new IllegalArgumentException("Column index out of bounds: 0 <= " + c + " < " + shape[1]);
+        throw new IllegalArgumentException("Column index out of bounds: 0 <= " + c + " < " + cols());
       }
     }
     for (int i = 1; i < row.length; ++i) {
@@ -155,19 +155,19 @@ class CooMatrix extends Matrix {
   }
 
 
-  void sum_duplicates() {
-    // todo add identical entries -- this would be fairly easy if we knew arrays we sorted by (row,col)
-    // todo for now ugliness ...
-
-    final DefaultMatrix res = new DefaultMatrix(shape);
-    for (int k = 0; k < data.length; ++k) {
-      res.set(row[k], col[k], res.get(row[k], col[k]) + data[k]);
-    }
-    CooMatrix coo = res.tocoo(); // todo yikes!!
-    row = coo.row;
-    col = coo.col;
-    data = coo.data;
-  }
+//  void sum_duplicates() {
+//    // todo add identical entries -- this would be fairly easy if we knew arrays we sorted by (row,col)
+//    // todo for now ugliness ...
+//
+//    final DefaultMatrix res = new DefaultMatrix(shape);
+//    for (int k = 0; k < data.length; ++k) {
+//      res.set(row[k], col[k], res.get(row[k], col[k]) + data[k]);
+//    }
+//    CooMatrix coo = res.tocoo(); // todo yikes!!
+//    row = coo.row;
+//    col = coo.col;
+//    data = coo.data;
+//  }
 
   @Override
   float get(final int r, final int c) {
@@ -224,7 +224,8 @@ class CooMatrix extends Matrix {
     return this;
   }
 
-  void eliminate_zeros() {
+  @Override
+  Matrix eliminate_zeros() {
     int zeros = 0;
     for (final float v : data) {
       if (v == 0) {
@@ -242,9 +243,9 @@ class CooMatrix extends Matrix {
           d[j++] = data[k];
         }
       }
-      row = r;
-      col = c;
-      data = d;
+      return new CooMatrix(d, r, c, shape());
+    } else {
+      return this;
     }
   }
 

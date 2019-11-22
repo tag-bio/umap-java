@@ -686,7 +686,7 @@ public class Umap {
 //    final int[] cols = (int[]) rcv[1];
 //    final float[] vals = (float[]) rcv[2];
 //    Matrix result = new CooMatrix(vals, rows, cols, new int[]{X.rows(), X.rows()});
-    result.eliminate_zeros();
+    result = result.eliminate_zeros();
     //System.out.println("res: " + ((CooMatrix) result).sparseToString());
 
     final Matrix transpose = result.transpose();
@@ -694,10 +694,7 @@ public class Umap {
     final Matrix prod_matrix = result.hadamardMultiply(transpose);
     //System.out.println("prod_matrix: " + ((CooMatrix) prod_matrix).sparseToString());
 
-    result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio));
-
-    result.eliminate_zeros();
-
+    result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio)).eliminate_zeros();
     return result;
   }
 
@@ -769,9 +766,7 @@ public class Umap {
     simplicial_set = Normalize.normalize(simplicial_set, "max");
     Matrix transpose = simplicial_set.transpose();
     Matrix prod_matrix = simplicial_set.hadamardMultiply(transpose);
-    simplicial_set = simplicial_set.add(transpose).subtract(prod_matrix);
-    simplicial_set.eliminate_zeros();
-
+    simplicial_set = simplicial_set.add(transpose).subtract(prod_matrix).eliminate_zeros();
     return simplicial_set;
   }
 
@@ -812,9 +807,7 @@ public class Umap {
       unknown_dist,
       far_dist);
 
-    simplicial_set.eliminate_zeros();
-
-    return reset_local_connectivity(simplicial_set);
+    return reset_local_connectivity(simplicial_set.eliminate_zeros());
   }
 
   private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double far_dist/*=5.0*/) {
@@ -1139,7 +1132,7 @@ public class Umap {
     // todo this code suggests that duplicate (row,col) pairs might be possible in graph_in, by our tocoo() is broken for that situation and the subsequent sum_duplicates will achieve nothing
     // todo possibly this sum_duplicates is not needed at all
     CooMatrix graph = graph_in.tocoo();
-    graph.sum_duplicates();
+    //graph.sum_duplicates();
     int n_vertices = graph.cols();
 
     if (n_epochs <= 0) {
@@ -1152,7 +1145,7 @@ public class Umap {
     }
 
     MathUtils.zeroEntriesBelowLimit(graph.data, MathUtils.max(graph.data) / (float) n_epochs);
-    graph.eliminate_zeros();
+    graph = (CooMatrix) graph.eliminate_zeros();
 
     Matrix embedding;
     if ("random".equals(init)) {
@@ -1747,7 +1740,7 @@ public class Umap {
     final float[][] sigmasRhos = smooth_knn_dist(dists, this._n_neighbors, /* local_connectivity=*/adjusted_local_connectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];
-    final CooMatrix graph = compute_membership_strengths(indices, dists, sigmas, rhos, new int[]{X.rows(), this._raw_data.rows()});
+    CooMatrix graph = compute_membership_strengths(indices, dists, sigmas, rhos, new int[]{X.rows(), this._raw_data.rows()});
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
@@ -1773,7 +1766,7 @@ public class Umap {
     }
 
     MathUtils.zeroEntriesBelowLimit(graph.data, MathUtils.max(graph.data) / (float) n_epochs);
-    graph.eliminate_zeros();
+    graph = (CooMatrix) graph.eliminate_zeros();
 
     final float[] epochs_per_sample = make_epochs_per_sample(graph.data, n_epochs);
 

@@ -3,10 +3,12 @@ package com.tagbio.umap;
 import java.util.Arrays;
 
 /**
+ * A form of sparse matrix where only non-zero entries are explicitly recorded.
+ * This format is compatible with the Python scipy <code>csr_matrix</code> format.
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class CsrMatrix extends Matrix {
-  // todo -- replacement fo scipy csr_matrix
 
   // todo I think this is internal rep of data for this form of matrix -- currently some direct external access
   int[] indptr;  // indptr[row] to indptr[row + 1] locations of cols in indices

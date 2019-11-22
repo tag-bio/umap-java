@@ -188,7 +188,7 @@ abstract class Matrix {
     return cnt;
   }
 
-  void eliminate_zeros() {
+  Matrix eliminate_zeros() {
     throw new UnsupportedOperationException();
   }
 
