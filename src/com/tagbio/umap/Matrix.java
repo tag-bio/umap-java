@@ -5,12 +5,14 @@ import java.util.Arrays;
 /**
  * Base class for matrices.
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 abstract class Matrix {
 
   // todo perhaps should be an interface or at least abstract
   // subclasses CooMatrix, CsrMatrix (pos LilMatrix) + a non-sparse float[][] backed implementation
 
+  /** Array containing the dimensions of the matrix <code>(rows, columns)</code>. */
   protected int[] shape;
 
   Matrix(final int... shape) {
@@ -26,11 +28,27 @@ abstract class Matrix {
 
   abstract void set(final int row, final int col, final float val);
 
+  /**
+   * Get the number of rows in the matrix.
+   * @return number of rows
+   */
+  public int rows() {
+    return shape[0];
+  }
+
+  /**
+   * Get the number of columns in the matrix
+   * @return number of cols
+   */
+  public int cols() {
+    return shape[1];
+  }
+
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    for (int row = 0; row < shape[0]; ++row) {
-      for (int col = 0; col < shape[1]; ++col) {
+    for (int row = 0; row < rows(); ++row) {
+      for (int col = 0; col < cols(); ++col) {
         if (col > 0) {
           sb.append(',');
         }
@@ -112,7 +130,7 @@ abstract class Matrix {
     return res;
   }
 
-  Matrix pointwiseMultiply(final Matrix m) {
+  Matrix hadamardMultiply(final Matrix m) {
     if (!Arrays.equals(shape, m.shape)) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }

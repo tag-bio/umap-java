@@ -3,50 +3,63 @@ package com.tagbio.umap;
 import java.util.Arrays;
 
 /**
+ * Default matrix implementation backed by a square matrix.
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class DefaultMatrix extends Matrix {
 
-  private final float[][] data;
+  private final float[][] mData;
 
-  DefaultMatrix(final float[][] vals) {
-    super(vals.length, vals[0].length);
-    data = vals;
+  /**
+   * Construct a matrix backed by the given array.  Note the array is NOT copied, so that
+   * any external changes to the underlying array will affect that matrix as well.
+   * @param matrix matrix values
+   */
+  DefaultMatrix(final float[][] matrix) {
+    super(matrix.length, matrix[0].length);
+    mData = matrix;
   }
 
+  /**
+   * Construct a new zero matrix of specified dimensions.
+   * @param rows number of rows
+   * @param cols number of columns
+   */
   DefaultMatrix(final int rows, final int cols) {
-    super(rows, cols);
-    data = new float[rows][cols];
+    this(new float[rows][cols]);
   }
 
+  /**
+   * Construct a new zero matrix of specified dimensions.
+   * @param shape shape specification (only first two values of shape are used)
+   */
   DefaultMatrix(final int[] shape) {
-    super(shape);
-    data = new float[shape[0]][shape[1]];
+    this(shape[0], shape[1]);
   }
 
   @Override
   float get(final int row, final int col) {
-    return data[row][col];
+    return mData[row][col];
   }
 
   @Override
   void set(final int row, final int col, final float val) {
-    data[row][col] = val;
+    mData[row][col] = val;
   }
 
   @Override
   Matrix copy() {
-    final float[][] copy = new float[data.length][];
+    final float[][] copy = new float[mData.length][];
     for (int k = 0; k < copy.length; ++k) {
-      copy[k] = Arrays.copyOf(data[k], data[k].length);
+      copy[k] = Arrays.copyOf(mData[k], mData[k].length);
     }
     return new DefaultMatrix(copy);
   }
 
   @Override
   float[] row(int row) {
-    return data[row];
-    //return Arrays.copyOf(data[row], data[row].length);
+    return mData[row];
   }
 
   @Override

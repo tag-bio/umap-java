@@ -3,12 +3,16 @@ package com.tagbio.umap;
 import java.util.Arrays;
 
 /**
+ * A form of sparse matrix where only non-zero entries are explicitly recorded.
+ * Three arrays (<code>row, col, data</code>) of equal length hold coordinates and value of non-zero entries, respectively.
+ * Data is stored in a sorted order to fast searching.
+ * This format is compatible with the Python scipy <code>coo_matrix</code> format.
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class CooMatrix extends Matrix {
-  // todo -- replacement fo scipy coo_matrix
 
-  // todo I think this is internal rep of data for this form of matrix -- currently some direct external access
+  // todo  currently some direct external access
   int[] row;
   int[] col;
   float[] data;
@@ -27,12 +31,12 @@ class CooMatrix extends Matrix {
 
   private void checkDataValid() {
     for (int r : row) {
-      if (r < 0 || r >= shape[0]) {
+      if (r < 0 || r >= rows()) {
         throw new IllegalArgumentException("Row index out of bounds: 0 <= " + r + " < " + shape[0]);
       }
     }
     for (int c : col) {
-      if (c < 0 || c >= shape[1]) {
+      if (c < 0 || c >= cols()) {
         throw new IllegalArgumentException("Column index out of bounds: 0 <= " + c + " < " + shape[1]);
       }
     }
@@ -257,9 +261,9 @@ class CooMatrix extends Matrix {
   }
 
   @Override
-  Matrix pointwiseMultiply(final Matrix m) {
+  Matrix hadamardMultiply(final Matrix m) {
     // todo this could do this without using super
-    return super.pointwiseMultiply(m).tocoo();
+    return super.hadamardMultiply(m).tocoo();
   }
 
   @Override
@@ -270,11 +274,11 @@ class CooMatrix extends Matrix {
     // We are multiplying two CooMatrices together
     // todo can this be made faster?
     final CooMatrix a = (CooMatrix) m;
-    if (shape[1] != m.shape[0]) {
+    if (cols() != m.rows()) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
-    final int rows = shape[0];
-    final int cols = m.shape[1];
+    final int rows = rows();
+    final int cols = m.cols();
     final float[][] res = new float[rows][cols];
     for (int k = 0; k < data.length; ++k) {
       final int r = row[k];
