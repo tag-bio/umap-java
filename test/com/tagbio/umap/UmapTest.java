@@ -61,13 +61,24 @@ import junit.framework.TestCase;
 public class UmapTest extends TestCase {
 
   public void testIris() {
-    final IrisData irisData = new IrisData();
+    final Data data = new IrisData();
     final Umap umap = new Umap();
     umap.setInit("random");
     umap.setVerbose(true);
-    final Matrix matrix = umap.fit_transform(new DefaultMatrix(irisData.getData()));
+    final Matrix matrix = umap.fit_transform(new DefaultMatrix(data.getData()));
     System.out.println(matrix);
     assertEquals(150, matrix.shape()[0]);
+    assertEquals(2, matrix.shape()[1]);
+  }
+
+  public void testDigits() {
+    final Data data = new DigitData();
+    final Umap umap = new Umap();
+    umap.setInit("random");
+    umap.setVerbose(true);
+    final Matrix matrix = umap.fit_transform(new DefaultMatrix(data.getData()));
+    System.out.println(matrix);
+    assertEquals(1797, matrix.shape()[0]);
     assertEquals(2, matrix.shape()[1]);
   }
 

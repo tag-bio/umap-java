@@ -15,6 +15,11 @@ abstract class Matrix {
 
   Matrix(final int... shape) {
     this.shape = shape;
+    for (int s : shape) {
+      if (s < 0) {
+        throw new IllegalArgumentException("Illegal dimension specification: " + s);
+      }
+    }
   }
 
   abstract float get(final int row, final int col);

@@ -79,4 +79,16 @@ public abstract class AbstractMatrixTest extends TestCase {
     assertEquals("1.0,2.0,0.0,3.0\n2.0,4.25,0.5,6.0\n0.0,0.5,1.0,0.0\n3.0,6.0,0.0,9.0\n", m.multiply(mt).toString());
     assertEquals("1.25,1.0\n1.0,14.0\n", mt.multiply(m).toString());
   }
+
+  public void testGet() {
+    final Matrix m = getMatrixA();
+    assertEquals(0.0f, m.get(0, 0));
+    assertEquals(1.0f, m.get(0, 1));
+    assertEquals(0.5f, m.get(1, 0));
+    assertEquals(2.0f, m.get(1, 1));
+    assertEquals(1.0f, m.get(2, 0));
+    assertEquals(0.0f, m.get(2, 1));
+    assertEquals(0.0f, m.get(3, 0));
+    assertEquals(3.0f, m.get(3, 1));
+ }
 }
