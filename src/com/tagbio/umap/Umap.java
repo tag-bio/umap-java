@@ -757,44 +757,28 @@ public class Umap {
 
   // Returns
   // -------
-  // simplicial_set: sparse matrix
+  // simplicialSet: sparse matrix
   //     The resulting intersected fuzzy simplicial set.
   // """
-  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double unknown_dist, double far_dist) {
-    simplicial_set = simplicial_set.tocoo();
+  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicialSet, float[] target, float unknownDist, float farDist) {
+    simplicialSet = simplicialSet.tocoo();
 
-    fastIntersection(
-      simplicial_set.row,
-      simplicial_set.col,
-      simplicial_set.data,
-      target,
-      unknown_dist,
-      far_dist);
+    fastIntersection(simplicialSet.row, simplicialSet.col, simplicialSet.data, target, unknownDist, farDist);
 
-    return reset_local_connectivity(simplicial_set.eliminateZeros());
+    return reset_local_connectivity(simplicialSet.eliminateZeros());
   }
 
-  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double far_dist) {
-    return categorical_simplicial_set_intersection(simplicial_set, target, 1.0, far_dist);
+  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, float farDist) {
+    return categorical_simplicial_set_intersection(simplicial_set, target, 1.0F, farDist);
   }
 
-  private static Matrix general_simplicial_set_intersection(Matrix simplicial_set1, Matrix simplicial_set2, float weight) {
+  private static Matrix general_simplicial_set_intersection(final Matrix simplicialSet1, final Matrix simplicialSet2, final float weight) {
 
-    CooMatrix result = simplicial_set1.add(simplicial_set2).tocoo();
-    CsrMatrix left = simplicial_set1.tocsr();
-    CsrMatrix right = simplicial_set2.tocsr();
+    final CooMatrix result = simplicialSet1.add(simplicialSet2).tocoo();
+    final CsrMatrix left = simplicialSet1.tocsr();
+    final CsrMatrix right = simplicialSet2.tocsr();
 
-    Sparse.general_sset_intersection(
-      left.indptr,
-      left.indices,
-      left.data,
-      right.indptr,
-      right.indices,
-      right.data,
-      result.row,
-      result.col,
-      result.data,
-      weight);
+    Sparse.general_sset_intersection(left.indptr, left.indices, left.data, right.indptr, right.indices, right.data, result.row, result.col, result.data, weight);
 
     return result;
   }
@@ -1402,7 +1386,7 @@ public class Umap {
     }
   }
 
-  // """Fit X into an embedded space.
+  // Fit instances into an embedded space.
 
   // Optionally use y for supervised dimension reduction.
 
@@ -1420,10 +1404,10 @@ public class Umap {
   //     The relevant attributes are ``target_metric`` and
   //     ``target_metric_kwds``.
   // """
-  private void fit(Matrix X, float[] y) {
+  private void fit(Matrix instances, float[] y) {
 
     //X = check_array(X, dtype = np.float32, accept_sparse = "csr");
-    this._raw_data = X;
+    this._raw_data = instances;
 
     // Handle all the optional arguments, setting default
     if (this.a == null || this.b == null) {
@@ -1449,20 +1433,20 @@ public class Umap {
     this._validate_parameters();
 
     // Error check n_neighbors based on data size
-    if (X.rows() <= this.n_neighbors) {
-      if (X.rows() == 1) {
+    if (instances.rows() <= this.n_neighbors) {
+      if (instances.rows() == 1) {
         embedding_ = new DefaultMatrix(new float[1][this.n_components]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
         return;
       }
 
       Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
-      _n_neighbors = X.rows() - 1;
+      _n_neighbors = instances.rows() - 1;
     } else {
       _n_neighbors = this.n_neighbors;
     }
 
-    if (X instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
-      final CsrMatrix Y = (CsrMatrix) X;
+    if (instances instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
+      final CsrMatrix Y = (CsrMatrix) instances;
       if (!Y.has_sorted_indices()) {
         Y.sort_indices();
       }
@@ -1474,24 +1458,24 @@ public class Umap {
     final long[] random_state = this.random_state; //check_random_state(this.random_state);
 
     if (verbose) {
-      Utils.message("Construct fuzzy simplicial set: " + X.rows());
+      Utils.message("Construct fuzzy simplicial set: " + instances.rows());
     }
 
     // Handle small cases efficiently by computing all distances
-    if (X.rows() < 4096) {
+    if (instances.rows() < 4096) {
       _small_data = true;
-      final Matrix dmat = PairwiseDistances.pairwise_distances(X, metric, _metric_kwds);
+      final Matrix dmat = PairwiseDistances.pairwise_distances(instances, metric, _metric_kwds);
       graph_ = fuzzy_simplicial_set(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, _metric_kwds, null, null, angular_rp_forest, set_op_mix_ratio, local_connectivity, verbose);
       // System.out.println("graph: " + ((CooMatrix) graph_).sparseToString());
     } else {
       _small_data = false;
       // Standard case
-      final Object[] nn = nearest_neighbors(X, _n_neighbors, metric, _metric_kwds, angular_rp_forest, random_state, verbose);
+      final Object[] nn = nearest_neighbors(instances, _n_neighbors, metric, _metric_kwds, angular_rp_forest, random_state, verbose);
       _knn_indices = (int[][]) nn[0];
       _knn_dists = (float[][]) nn[1];
       _rp_forest = (List<?>) nn[2];
 
-      graph_ = fuzzy_simplicial_set(X, n_neighbors, random_state, metric, _metric_kwds, _knn_indices, _knn_dists, angular_rp_forest, set_op_mix_ratio, local_connectivity, verbose);
+      graph_ = fuzzy_simplicial_set(instances, n_neighbors, random_state, metric, _metric_kwds, _knn_indices, _knn_dists, angular_rp_forest, set_op_mix_ratio, local_connectivity, verbose);
 
       // todo this starts as LilMatrix type but ends up as a CsrMatrix!
       // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
@@ -1500,7 +1484,7 @@ public class Umap {
 //        Matrix tmp_search_graph = //scipy.sparse.lil_matrix((X.rows(), X.rows()), dtype = np.int8      );
 //        tmp_search_graph.rows = this._knn_indices;
 //        tmp_search_graph.data = (this._knn_dists != 0).astype(np.int8);  // todo what does this do? -- tests each element to be 0, returns True or False for each element
-      final float[][] tmp_data = new float[X.rows()][X.rows()];
+      final float[][] tmp_data = new float[instances.rows()][instances.rows()];
       for (int k = 0; k < this._knn_indices.length; ++k) {
         final int x = this._knn_indices[k][0];
         final int y2 = this._knn_indices[k][1];
@@ -1521,69 +1505,31 @@ public class Umap {
     }
 
     if (y != null) {
-      if (X.length() != y.length) {
-        throw new IllegalArgumentException("Length of x =  " + X.length() + ", length of y = " + y.length + ", while it must be equal.");
+      if (instances.length() != y.length) {
+        throw new IllegalArgumentException("Length of x =  " + instances.length() + ", length of y = " + y.length + ", while it must be equal.");
       }
       //float[] y_ = check_array(y, ensure_2d = false);
       float[] y_ = y;
-      if (this.target_metric.equals("categorical")) {
-        final double far_dist;
-        if (this.target_weight < 1.0) {
-          far_dist = 2.5 * (1.0 / (1.0 - this.target_weight));
-        } else {
-          far_dist = 1.0e12;
-        }
-        this.graph_ = categorical_simplicial_set_intersection((CooMatrix) this.graph_, y_, /*far_dist =*/ far_dist);
+      if (CategoricalMetric.SINGLETON.equals(this.target_metric)) {
+        final float farDist = this.target_weight < 1.0 ? 2.5F * (1.0F / (1.0F - this.target_weight)) : 1.0e12F;
+        this.graph_ = categorical_simplicial_set_intersection((CooMatrix) this.graph_, y_, farDist);
       } else {
-        final int target_n_neighbors;
-        if (this.target_n_neighbors == -1) {
-          target_n_neighbors = this._n_neighbors;
-        } else {
-          target_n_neighbors = (this.target_n_neighbors);
-        }
+        final int targetNNeighbors = this.target_n_neighbors == -1 ? this._n_neighbors : this.target_n_neighbors;
 
         Matrix target_graph;
         // Handle the small case as precomputed as before
         if (y.length < 4096) {
           //Matrix ydmat = PairwiseDistances.pairwise_distances(y_[np.newaxis, :].T,  (Metric) this.target_metric,  this._target_metric_kwds);
           Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_), this.target_metric, this._target_metric_kwds);
-          target_graph = fuzzy_simplicial_set(
-            ydmat,
-            target_n_neighbors,
-            random_state,
-            PrecomputedMetric.SINGLETON,
-            this._target_metric_kwds,
-            null,
-            null,
-            false,
-            1.0F,
-            1.0F,
-            false);
+          target_graph = fuzzy_simplicial_set(ydmat, targetNNeighbors, random_state, PrecomputedMetric.SINGLETON, this._target_metric_kwds, null, null, false, 1.0F, 1.0F, false);
         } else {
           // Standard case
-          target_graph = fuzzy_simplicial_set(
-            MathUtils.promoteTranspose(y_),  //y_[np.newaxis, :].T,
-            target_n_neighbors,
-            random_state,
-            this.target_metric,
-            this._target_metric_kwds,
-            null,
-            null,
-            false,
-            1.0F,
-            1.0F,
-            false);
+          target_graph = fuzzy_simplicial_set(MathUtils.promoteTranspose(y_), targetNNeighbors, random_state, this.target_metric, this._target_metric_kwds, null, null, false, 1.0F, 1.0F, false);
         }
-        // product = this.graph_.multiply(target_graph)
-        // // this.graph_ = 0.99 * product + 0.01 * (this.graph_ +
-        // //                                        target_graph -
-        // //                                        product)
-        // this.graph_ = product
         graph_ = general_simplicial_set_intersection(graph_, target_graph, this.target_weight);
         graph_ = reset_local_connectivity(graph_);
       }
     }
-
 
     final int n_epochs = this.n_epochs == null ? 0 : this.n_epochs;
 
@@ -1600,7 +1546,7 @@ public class Umap {
     //this._input_hash = joblib.hash(this._raw_data);
   }
 
-  // """Fit X into an embedded space and return that transformed
+  // Fit X into an embedded space and return that transformed
   // output.
 
   // Parameters
@@ -1619,17 +1565,20 @@ public class Umap {
   // -------
   // X_new : array, shape (n_samples, n_components)
   //     Embedding of the training data in low-dimensional space.
-  // """
-  Matrix fit_transform(Matrix X, float[] y) {
-    fit(X, y);
+  Matrix fit_transform(final Matrix instances, final float[] y) {
+    fit(instances, y);
     return this.embedding_;
   }
 
-  Matrix fit_transform(Matrix X) {
-    return fit_transform(X, null);
+  Matrix fit_transform(final Matrix instances) {
+    return fit_transform(instances, null);
   }
 
-  // """Transform X into the existing embedded space and return that
+  Matrix fit_transform(final float[][] instances) {
+    return fit_transform(new DefaultMatrix(instances), null);
+  }
+
+  // Transform X into the existing embedded space and return that
   // transformed output.
 
   // Parameters
