@@ -13,15 +13,6 @@ class MathUtils {
 
   private static final double INV_LOG2 = 1.0 / Math.log(2);
 
-  /**
-   * Return an array filled with zeros.
-   * @param n length of array
-   * @return array of zeros
-   */
-  static float[] zeros(final int n) {
-    return new float[n];
-  }
-
   static double log2(final double x) {
     return Math.log(x) * INV_LOG2;
   }

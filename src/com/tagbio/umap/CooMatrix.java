@@ -155,7 +155,7 @@ class CooMatrix extends Matrix {
   }
 
 
-//  void sum_duplicates() {
+//  CooMatrix sum_duplicates() {
 //    // todo add identical entries -- this would be fairly easy if we knew arrays we sorted by (row,col)
 //    // todo for now ugliness ...
 //
@@ -163,10 +163,7 @@ class CooMatrix extends Matrix {
 //    for (int k = 0; k < data.length; ++k) {
 //      res.set(row[k], col[k], res.get(row[k], col[k]) + data[k]);
 //    }
-//    CooMatrix coo = res.tocoo(); // todo yikes!!
-//    row = coo.row;
-//    col = coo.col;
-//    data = coo.data;
+//    return res.tocoo();
 //  }
 
   @Override
@@ -225,7 +222,7 @@ class CooMatrix extends Matrix {
   }
 
   @Override
-  Matrix eliminate_zeros() {
+  Matrix eliminateZeros() {
     int zeros = 0;
     for (final float v : data) {
       if (v == 0) {

@@ -238,7 +238,7 @@ public class Umap {
   private static Random rng = new Random(42); // todo seed!!!
 
   /*
-    """Compute a continuous version of the distance to the kth nearest
+    Compute a continuous version of the distance to the kth nearest
     neighbor. That is, this is similar to knn-distance but allows continuous
     k values rather than requiring an integral k. In essence we are simply
     computing the distance such that the cardinality of fuzzy set we generate
@@ -253,11 +253,11 @@ public class Umap {
     k: float
         The number of nearest neighbors to approximate for.
 
-    n_iter: int (optional, default 64)
+    nIter: int (optional, default 64)
         We need to binary search for the correct distance value. This is the
         max number of iterations to use in such a search.
 
-    local_connectivity: int (optional, default 1)
+    localConnectivity: int (optional, default 1)
         The local connectivity required -- i.e. the number of nearest
         neighbors that should be assumed to be connected at a local level.
         The higher this value the more connected the manifold becomes
@@ -275,53 +275,48 @@ public class Umap {
 
     nn_dist: array of shape (n_samples,)
         The distance to the 1st nearest neighbor for each point.
-    """
   */
-  private static float[][] smooth_knn_dist(float[][] distances, double k, int n_iter, double local_connectivity, double bandwidth) {
-    double target = MathUtils.log2(k) * bandwidth;
-    float[] rho = MathUtils.zeros(distances.length);
-    float[] result = MathUtils.zeros(distances.length);
+  private static float[][] smooth_knn_dist(float[][] distances, double k, int nIter, double localConnectivity, double bandwidth) {
+    final double target = MathUtils.log2(k) * bandwidth;
+    final float[] rho = new float[distances.length];
+    final float[] result = new float[distances.length];
 
-    double mean_distances = MathUtils.mean(distances);
+    final double meanDistances = MathUtils.mean(distances);
 
     for (int i = 0; i < distances.length; ++i) {
       double lo = 0.0;
       double hi = NPY_INFINITY;
       double mid = 1.0;
 
-      float[] ith_distances = distances[i];
-      float[] non_zero_dists = MathUtils.filterPositive(ith_distances);  // ith_distances[ith_distances > 0.0];
-      if (non_zero_dists.length >= local_connectivity) {
-        int index = (int) Math.floor(local_connectivity);
-        double interpolation = local_connectivity - index;
+      final float[] ithDistances = distances[i];
+      final float[] nonZeroDists = MathUtils.filterPositive(ithDistances);
+      if (nonZeroDists.length >= localConnectivity) {
+        final int index = (int) Math.floor(localConnectivity);
+        final double interpolation = localConnectivity - index;
         if (index > 0) {
-          rho[i] = non_zero_dists[index - 1];
+          rho[i] = nonZeroDists[index - 1];
           if (interpolation > SMOOTH_K_TOLERANCE) {
-            rho[i] += interpolation * (non_zero_dists[index] - non_zero_dists[index - 1]);
+            rho[i] += interpolation * (nonZeroDists[index] - nonZeroDists[index - 1]);
           }
         } else {
-          rho[i] = (float) (interpolation * non_zero_dists[0]);
+          rho[i] = (float) (interpolation * nonZeroDists[0]);
         }
-      } else if (non_zero_dists.length > 0) {
-        rho[i] = MathUtils.max(non_zero_dists);
+      } else if (nonZeroDists.length > 0) {
+        rho[i] = MathUtils.max(nonZeroDists);
       }
 
-      for (int n = 0; n < n_iter; ++n) {
-        double psum = 0.0;
-        for (int j = 1; j < distances[0].length; ++j) {   // range(1, distances.shape[1]))
-          double d = distances[i][j] - rho[i];
-          if (d > 0) {
-            psum += Math.exp(-(d / mid));
-          } else {
-            psum += 1.0;
-          }
+      for (int n = 0; n < nIter; ++n) {
+        double pSum = 0.0;
+        for (int j = 1; j < distances[0].length; ++j) {
+          final double d = distances[i][j] - rho[i];
+          pSum += d > 0 ? Math.exp(-(d / mid)) : 1;
         }
 
-        if (Math.abs(psum - target) < SMOOTH_K_TOLERANCE) {
+        if (Math.abs(pSum - target) < SMOOTH_K_TOLERANCE) {
           break;
         }
 
-        if (psum > target) {
+        if (pSum > target) {
           hi = mid;
           mid = (lo + hi) / 2.0;
         } else {
@@ -337,29 +332,24 @@ public class Umap {
       result[i] = (float) mid;
 
       if (rho[i] > 0.0) {
-        double mean_ith_distances = MathUtils.mean(ith_distances);
-        if (result[i] < MIN_K_DIST_SCALE * mean_ith_distances) {
-          result[i] = (float) (MIN_K_DIST_SCALE * mean_ith_distances);
+        double meanIthDistances = MathUtils.mean(ithDistances);
+        if (result[i] < MIN_K_DIST_SCALE * meanIthDistances) {
+          result[i] = (float) (MIN_K_DIST_SCALE * meanIthDistances);
         }
       } else {
-        if (result[i] < MIN_K_DIST_SCALE * mean_distances) {
-          result[i] = (float) (MIN_K_DIST_SCALE * mean_distances);
+        if (result[i] < MIN_K_DIST_SCALE * meanDistances) {
+          result[i] = (float) (MIN_K_DIST_SCALE * meanDistances);
         }
       }
     }
     return new float[][]{result, rho};
   }
 
-  private static float[][] smooth_knn_dist(float[][] distances, double k) {
-    return smooth_knn_dist(distances, k, 64, 1.0, 1.0);
-  }
-
   private static float[][] smooth_knn_dist(float[][] distances, double k, double local_connectivitiy) {
     return smooth_knn_dist(distances, k, 64, local_connectivitiy, 1.0);
   }
 
-
-  // """Compute the ``n_neighbors`` nearest points for each data point in ``X``
+  // Compute the ``n_neighbors`` nearest points for each data point in ``X``
   // under ``metric``. This may be exact, but more likely is approximated via
   // nearest neighbor descent.
 
@@ -393,7 +383,6 @@ public class Umap {
 
   // knn_dists: array of shape (n_samples, n_neighbors)
   //     The distances to the ``n_neighbors`` closest points in the dataset.
-  // """
   private static Object[] nearest_neighbors(
     Matrix X,
     int n_neighbors,
@@ -499,7 +488,7 @@ public class Umap {
   }
 
 
-  // """Construct the membership strength data for the 1-skeleton of each local
+  // Construct the membership strength data for the 1-skeleton of each local
   // fuzzy simplicial set -- this is formed as a sparse matrix where each row is
   // a local fuzzy simplicial set, with a membership strength for the
   // 1-simplex to each other data point.
@@ -528,39 +517,38 @@ public class Umap {
 
   // vals: array of shape (n_samples * n_neighbors)
   //     Entries for the resulting sparse matrix (coo format)
-  // """
-  private static CooMatrix compute_membership_strengths(int[][] knn_indices, float[][] knn_dists, float[] sigmas, float[] rhos, final int[] shape) {
-    int n_samples = knn_indices.length;
-    int n_neighbors = knn_indices[0].length;
-    final int size = n_samples * n_neighbors;
+  private static CooMatrix compute_membership_strengths(int[][] knnIndices, float[][] knnDists, float[] sigmas, float[] rhos, final int[] shape) {
+    final int nSamples = knnIndices.length;
+    final int nNeighbors = knnIndices[0].length;
+    final int size = nSamples * nNeighbors;
 
-    int[] rows = new int[size];
-    int[] cols = new int[size];
-    float[] vals = new float[size];
+    final int[] rows = new int[size];
+    final int[] cols = new int[size];
+    final float[] vals = new float[size];
 
-    for (int i = 0; i < n_samples; ++i) {
-      for (int j = 0; j < n_neighbors; ++j) {
-        final double val;
-        if (knn_indices[i][j] == -1) {
+    for (int i = 0; i < nSamples; ++i) {
+      for (int j = 0; j < nNeighbors; ++j) {
+        if (knnIndices[i][j] == -1) {
           continue;  // We didn't get the full knn for i
         }
-        if (knn_indices[i][j] == i) {
+        final double val;
+        if (knnIndices[i][j] == i) {
           val = 0.0;
-        } else if (knn_dists[i][j] - rhos[i] <= 0.0) {
+        } else if (knnDists[i][j] - rhos[i] <= 0.0) {
           val = 1.0;
         } else {
-          val = Math.exp(-((knn_dists[i][j] - rhos[i]) / (sigmas[i])));
+          val = Math.exp(-((knnDists[i][j] - rhos[i]) / (sigmas[i])));
         }
-        rows[i * n_neighbors + j] = i;
-        cols[i * n_neighbors + j] = knn_indices[i][j];
-        vals[i * n_neighbors + j] = (float) val;
+        rows[i * nNeighbors + j] = i;
+        cols[i * nNeighbors + j] = knnIndices[i][j];
+        vals[i * nNeighbors + j] = (float) val;
       }
     }
     return new CooMatrix(vals, rows, cols, shape);
   }
 
 
-  // """Given a set of data X, a neighborhood size, and a measure of distance
+  // Given a set of data X, a neighborhood size, and a measure of distance
   // compute the fuzzy simplicial set (here represented as a fuzzy graph in
   // the form of a sparse matrix) associated to the data. This is done by
   // locally approximating geodesic distance at each point, creating a fuzzy
@@ -662,44 +650,27 @@ public class Umap {
   //     A fuzzy simplicial set represented as a sparse matrix. The (i,
   //     j) entry of the matrix represents the membership strength of the
   //     1-simplex between the ith and jth sample points.
-  // """
-  private static Matrix fuzzy_simplicial_set(final Matrix X, final int n_neighbors, final long[] random_state, final Metric metric, final Map<String, Object> metric_kwds, int[][] knn_indices, float[][] knn_dists, final boolean angular, final float set_op_mix_ratio, final float local_connectivity, final boolean verbose) {
+  private static Matrix fuzzy_simplicial_set(final Matrix X, final int nNeighbors, final long[] random_state, final Metric metric, final Map<String, Object> metric_kwds, int[][] knnIndices, float[][] knnDists, final boolean angular, final float set_op_mix_ratio, final float localConnectivity, final boolean verbose) {
 
-    if (knn_indices == null || knn_dists == null) {
-      final Object[] nn = nearest_neighbors(X, n_neighbors, metric, metric_kwds, angular, random_state, verbose);
-      knn_indices = (int[][]) nn[0];
-      knn_dists = (float[][]) nn[1];
+    if (knnIndices == null || knnDists == null) {
+      final Object[] nn = nearest_neighbors(X, nNeighbors, metric, metric_kwds, angular, random_state, verbose);
+      knnIndices = (int[][]) nn[0];
+      knnDists = (float[][]) nn[1];
     }
 
-    //System.out.println("knn_dists: " + Arrays.deepToString(knn_dists));
-
-    final float[][] sigmasRhos = smooth_knn_dist(knn_dists, n_neighbors, local_connectivity);
+    final float[][] sigmasRhos = smooth_knn_dist(knnDists, nNeighbors, localConnectivity);
     final float[] sigmas = sigmasRhos[0];
     final float[] rhos = sigmasRhos[1];
 
-//    System.out.println("sigmas: " + Arrays.toString(sigmas));
-//    System.out.println("rhos: " + Arrays.toString(rhos));
-
-    Matrix result = compute_membership_strengths(knn_indices, knn_dists, sigmas, rhos, new int[]{X.rows(), X.rows()});
-//    final Object[] rcv = compute_membership_strengths(knn_indices, knn_dists, sigmas, rhos);
-//    final int[] rows = (int[]) rcv[0];
-//    final int[] cols = (int[]) rcv[1];
-//    final float[] vals = (float[]) rcv[2];
-//    Matrix result = new CooMatrix(vals, rows, cols, new int[]{X.rows(), X.rows()});
-    result = result.eliminate_zeros();
-    //System.out.println("res: " + ((CooMatrix) result).sparseToString());
-
+    final Matrix result = compute_membership_strengths(knnIndices, knnDists, sigmas, rhos, new int[]{X.rows(), X.rows()}).eliminateZeros();
     final Matrix transpose = result.transpose();
-
     final Matrix prod_matrix = result.hadamardMultiply(transpose);
-    //System.out.println("prod_matrix: " + ((CooMatrix) prod_matrix).sparseToString());
 
-    result = result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio)).eliminate_zeros();
-    return result;
+    return result.add(transpose).subtract(prod_matrix).multiply(set_op_mix_ratio).add(prod_matrix.multiply(1.0F - set_op_mix_ratio)).eliminateZeros();
   }
 
 
-  // """Under the assumption of categorical distance for the intersecting
+  // Under the assumption of categorical distance for the intersecting
   // simplicial set perform a fast intersection.
 
   // Parameters
@@ -728,24 +699,19 @@ public class Umap {
   // Returns
   // -------
   // null
-  // """
-  private static void fast_intersection(int[] rows, int[] cols, float[] values, float[] target, double unknown_dist, double far_dist) {
+  private static void fastIntersection(final int[] rows, final int[] cols, final float[] values, final float[] target, final double unknownDist, final double farDist) {
     for (int nz = 0; nz < rows.length; ++nz) {
       final int i = rows[nz];
       final int j = cols[nz];
       if (target[i] == -1 || target[j] == -1) {
-        values[nz] *= Math.exp(-unknown_dist);
+        values[nz] *= Math.exp(-unknownDist);
       } else if (target[i] != target[j]) {
-        values[nz] *= Math.exp(-far_dist);
+        values[nz] *= Math.exp(-farDist);
       }
     }
   }
 
-  private static void fast_intersection(int[] rows, int[] cols, float[] values, float[] target) {
-    fast_intersection(rows, cols, values, target, 1.0, 5.0);
-  }
-
-  // """Reset the local connectivity requirement -- each data sample should
+  // Reset the local connectivity requirement -- each data sample should
   // have complete confidence in at least one 1-simplex in the simplicial set.
   // We can enforce this by locally rescaling confidences, and then remerging the
   // different local simplicial sets together.
@@ -758,16 +724,14 @@ public class Umap {
 
   // Returns
   // -------
-  // simplicial_set: sparse_matrix
+  // simplicialSet: sparse_matrix
   //     The recalculated simplicial set, now with the local connectivity
   //     assumption restored.
-  // """
-  private static Matrix reset_local_connectivity(Matrix simplicial_set) {
-    simplicial_set = Normalize.normalize(simplicial_set, "max");
-    Matrix transpose = simplicial_set.transpose();
-    Matrix prod_matrix = simplicial_set.hadamardMultiply(transpose);
-    simplicial_set = simplicial_set.add(transpose).subtract(prod_matrix).eliminate_zeros();
-    return simplicial_set;
+  private static Matrix reset_local_connectivity(final Matrix simplicialSet) {
+    final Matrix nss = Normalize.normalize(simplicialSet, "max");
+    final Matrix transpose = nss.transpose();
+    final Matrix prodMatrix = nss.hadamardMultiply(transpose);
+    return nss.add(transpose).subtract(prodMatrix).eliminateZeros();
   }
 
   // """Combine a fuzzy simplicial set with another fuzzy simplicial set
@@ -796,10 +760,10 @@ public class Umap {
   // simplicial_set: sparse matrix
   //     The resulting intersected fuzzy simplicial set.
   // """
-  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double unknown_dist, double far_dist/*=5.0*/) {
+  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double unknown_dist, double far_dist) {
     simplicial_set = simplicial_set.tocoo();
 
-    fast_intersection(
+    fastIntersection(
       simplicial_set.row,
       simplicial_set.col,
       simplicial_set.data,
@@ -807,10 +771,10 @@ public class Umap {
       unknown_dist,
       far_dist);
 
-    return reset_local_connectivity(simplicial_set.eliminate_zeros());
+    return reset_local_connectivity(simplicial_set.eliminateZeros());
   }
 
-  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double far_dist/*=5.0*/) {
+  private static Matrix categorical_simplicial_set_intersection(CooMatrix simplicial_set, float[] target, double far_dist) {
     return categorical_simplicial_set_intersection(simplicial_set, target, 1.0, far_dist);
   }
 
@@ -1145,7 +1109,7 @@ public class Umap {
     }
 
     MathUtils.zeroEntriesBelowLimit(graph.data, MathUtils.max(graph.data) / (float) n_epochs);
-    graph = (CooMatrix) graph.eliminate_zeros();
+    graph = (CooMatrix) graph.eliminateZeros();
 
     Matrix embedding;
     if ("random".equals(init)) {
@@ -1766,7 +1730,7 @@ public class Umap {
     }
 
     MathUtils.zeroEntriesBelowLimit(graph.data, MathUtils.max(graph.data) / (float) n_epochs);
-    graph = (CooMatrix) graph.eliminate_zeros();
+    graph = (CooMatrix) graph.eliminateZeros();
 
     final float[] epochs_per_sample = make_epochs_per_sample(graph.data, n_epochs);
 

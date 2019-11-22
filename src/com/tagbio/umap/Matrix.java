@@ -32,7 +32,7 @@ abstract class Matrix {
    * Get the number of rows in the matrix.
    * @return number of rows
    */
-  public int rows() {
+  int rows() {
     return shape[0];
   }
 
@@ -40,7 +40,7 @@ abstract class Matrix {
    * Get the number of columns in the matrix
    * @return number of cols
    */
-  public int cols() {
+  int cols() {
     return shape[1];
   }
 
@@ -68,8 +68,8 @@ abstract class Matrix {
     if (!Arrays.equals(shape(), m.shape())) {
       return false;
     }
-    for (int i = 0; i < shape[0]; ++i) {
-      for (int j = 0; j < shape[1]; ++j) {
+    for (int i = 0; i < rows(); ++i) {
+      for (int j = 0; j < cols(); ++j) {
         if (get(i, j) != m.get(i, j)) {
           return false;
         }
@@ -91,9 +91,9 @@ abstract class Matrix {
   }
 
   Matrix transpose() {
-    final float[][] res = new float[shape[1]][shape[0]];
-    for (int i = 0; i < shape[0]; ++i) {
-      for (int j = 0; j < shape[1]; ++j) {
+    final float[][] res = new float[cols()][rows()];
+    for (int i = 0; i < rows(); ++i) {
+      for (int j = 0; j < cols(); ++j) {
         res[j][i] = get(i, j);
       }
     }
@@ -105,8 +105,8 @@ abstract class Matrix {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
     final DefaultMatrix res = new DefaultMatrix(shape);
-    final int rows = shape[0];
-    final int cols = shape[1];
+    final int rows = rows();
+    final int cols = cols();
     for (int i = 0; i < rows; ++i) {
       for (int j = 0; j < cols; ++j) {
         res.set(i, j, get(i, j) + m.get(i, j));
@@ -120,8 +120,8 @@ abstract class Matrix {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
     final DefaultMatrix res = new DefaultMatrix(shape);
-    final int rows = shape[0];
-    final int cols = shape[1];
+    final int rows = rows();
+    final int cols = cols();
     for (int i = 0; i < rows; ++i) {
       for (int j = 0; j < cols; ++j) {
         res.set(i, j, get(i, j) - m.get(i, j));
@@ -135,8 +135,8 @@ abstract class Matrix {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
     final DefaultMatrix res = new DefaultMatrix(shape);
-    final int rows = shape[0];
-    final int cols = shape[1];
+    final int rows = rows();
+    final int cols = cols();
     for (int i = 0; i < rows; ++i) {
       for (int j = 0; j < cols; ++j) {
         res.set(i, j, get(i, j) * m.get(i, j));
@@ -147,8 +147,8 @@ abstract class Matrix {
 
   Matrix multiply(final float x) {
     final DefaultMatrix res = new DefaultMatrix(shape);
-    final int rows = shape[0];
-    final int cols = shape[1];
+    final int rows = rows();
+    final int cols = cols();
     for (int i = 0; i < rows; ++i) {
       for (int j = 0; j < cols; ++j) {
         res.set(i, j, get(i, j) * x);
@@ -158,16 +158,16 @@ abstract class Matrix {
   }
 
   Matrix multiply(final Matrix m) {
-    if (shape[1] != m.shape[0]) {
+    if (cols() != m.rows()) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
-    final int rows = shape[0];
-    final int cols = m.shape[1];
+    final int rows = rows();
+    final int cols = m.cols();
     final Matrix res = new DefaultMatrix(rows, cols);
     for (int i = 0; i < rows; ++i) {
       for (int j = 0; j < cols; ++j) {
         float sum = 0;
-        for (int k = 0; k < shape[1]; ++k) {
+        for (int k = 0; k < cols(); ++k) {
           sum += get(i, k) * m.get(k, j);
         }
         res.set(i, j, sum);
@@ -178,8 +178,8 @@ abstract class Matrix {
 
   private int countZeros() {
     int cnt = 0;
-    for (int r = 0; r < shape[0]; ++r) {
-      for (int c = 0; c < shape[1]; ++c) {
+    for (int r = 0; r < rows(); ++r) {
+      for (int c = 0; c < cols(); ++c) {
         if (get(r, c) == 0) {
           ++cnt;
         }
@@ -188,7 +188,7 @@ abstract class Matrix {
     return cnt;
   }
 
-  Matrix eliminate_zeros() {
+  Matrix eliminateZeros() {
     throw new UnsupportedOperationException();
   }
 
@@ -197,8 +197,8 @@ abstract class Matrix {
     final int[] row = new int[len];
     final int[] col = new int[len];
     final float[] data = new float[len];
-    for (int k = 0, r = 0; r < shape[0]; ++r) {
-      for (int c = 0; c < shape[1]; ++c) {
+    for (int k = 0, r = 0; r < rows(); ++r) {
+      for (int c = 0; c < cols(); ++c) {
         final float x = get(r, c);
         if (x != 0) {
           row[k] = r;
@@ -212,12 +212,12 @@ abstract class Matrix {
 
   CsrMatrix tocsr() {
     final int len = (int) (length() - countZeros());
-    final int[] indptr = new int[shape[0] + 1];
+    final int[] indptr = new int[rows() + 1];
     final int[] indices = new int[len];
     final float[] data = new float[len];
-    for (int k = 0, r = 0; r < shape[0]; ++r) {
+    for (int k = 0, r = 0; r < rows(); ++r) {
       indptr[r] = k;
-      for (int c = 0; c < shape[1]; ++c) {
+      for (int c = 0; c < cols(); ++c) {
         final float x = get(r, c);
         if (x != 0) {
           indices[k] = c;
@@ -225,7 +225,7 @@ abstract class Matrix {
         }
       }
     }
-    indptr[shape[0]] = len;
+    indptr[rows()] = len;
     return new CsrMatrix(data, indptr, indices, shape);
   }
 
@@ -240,7 +240,7 @@ abstract class Matrix {
    * @return row
    */
   float[] row(int row) {
-    final float[] data = new float[shape[1]];
+    final float[] data = new float[cols()];
     for (int k = 0; k < data.length; ++k) {
       data[k] = get(row, k);
     }

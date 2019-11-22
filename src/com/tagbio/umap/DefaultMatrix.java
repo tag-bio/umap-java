@@ -63,7 +63,7 @@ class DefaultMatrix extends Matrix {
   }
 
   @Override
-  Matrix eliminate_zeros() {
+  Matrix eliminateZeros() {
     // There is nothing to be done in this implementation (zeros cannot be removed)
     return this;
   }
