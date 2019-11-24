@@ -101,6 +101,7 @@ abstract class Matrix {
   }
 
   Matrix add(final Matrix m) {
+    //System.out.println("add: " + getClass().getSimpleName() + " + " + m.getClass().getSimpleName());
     if (!Arrays.equals(shape, m.shape)) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
