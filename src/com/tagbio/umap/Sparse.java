@@ -23,6 +23,7 @@ package com.tagbio.umap;
 
 // locale.setlocale(locale.LC_NUMERIC, "C")
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,125 +40,167 @@ class Sparse {
 //     flag = np.concatenate((np.ones(1, dtype=np.bool_), aux[1:] != aux[:-1]))
 //     return aux[flag]
 
-
-// // Just reproduce a simpler version of numpy union1d (not numba supported yet)
-// @numba.njit()
-// def arr_union(ar1, ar2):
-//     if ar1.shape[0] == 0:
-//         return ar2
-//     else if ar2.shape[0] == 0:
-//         return ar1
-//     else:
-//         return arr_unique(np.concatenate((ar1, ar2)))
-
-
-// // Just reproduce a simpler version of numpy intersect1d (not numba supported
-// // yet)
-// @numba.njit()
-// def arr_intersect(ar1, ar2):
-//     aux = np.concatenate((ar1, ar2))
-//     aux.sort()
-//     return aux[:-1][aux[1:] == aux[:-1]]
+  private static int countDups(final int[] a) {
+    int dups = 0;
+    for (int k = 1; k < a.length; ++k) {
+      if (a[k] == a[k - 1]) {
+        ++dups;
+      }
+    }
+    return dups;
+  }
 
 
-// @numba.njit()
-// def sparse_sum(ind1, data1, ind2, data2):
-//     result_ind = arr_union(ind1, ind2)
-//     result_data = np.zeros(result_ind.shape[0], dtype=np.float32)
+  static int[] arr_unique(final int[] a) {
+    Arrays.sort(a);
+    int dups = countDups(a);
+    if (dups == 0) {
+      return a;
+    }
+    final int[] res = new int[a.length - dups];
+    for (int k = 0, j = 0; k < a.length; ++k) {
+      if (k == 0 || a[k] != a[k - 1]) {
+        res[j++] = a[k];
+      }
+    }
+    return res;
+  }
 
-//     i1 = 0
-//     i2 = 0
-//     nnz = 0
-
-//     // pass through both index lists
-//     while i1 < ind1.shape[0] and i2 < ind2.shape[0]:
-//         j1 = ind1[i1]
-//         j2 = ind2[i2]
-
-//         if j1 == j2:
-//             val = data1[i1] + data2[i2]
-//             if val != 0:
-//                 result_ind[nnz] = j1
-//                 result_data[nnz] = val
-//                 nnz += 1
-//             i1 += 1
-//             i2 += 1
-//         else if j1 < j2:
-//             val = data1[i1]
-//             if val != 0:
-//                 result_ind[nnz] = j1
-//                 result_data[nnz] = val
-//                 nnz += 1
-//             i1 += 1
-//         else:
-//             val = data2[i2]
-//             if val != 0:
-//                 result_ind[nnz] = j2
-//                 result_data[nnz] = val
-//                 nnz += 1
-//             i2 += 1
-
-//     // pass over the tails
-//     while i1 < ind1.shape[0]:
-//         val = data1[i1]
-//         if val != 0:
-//             result_ind[nnz] = i1
-//             result_data[nnz] = val
-//             nnz += 1
-//         i1 += 1
-
-//     while i2 < ind2.shape[0]:
-//         val = data2[i2]
-//         if val != 0:
-//             result_ind[nnz] = i2
-//             result_data[nnz] = val
-//             nnz += 1
-//         i2 += 1
-
-//     // truncate to the correct length in case there were zeros created
-//     result_ind = result_ind[:nnz]
-//     result_data = result_data[:nnz]
-
-//     return result_ind, result_data
+  static int[] arr_union(final int[] ar1, final int[] ar2) {
+    if (ar1.length == 0) {
+      return ar2;
+    } else if (ar2.length == 0) {
+      return ar1;
+    } else {
+      return arr_unique(MathUtils.concatenate(ar1, ar2));
+    }
+  }
 
 
-// @numba.njit()
-// def sparse_diff(ind1, data1, ind2, data2):
-//     return sparse_sum(ind1, data1, ind2, -data2)
+ static int[] arr_intersect(final int[] ar1, final int[] ar2) {
+   final int[] res = new int[Math.max(ar1.length, ar2.length)];
+   int k = 0;
+   int j = 0;
+   int i = 0;
+   while (j < ar1.length && i < ar2.length) {
+     if (ar1[j] == ar2[i]) {
+       res[k++] = ar1[j];
+       ++j;
+       ++i;
+     } else if (ar1[j] < ar2[i]) {
+       ++j;
+     } else {
+       ++i;
+     }
+   }
+   return Arrays.copyOf(res, k);
+ }
 
 
-// @numba.njit()
-// def sparse_mul(ind1, data1, ind2, data2):
-//     result_ind = arr_intersect(ind1, ind2)
-//     result_data = np.zeros(result_ind.shape[0], dtype=np.float32)
+  static Object[] sparse_sum(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
+    final int[] result_ind = arr_union(ind1, ind2);
+    final float[] result_data = new float[result_ind.length];
 
-//     i1 = 0
-//     i2 = 0
-//     nnz = 0
+    int i1 = 0;
+    int i2 = 0;
+    int nnz = 0;
 
-//     // pass through both index lists
-//     while i1 < ind1.shape[0] and i2 < ind2.shape[0]:
-//         j1 = ind1[i1]
-//         j2 = ind2[i2]
+    // pass through both index lists
+    while (i1 < ind1.length && i2 < ind2.length) {
+      final int j1 = ind1[i1];
+      final int j2 = ind2[i2];
 
-//         if j1 == j2:
-//             val = data1[i1] * data2[i2]
-//             if val != 0:
-//                 result_ind[nnz] = j1
-//                 result_data[nnz] = val
-//                 nnz += 1
-//             i1 += 1
-//             i2 += 1
-//         else if j1 < j2:
-//             i1 += 1
-//         else:
-//             i2 += 1
+      if (j1 == j2) {
+        final float val = data1[i1] + data2[i2];
+        if (val != 0) {
+          result_ind[nnz] = j1;
+          result_data[nnz] = val;
+          nnz += 1;
+        }
+        i1 += 1;
+        i2 += 1;
+      } else if (j1 < j2) {
+        final float val = data1[i1];
+        if (val != 0) {
+          result_ind[nnz] = j1;
+          result_data[nnz] = val;
+          nnz += 1;
+        }
+        i1 += 1;
+      } else {
+        final float val = data2[i2];
+        if (val != 0) {
+          result_ind[nnz] = j2;
+          result_data[nnz] = val;
+          nnz += 1;
+        }
+        i2 += 1;
+      }
+    }
 
-//     // truncate to the correct length in case there were zeros created
-//     result_ind = result_ind[:nnz]
-//     result_data = result_data[:nnz]
+    // pass over the tails
+    while (i1 < ind1.length) {
+      final float val = data1[i1];
+      if (val != 0) {
+        result_ind[nnz] = i1;
+        result_data[nnz] = val;
+        nnz += 1;
+      }
+      i1 += 1;
+    }
 
-//     return result_ind, result_data
+    while (i2 < ind2.length) {
+      final float val = data2[i2];
+      if (val != 0) {
+        result_ind[nnz] = i2;
+        result_data[nnz] = val;
+        nnz += 1;
+      }
+      i2 += 1;
+    }
+
+    // truncate to the correct length in case there were zeros created
+    return new Object[]{Arrays.copyOf(result_ind, nnz), Arrays.copyOf(result_data, nnz)};
+  }
+
+
+  static Object[] sparse_diff(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
+    return sparse_sum(ind1, data1, ind2, MathUtils.negate(data2));
+  }
+
+
+ static Object[] sparse_mul(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
+   final int[] result_ind = arr_intersect(ind1, ind2);
+   final float[] result_data = new float[result_ind.length];
+
+   int i1 = 0;
+   int i2 = 0;
+   int nnz = 0;
+
+   // pass through both index lists
+   while (i1 < ind1.length && i2 < ind2.length) {
+     final int j1 = ind1[i1];
+     final int j2 = ind2[i2];
+
+     if (j1 == j2) {
+       final float val = data1[i1] * data2[i2];
+       if (val != 0) {
+         result_ind[nnz] = j1;
+         result_data[nnz] = val;
+         ++nnz;
+       }
+       ++i1;
+       ++i2;
+     } else if (j1 < j2) {
+       ++i1;
+     } else {
+       ++i2;
+     }
+   }
+
+   // truncate to the correct length in case there were zeros created
+   return new Object[]{Arrays.copyOf(result_ind, nnz), Arrays.copyOf(result_data, nnz)};
+ }
 
 
 // def make_sparse_nn_descent(sparse_dist, dist_args):

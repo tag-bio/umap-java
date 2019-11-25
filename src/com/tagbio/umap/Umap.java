@@ -192,6 +192,8 @@ public class Umap {
   private static final double MIN_K_DIST_SCALE = 1e-3;
   private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
 
+  private static final int SMALL_PROBLEM_THRESHOLD = 4096;
+
   private static Random rng = new Random(42); // todo seed!!!
 
   /*
@@ -389,12 +391,12 @@ public class Umap {
       if (X instanceof CsrMatrix) {
         final CsrMatrix csrInstances = (CsrMatrix) X;
         // todo this is nonsense now, since metric cannot be a string at this point
-        if (Sparse.sparse_named_distances.containsKey(metric)){
+        if (Sparse.sparse_named_distances.containsKey(metric)) {
           distance_func = Sparse.sparse_named_distances.get(metric);
           if (Sparse.sparse_need_n_features.contains(metric)) {
             metric_kwds.put("n_features", X.cols());
           }
-        } else{
+        } else {
           throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
         }
         throw new UnsupportedOperationException();
@@ -415,8 +417,9 @@ public class Umap {
 //        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.rows(), n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
 //        knn_indices = (int[][]) nn[0];
 //        knn_dists = (float[][]) nn[1];
-//      } else {
-//        // todo following evilness returns a function to do the nearest neighbour thing
+      } else {
+        throw new UnsupportedOperationException();
+        // todo following evilness returns a function to do the nearest neighbour thing
 //        metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metric_kwds.values()));
 //        int n_trees = 5 + (int) (Math.round(Math.pow(X.rows(), 0.5 / 20.0)));
 //        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(X.rows()))));
@@ -429,14 +432,14 @@ public class Umap {
 //        if (verbose) {
 //          Utils.message("NN descent for " + n_iters + " iterations");
 //        }
-//        final Object[] nn = NearestNeighborDescent.metric_nn_descent(X, n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true, /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, /*verbose=*/verbose);
+//        final Object[] nn = metric_nn_descent(X, n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true, /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, /*verbose=*/verbose);
 //        knn_indices = (int[][]) nn[0];
 //        knn_dists = (float[][]) nn[1];
       }
 
-      if (MathUtils.containsNegative(knn_indices)) {
-        Utils.message("Failed to correctly find n_neighbors for some samples. Results may be less than ideal. Try re-running with different parameters.");
-      }
+//      if (MathUtils.containsNegative(knn_indices)) {
+//        Utils.message("Failed to correctly find n_neighbors for some samples. Results may be less than ideal. Try re-running with different parameters.");
+//      }
     }
     if (verbose) {
       Utils.message("Finished Nearest Neighbor Search");
@@ -1383,7 +1386,7 @@ public class Umap {
     }
 
     // Handle small cases efficiently by computing all distances
-    if (instances.rows() < 4096) {
+    if (instances.rows() < SMALL_PROBLEM_THRESHOLD) {
       _small_data = true;
       final Matrix dmat = PairwiseDistances.pairwise_distances(instances, metric, _metric_kwds);
       graph_ = fuzzySimplicialSet(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, _metric_kwds, null, null, angular_rp_forest, set_op_mix_ratio, local_connectivity, verbose);
@@ -1439,7 +1442,7 @@ public class Umap {
 
         Matrix targetGraph;
         // Handle the small case as precomputed as before
-        if (y.length < 4096) {
+        if (y.length < SMALL_PROBLEM_THRESHOLD) {
           final Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_), this.target_metric, this._target_metric_kwds);
           targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, random_state, PrecomputedMetric.SINGLETON, this._target_metric_kwds, null, null, false, 1.0F, 1.0F, false);
         } else {

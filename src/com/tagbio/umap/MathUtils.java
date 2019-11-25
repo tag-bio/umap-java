@@ -203,4 +203,31 @@ class MathUtils {
     }
     return res;
   }
+
+  static int[] subarray(final int[] a, final int lo, final int hi) {
+    final int[] res = new int[hi - lo];
+    System.arraycopy(a, lo, res, 0, res.length);
+    return res;
+  }
+
+  static float[] subarray(final float[] a, final int lo, final int hi) {
+    final float[] res = new float[hi - lo];
+    System.arraycopy(a, lo, res, 0, res.length);
+    return res;
+  }
+
+  static int[] concatenate(final int[] a, final int[] b) {
+    final int[] res = Arrays.copyOf(a, a.length + b.length);
+    System.arraycopy(b, 0, res, a.length, b.length);
+    return res;
+  }
+
+  static float[] negate(final float[] a) {
+    final float[] res = new float[a.length];
+    for (int k = 0; k < a.length; ++k) {
+      res[k] = -a[k];
+    }
+    return res;
+  }
+
 }
