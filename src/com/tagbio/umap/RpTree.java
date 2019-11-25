@@ -757,15 +757,16 @@ class RpTree {
 //         Each row of leaf array is a list of indices found in a given leaf.
 //         Since not all leaves are the same size the arrays are padded out with -1
 //         to ensure we can return a single ndarray.
-  static int[][] rptree_leaf_array(final List<RandomProjectionTreeNode> rpForest) {
+  static int[][] rptree_leaf_array(final List<FlatTree> rpForest) {
     if (rpForest.size() > 0) {
       final int[][] leafArray = new int[rpForest.size()][];
       for (int k = 0; k < leafArray.length; ++k) {
-        leafArray[k] = rpForest.get(k).getIndices();
+        //leafArray[k] = rpForest.get(k).getIndices();
+        leafArray[k] = rpForest.get(k).getIndices()[0]; // todo !!! datatype mismatch ???
       }
       return leafArray;
     } else {
-      return new int[0][0];
+      return new int[0][0]; // todo ingored -1 padding?
     }
   }
 }

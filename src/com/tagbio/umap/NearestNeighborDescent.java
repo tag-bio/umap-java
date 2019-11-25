@@ -22,9 +22,15 @@ package com.tagbio.umap;
 
 // from umap.rp_tree import search_flat_tree
 
+import java.util.Map;
+
+import com.tagbio.umap.metric.Metric;
+
 class NearestNeighborDescent {
 
-// def make_nn_descent(dist, dist_args):
+  private final Metric dist;
+  private final Map<String, Object> dist_args;
+
 //     """Create a numba accelerated version of nearest neighbor descent
 //     specialised for the given distance metric and metric arguments. Numba
 //     doesn't support higher order functions directly, but we can instead JIT
@@ -45,81 +51,82 @@ class NearestNeighborDescent {
 //     A numba JITd function for nearest neighbor descent computation that is
 //     specialised to the given metric.
 //     """
+  NearestNeighborDescent(final Metric dist, final Map<String, Object> dist_args) {
+    this.dist = dist;
+    this.dist_args = dist_args;
+  }
 
-//     @numba.njit()
-//     def nn_descent(
-//         data,
-//         n_neighbors,
-//         rng_state,
-//         max_candidates=50,
-//         n_iters=10,
-//         delta=0.001,
-//         rho=0.5,
-//         rp_tree_init=true,
-//         leaf_array=null,
-//         verbose=false,
-//     ):
-//         n_vertices = data.shape[0]
+  Object[] nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose) {
+    return nn_descent(data, nNeighbors, rng_state, maxCandidates, rp_tree_init, n_iters, leafArray, verbose, 0.001F, 0.5F);
+  }
 
-//         current_graph = make_heap(data.shape[0], n_neighbors)
-//         for i in range(data.shape[0]):
-//             indices = rejection_sample(n_neighbors, data.shape[0], rng_state)
-//             for j in range(indices.shape[0]):
-//                 d = dist(data[i], data[indices[j]], *dist_args)
-//                 heap_push(current_graph, i, d, indices[j], 1)
-//                 heap_push(current_graph, indices[j], d, i, 1)
+  Object[] nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
+    final int nVertices = data.shape[0];
 
-//         if rp_tree_init:
-//             for n in range(leaf_array.shape[0]):
-//                 for i in range(leaf_array.shape[1]):
-//                     if leaf_array[n, i] < 0:
-//                         break
-//                     for j in range(i + 1, leaf_array.shape[1]):
-//                         if leaf_array[n, j] < 0:
-//                             break
-//                         d = dist(
-//                             data[leaf_array[n, i]], data[leaf_array[n, j]], *dist_args
-//                         )
-//                         heap_push(
-//                             current_graph, leaf_array[n, i], d, leaf_array[n, j], 1
-//                         )
-//                         heap_push(
-//                             current_graph, leaf_array[n, j], d, leaf_array[n, i], 1
-//                         )
+    float[][][] currentGraph = Utils.make_heap(data.shape[0], nNeighbors);
+    for (int i = 0; i < data.shape[0]; ++i) {
+      final int[] indices = Utils.rejection_sample(nNeighbors, data.shape[0], rng_state);
+      for (int j = 0; j < indices.length; ++j) {
+        final float d = (float) dist.distance(data.row(i), data.row(indices[j]) /*, dist_args*/);
+        Utils.heap_push(currentGraph, i, d, indices[j], 1);
+        Utils.heap_push(currentGraph, indices[j], d, i, 1);
+      }
+    }
+    if (rp_tree_init) {
+      for (int n = 0; n < leafArray.length; ++n) {
+        for (int i = 0; i < leafArray[n].length; ++i) {
+          if (leafArray[n][i] < 0) {
+            break;
+          }
+          for (int j = i + 1; j < leafArray[n].length; ++j) {
+            if (leafArray[n][j] < 0) {
+              break;
+            }
+            final float d = (float) dist.distance(data.row(leafArray[n][i]), data.row(leafArray[n][j]) /*,dist_args*/);
+            Utils.heap_push(currentGraph, leafArray[n][i], d, leafArray[n][j], 1);
+            Utils.heap_push(currentGraph, leafArray[n][j], d, leafArray[n][i], 1);
+          }
+        }
+      }
+    }
 
-//         for n in range(n_iters):
-//             if verbose:
-//                 print("\t", n, " / ", n_iters)
+    for (int n = 0; n < n_iters; ++n) {
+      if (verbose) {
+        Utils.message("\t" + n + " / " + n_iters);
+      }
 
-//             candidate_neighbors = build_candidates(
-//                 current_graph, n_vertices, n_neighbors, max_candidates, rng_state
-//             )
+      final float[][][] candidateNeighbors = Utils.build_candidates(currentGraph, nVertices, nNeighbors, maxCandidates, rng_state);
 
-//             c = 0
-//             for i in range(n_vertices):
-//                 for j in range(max_candidates):
-//                     p = int(candidate_neighbors[0, i, j])
-//                     if p < 0 || tau_rand(rng_state) < rho:
-//                         continue
-//                     for k in range(max_candidates):
-//                         q = int(candidate_neighbors[0, i, k])
-//                         if (
-//                             q < 0
-//                             || not candidate_neighbors[2, i, j]
-//                             and not candidate_neighbors[2, i, k]
-//                         ):
-//                             continue
+      int c = 0;
+      for (int i = 0; i < nVertices; ++i) {
+        for (int j = 0; j < maxCandidates; ++j) {
+          final int p = (int) (candidateNeighbors[0][i][j]);
+          if (p < 0 || Utils.tau_rand(rng_state) < rho) {
+            continue;
+          }
+          for (int k = 0; k < maxCandidates; ++k) {
+            final int q = (int) (candidateNeighbors[0][i][k]);
+            if (q < 0 || candidateNeighbors[2][i][j] == 0 && candidateNeighbors[2][i][k] == 0) {
+              continue;
+            }
 
-//                         d = dist(data[p], data[q], *dist_args)
-//                         c += heap_push(current_graph, p, d, q, 1)
-//                         c += heap_push(current_graph, q, d, p, 1)
+            final float d = (float) dist.distance(data.row(p), data.row(q) /*, dist_args*/);
+            c += Utils.heap_push(currentGraph, p, d, q, 1);
+            c += Utils.heap_push(currentGraph, q, d, p, 1);
+          }
+        }
+      }
 
-//             if c <= delta * n_neighbors * data.shape[0]:
-//                 break
+      if (c <= delta * nNeighbors * data.shape[0]) {
+        break;
+      }
+    }
 
-//         return deheap_sort(current_graph)
+    return Utils.deheap_sort(currentGraph);
+  }
 
-//     return nn_descent
+//    return nn_descent;
+//  }
 
 
 // def make_initialisations(dist, dist_args):

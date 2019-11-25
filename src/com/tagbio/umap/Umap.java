@@ -340,34 +340,27 @@ public class Umap {
   // knn_indices: array of shape (n_samples, n_neighbors)
   //     The indices on the ``n_neighbors`` closest points in the dataset.
 
-  // knn_dists: array of shape (n_samples, n_neighbors)
-  //     The distances to the ``n_neighbors`` closest points in the dataset.
-  private static Object[] nearestNeighbors(
-    Matrix X,
-    int n_neighbors,
-    Metric metric,
-    Map<String, Object> metricKwds,
-    boolean angular,
-    long[] random_state,
-    boolean verbose) {
+  // knn_dists: array of shape (n_samples, nNeighbors)
+  //     The distances to the ``nNeighbors`` closest points in the dataset.
+  private static Object[] nearestNeighbors(final Matrix instances, final int nNeighbors, Metric metric, final Map<String, Object> metricKwds, boolean angular, final long[] random_state, final boolean verbose) {
     if (verbose) {
       Utils.message("Finding Nearest Neighbors");
     }
 
     int[][] knnIndices = null;
     float[][] knnDists = null;
-    List<?> rpForest = null;
+    List<FlatTree> rpForest = null;
     if (metric.equals(PrecomputedMetric.SINGLETON)) {
       // Note that this does not support sparse distance matrices yet ...
       // Compute indices of n nearest neighbors
-      knnIndices = Utils.fast_knn_indices(X, n_neighbors);
+      knnIndices = Utils.fastKnnIndices(instances, nNeighbors);
       // Compute the nearest neighbor distances
-      //   (equivalent to np.sort(X)[:,:n_neighbors])
+      //   (equivalent to np.sort(X)[:,:nNeighbors])
       //knnDists = X[np.arange(X.rows())[:, None],knnIndices].copy();
-      knnDists = new float[knnIndices.length][n_neighbors];
+      knnDists = new float[knnIndices.length][nNeighbors];
       for (int i = 0; i < knnDists.length; ++i) {
-        for (int j = 0; j < n_neighbors; ++j) {
-          knnDists[i][j] = X.get(i, knnIndices[i][j]);
+        for (int j = 0; j < nNeighbors; ++j) {
+          knnDists[i][j] = instances.get(i, knnIndices[i][j]);
         }
       }
       rpForest = Collections.emptyList();
@@ -378,13 +371,13 @@ public class Umap {
       //final long[] rng_state = random_state.randint(INT32_MIN, INT32_MAX, 3).astype(np.int64);
       final long[] rng_state = new long[]{rng.nextLong(), rng.nextLong(), rng.nextLong()};
 
-      if (X instanceof CsrMatrix) {
-        final CsrMatrix csrInstances = (CsrMatrix) X;
+      if (instances instanceof CsrMatrix) {
+        final CsrMatrix csrInstances = (CsrMatrix) instances;
         // todo this is nonsense now, since metric cannot be a string at this point
         if (Sparse.sparse_named_distances.containsKey(metric)) {
           distance_func = Sparse.sparse_named_distances.get(metric);
           if (Sparse.sparse_need_n_features.contains(metric)) {
-            metricKwds.put("n_features", X.cols());
+            metricKwds.put("n_features", instances.cols());
           }
         } else {
           throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
@@ -398,38 +391,39 @@ public class Umap {
 //          Utils.message("Building RP forest with " + n_trees + " trees");
 //        }
 //
-//        rpForest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
+//        rpForest = RpTree.make_forest(X, nNeighbors, n_trees, rng_state, angular);
 //        final int[][] leaf_array = RpTree.rptree_leaf_array(rpForest);
 //
 //        if (verbose) {
 //          Utils.message("NN descent for " + n_iters + " iterations");
 //        }
-//        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.rows(), n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
+//        final Object[] nn = NearestNeighborDescent.metric_nn_descent(Y.indices, Y.indptr, Y.data, Y.rows(), nNeighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true,     /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, verbose);
 //        knnIndices = (int[][]) nn[0];
 //        knnDists = (float[][]) nn[1];
       } else {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
         // todo following evilness returns a function to do the nearest neighbour thing
-//        metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metricKwds.values()));
-//        int n_trees = 5 + (int) (Math.round(Math.pow(X.rows(), 0.5 / 20.0)));
-//        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(X.rows()))));
-//
-//        if (verbose) {
-//          Utils.message("Building RP forest with " + n_trees + " trees");
-//        }
-//        rpForest = RpTree.make_forest(X, n_neighbors, n_trees, rng_state, angular);
-//        final int[][] leaf_array = RpTree.rptree_leaf_array(rpForest);
-//        if (verbose) {
-//          Utils.message("NN descent for " + n_iters + " iterations");
-//        }
-//        final Object[] nn = metric_nn_descent(X, n_neighbors, rng_state, /*max_candidates=*/60, /*rp_tree_init=*/true, /*leaf_array=*/leaf_array,  /*n_iters=*/n_iters, /*verbose=*/verbose);
-//        knnIndices = (int[][]) nn[0];
-//        knnDists = (float[][]) nn[1];
+        //metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metricKwds.values()));
+        final NearestNeighborDescent metric_nn_descent = new NearestNeighborDescent(distance_func, metricKwds);
+        int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5 / 20.0)));
+        int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
+
+        if (verbose) {
+          Utils.message("Building RP forest with " + nTrees + " trees");
+        }
+        rpForest = RpTree.make_forest(instances, nNeighbors, nTrees, rng_state, angular);
+        final int[][] leaf_array = RpTree.rptree_leaf_array(rpForest);
+        if (verbose) {
+          Utils.message("NN descent for " + nIters + " iterations");
+        }
+        final Object[] nn = metric_nn_descent.nn_descent(instances, nNeighbors, rng_state, 60, true, nIters, leaf_array, verbose);
+        knnIndices = (int[][]) nn[0];
+        knnDists = (float[][]) nn[1];
       }
 
-//      if (MathUtils.containsNegative(knnIndices)) {
-//        Utils.message("Failed to correctly find n_neighbors for some samples. Results may be less than ideal. Try re-running with different parameters.");
-//      }
+      if (MathUtils.containsNegative(knnIndices)) {
+        Utils.message("Failed to correctly find nNeighbors for some samples. Results may be less than ideal. Try re-running with different parameters.");
+      }
     }
     if (verbose) {
       Utils.message("Finished Nearest Neighbor Search");
@@ -763,7 +757,7 @@ public class Umap {
   // Returns
   // -------
   // The clamped value, now fixed to be in the range -4.0 to 4.0.
-  private static double clip(double val) {
+  private static double clip(final double val) {
     if (val > 4.0) {
       return 4.0;
     } else if (val < -4.0) {
@@ -1118,25 +1112,25 @@ public class Umap {
     throw new UnsupportedOperationException();
   }
 
-  private boolean angular_rp_forest = false;
+  private boolean mAngularRpForest = false;
   private String init = "spectral";
   private int n_neighbors = 15;
   private int n_components = 2;
   private Integer n_epochs = null;
   private Metric metric = EuclideanMetric.SINGLETON;
   private final Map<String, String> metric_kwds = new HashMap<>();
-  private float learning_rate = 1.0F;
+  private float mLearningRate = 1.0F;
   private float mRepulsionStrength = 1.0F;
-  private float min_dist = 0.1F;
-  private float spread = 1.0F;
-  private float set_op_mix_ratio = 1.0F;
-  private float local_connectivity = 1.0F;
+  private float mMinDist = 0.1F;
+  private float mSpread = 1.0F;
+  private float mSetOpMixRatio = 1.0F;
+  private float mLocalConnectivity = 1.0F;
   private int mNegativeSampleRate = 5;
-  private float transform_queue_size = 4.0F;
+  private float mTransformQueueSize = 4.0F;
   private Metric mTargetMetric = CategoricalMetric.SINGLETON;
   private int target_n_neighbors = -1;
   private float mTargetWeight = 0.5F;
-  private int transform_seed = 42;
+  private int mTransformSeed = 42;
   private final Map<String, Object> target_metric_kwds = new HashMap<>();
   private boolean mVerbose = false;
   private Float a = null;
@@ -1198,7 +1192,7 @@ public class Umap {
   }
 
   public void setLearningRate(final float rate) {
-    learning_rate = rate;
+    mLearningRate = rate;
   }
 
   public void setRepulsionStrength(final float repulsion_strength) {
@@ -1206,43 +1200,43 @@ public class Umap {
   }
 
   public void setMinDist(final float min_dist) {
-    this.min_dist = min_dist;
+    this.mMinDist = min_dist;
   }
 
   public void setSpread(final float spread) {
-    this.spread = spread;
+    this.mSpread = spread;
   }
 
-  public void setSet_op_mix_ratio(final float set_op_mix_ratio) {
-    this.set_op_mix_ratio = set_op_mix_ratio;
+  public void setSetOpMixRatio(final float setOpMixRatio) {
+    mSetOpMixRatio = setOpMixRatio;
   }
 
-  public void setLocalConnectivity(final float local_connectivity) {
-    this.local_connectivity = local_connectivity;
+  public void setLocalConnectivity(final float localConnectivity) {
+    mLocalConnectivity = localConnectivity;
   }
 
-  public void setNegativeSampleRate(final int negative_sample_rate) {
-    this.mNegativeSampleRate = negative_sample_rate;
+  public void setNegativeSampleRate(final int negativeSampleRate) {
+    mNegativeSampleRate = negativeSampleRate;
   }
 
-  public void setTarget_metric(final Metric target_metric) {
-    this.mTargetMetric = target_metric;
+  public void setTargetMetric(final Metric targetMetric) {
+    mTargetMetric = targetMetric;
   }
 
   public void setVerbose(final boolean verbose) {
-    this.mVerbose = verbose;
+    mVerbose = verbose;
   }
 
   public void setRandom_state(final long[] random_state) {
     this.random_state = random_state;
   }
 
-  public void setTransformQueueSize(final float transform_queue_size) {
-    this.transform_queue_size = transform_queue_size;
+  public void setTransformQueueSize(final float transformQueueSize) {
+    mTransformQueueSize = transformQueueSize;
   }
 
-  public void setAngularRpForest(final boolean angular_rp_forest) {
-    this.angular_rp_forest = angular_rp_forest;
+  public void setAngularRpForest(final boolean angularRpForest) {
+    mAngularRpForest = angularRpForest;
   }
 
   public void setTarget_n_neighbors(final int target_n_neighbors) {
@@ -1253,21 +1247,21 @@ public class Umap {
     this.mTargetWeight = target_weight;
   }
 
-  public void setTransformSeed(final int transform_seed) {
-    this.transform_seed = transform_seed;
+  public void setTransformSeed(final int transformSeed) {
+    mTransformSeed = transformSeed;
   }
 
-  private void _validate_parameters() {
-    if (set_op_mix_ratio < 0.0 || set_op_mix_ratio > 1.0) {
+  private void validateParameters() {
+    if (mSetOpMixRatio < 0.0 || mSetOpMixRatio > 1.0) {
       throw new IllegalArgumentException("set_op_mix_ratio must be between 0.0 and 1.0");
     }
     if (mRepulsionStrength < 0.0) {
       throw new IllegalArgumentException("repulsion_strength cannot be negative");
     }
-    if (min_dist > spread) {
+    if (mMinDist > mSpread) {
       throw new IllegalArgumentException("min_dist must be less than || equal to spread");
     }
-    if (min_dist < 0.0) {
+    if (mMinDist < 0.0) {
       throw new IllegalArgumentException("min_dist must be greater than 0.0");
     }
 //    if (!isinstance(init, str) && !isinstance(init, np.ndarray)) {
@@ -1323,7 +1317,7 @@ public class Umap {
 
     // Handle all the optional arguments, setting default
     if (this.a == null || this.b == null) {
-      final float[] ab = find_ab_params(this.spread, this.min_dist);
+      final float[] ab = find_ab_params(this.mSpread, this.mMinDist);
       this._a = ab[0];
       this._b = ab[1];
     } else {
@@ -1340,9 +1334,9 @@ public class Umap {
 //      }
     String init = this.init;
 
-    this.mInitialAlpha = this.learning_rate;
+    this.mInitialAlpha = this.mLearningRate;
 
-    this._validate_parameters();
+    this.validateParameters();
 
     // Error check n_neighbors based on data size
     if (instances.rows() <= this.n_neighbors) {
@@ -1377,17 +1371,17 @@ public class Umap {
     if (instances.rows() < SMALL_PROBLEM_THRESHOLD) {
       _small_data = true;
       final Matrix dmat = PairwiseDistances.pairwise_distances(instances, metric, _metric_kwds);
-      graph_ = fuzzySimplicialSet(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, _metric_kwds, null, null, angular_rp_forest, set_op_mix_ratio, local_connectivity, mVerbose);
+      graph_ = fuzzySimplicialSet(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, _metric_kwds, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
       // System.out.println("graph: " + ((CooMatrix) graph_).sparseToString());
     } else {
       _small_data = false;
       // Standard case
-      final Object[] nn = nearestNeighbors(instances, _n_neighbors, metric, _metric_kwds, angular_rp_forest, random_state, mVerbose);
+      final Object[] nn = nearestNeighbors(instances, _n_neighbors, metric, _metric_kwds, mAngularRpForest, random_state, mVerbose);
       _knn_indices = (int[][]) nn[0];
       _knn_dists = (float[][]) nn[1];
       _rp_forest = (List<?>) nn[2];
 
-      graph_ = fuzzySimplicialSet(instances, n_neighbors, random_state, metric, _metric_kwds, _knn_indices, _knn_dists, angular_rp_forest, set_op_mix_ratio, local_connectivity, mVerbose);
+      graph_ = fuzzySimplicialSet(instances, n_neighbors, random_state, metric, _metric_kwds, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
       // todo this starts as LilMatrix type but ends up as a CsrMatrix!
       // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
@@ -1559,7 +1553,7 @@ public class Umap {
 //      dists = MathUtils.subArray(dists, this._n_neighbors);
     }
 
-    double adjusted_local_connectivity = Math.max(0, this.local_connectivity - 1.0);
+    double adjusted_local_connectivity = Math.max(0, this.mLocalConnectivity - 1.0);
     final float[][] sigmasRhos = smoothKnnDist(dists, this._n_neighbors, /* local_connectivity=*/adjusted_local_connectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];

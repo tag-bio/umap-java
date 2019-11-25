@@ -13,14 +13,22 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+/**
+ * @author Leland McInnes (original Python)
+ * @author Sean A. Irvine
+ * @author Richard Littin
+ */
 class Utils {
+
+  private Utils() {
+  }
 
   /**
    * Get the current date and time as a string of the form
    * <code>YYYY-MM-DD hh:mm:ss</code>.
    * @return date string
    */
-  static String now() {
+  private static String now() {
     final StringBuilder sb = new StringBuilder();
     final Calendar cal = new GregorianCalendar();
     sb.append(cal.get(Calendar.YEAR)).append('-');
@@ -60,31 +68,20 @@ class Utils {
     System.out.println(now() + message);
   }
 
-
-  //   """A fast computation of knn indices.
-//
-//     Parameters
-//     ----------
-//     X: array of shape (n_samples, n_features)
-//         The input data to compute the k-neighbor indices of.
-//
-//     n_neighbors: int
-//         The number of nearest neighbors to compute for each sample in ``X``.
-//
-//     Returns
-//     -------
-//     knn_indices: array of shape (n_samples, n_neighbors)
-//         The indices on the ``n_neighbors`` closest points in the dataset.
-//     """
-  static int[][] fast_knn_indices(final Matrix X, final int n_neighbors) {
-    final int[][] knn_indices = new int[X.shape()[0]][n_neighbors];
-    // todo could parallelize this
-    for (int row = 0; row < X.shape()[0]; ++row) {
-      final int[] v = MathUtils.argsort(X.row(row));
-      //v = v[:n_neighbors];
-      knn_indices[row] = Arrays.copyOf(v, n_neighbors);
+  /**
+   * A fast computation of knn indices.
+   * @param instances array of shape (nSamples, nFeatures)
+   * @param nNeighbors the number of nearest neighbors to compute for each sample in <code>instances</code>
+   * @return array of shape (nSamples, nNeighbors) containing the indices of the <code>nNeighbours</code>
+   * closest points in the dataset.
+   */
+  static int[][] fastKnnIndices(final Matrix instances, final int nNeighbors) {
+    final int[][] knnIndices = new int[instances.rows()][nNeighbors];
+    for (int row = 0; row < instances.rows(); ++row) {
+      final int[] v = MathUtils.argsort(instances.row(row));
+      knnIndices[row] = Arrays.copyOf(v, nNeighbors);
     }
-    return knn_indices;
+    return knnIndices;
   }
 
 
@@ -108,8 +105,6 @@ class Utils {
   }
 
 
-// @numba.njit("f4(i8[:])")
-// def tau_rand(state):
 //     """A fast (pseudo)-random number generator for floats in the range [0,1]
 
 //     Parameters
@@ -117,12 +112,13 @@ class Utils {
 //     state: array of int64, shape (3,)
 //         The internal state of the rng
 
-//     Returns
+  //     Returns
 //     -------
 //     A (pseudo)-random float32 in the interval [0, 1]
 //     """
-//     integer = tau_rand_int(state)
-//     return abs(float(integer) / 0x7FFFFFFF)
+  static float tau_rand(final long[] state) {
+    return Math.abs((float) tau_rand_int(state) / 0x7FFFFFFF);
+  }
 
 
 // @numba.njit()
@@ -143,8 +139,6 @@ class Utils {
 //     return np.sqrt(result)
 
 
-// @numba.njit()
-// def rejection_sample(n_samples, pool_size, rng_state):
 //     """Generate n_samples many integers from 0 to pool_size such that no
 //     integer is selected twice. The duplication constraint is achieved via
 //     rejection sampling.
@@ -160,34 +154,47 @@ class Utils {
 //     rng_state: array of int64, shape (3,)
 //         Internal state of the random number generator
 
-//     Returns
+  //     Returns
 //     -------
 //     sample: array of shape(n_samples,)
 //         The ``n_samples`` randomly selected elements from the pool.
 //     """
-//     result = np.empty(n_samples, dtype=np.int64)
-//     for i in range(n_samples):
-//         reject_sample = true
-//         while reject_sample:
-//             j = tau_rand_int(rng_state) % pool_size
-//             for k in range(i):
-//                 if j == result[k]:
-//                     break
-//             else:
-//                 reject_sample = false
-//         result[i] = j
-//     return result
+  static int[] rejection_sample(final int n_samples, final int pool_size, final long[] rng_state) {
+    final int[] result = new int[n_samples];
+    for (int i = 0; i < n_samples; ++i) {
+      boolean reject_sample = true;
+      int j = -1;
+      while (reject_sample) {
+        j = Math.abs(tau_rand_int(rng_state) % pool_size);
+        boolean ok = true;
+        for (int k = 0; k < i; ++k) {
+          if (j == result[k]) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          reject_sample = false;
+        }
+      }
+      result[i] = j;
+    }
+    return result;
+  }
 
+  private static void fill(final float[][] a, final float val) {
+    for (final float[] b : a) {
+      Arrays.fill(b, val);
+    }
+  }
 
-// @numba.njit("f8[:, :, :](i8,i8)")
-// def make_heap(n_points, size):
 //     """Constructor for the numba enabled heap objects. The heaps are used
 //     for approximate nearest neighbor search, maintaining a list of potential
 //     neighbors sorted by their distance. We also flag if potential neighbors
-//     are newly added to the list || not. Internally this is stored as
+//     are newly added to the list or not. Internally this is stored as
 //     a single ndarray; the first axis determines whether we are looking at the
-//     array of candidate indices, the array of distances, || the flag array for
-//     whether elements are new || not. Each of these arrays are of shape
+//     array of candidate indices, the array of distances, or the flag array for
+//     whether elements are new or not. Each of these arrays are of shape
 //     (``n_points``, ``size``)
 
 //     Parameters
@@ -198,22 +205,19 @@ class Utils {
 //     size: int
 //         The number of items to keep on the heap for each data point.
 
-//     Returns
+  //     Returns
 //     -------
 //     heap: An ndarray suitable for passing to other numba enabled heap functions.
 //     """
-//     result = np.zeros(
-//         (3, int(n_points), int(size)), dtype=np.float64
-//     )
-//     result[0] = -1
-//     result[1] = np.infty
-//     result[2] = 0
+  static float[][][] make_heap(int n_points, int size) {
+    final float[][][] result = new float[3][n_points][size];
+    fill(result[0], -1);
+    fill(result[1], Float.POSITIVE_INFINITY);
+    //fill(result[2], 0);
+    return result;
+  }
 
-//     return result
 
-
-// @numba.njit("i8(f8[:,:,:],i8,f8,i8,i8)")
-// def heap_push(heap, row, weight, index, flag):
 //     """Push a new element onto the heap. The heap stores potential neighbors
 //     for each data point. The ``row`` parameter determines which data point we
 //     are addressing, the ``weight`` determines the distance (for heap sorting),
@@ -241,59 +245,69 @@ class Utils {
 //     -------
 //     success: The number of new elements successfully pushed into the heap.
 //     """
-//     row = int(row)
-//     indices = heap[0, row]
-//     weights = heap[1, row]
-//     is_new = heap[2, row]
+  static int heap_push(final float[][][] heap, final int row, final float weight, final int index, final int flag) {
+    final float[] indices = heap[0][row];
+    final float[] weights = heap[1][row];
+    final float[] is_new = heap[2][row];
 
-//     if weight >= weights[0]:
-//         return 0
+    if (weight >= weights[0]) {
+      return 0;
+    }
 
-//     # break if we already have this element.
-//     for i in range(indices.shape[0]):
-//         if index == indices[i]:
-//             return 0
+    // break if we already have this element.
+    for (int i = 0; i < indices.length; ++i) {
+      if (index == indices[i]) {
+        return 0;
+      }
+    }
 
-//     # insert val at position zero
-//     weights[0] = weight
-//     indices[0] = index
-//     is_new[0] = flag
+    // insert val at position zero
+    weights[0] = weight;
+    indices[0] = index;
+    is_new[0] = flag;
 
-//     # descend the heap, swapping values until the max heap criterion is met
-//     i = 0
-//     while true:
-//         ic1 = 2 * i + 1
-//         ic2 = ic1 + 1
+    // descend the heap, swapping values until the max heap criterion is met
+    int i = 0;
+    while (true) {
+      final int ic1 = 2 * i + 1;
+      final int ic2 = ic1 + 1;
+      int i_swap;
 
-//         if ic1 >= heap.shape[2]:
-//             break
-//         else if ic2 >= heap.shape[2]:
-//             if weights[ic1] > weight:
-//                 i_swap = ic1
-//             else:
-//                 break
-//         else if weights[ic1] >= weights[ic2]:
-//             if weight < weights[ic1]:
-//                 i_swap = ic1
-//             else:
-//                 break
-//         else:
-//             if weight < weights[ic2]:
-//                 i_swap = ic2
-//             else:
-//                 break
+      if (ic1 >= heap[0][0].length) {
+        break;
+      } else if (ic2 >= heap[0][0].length) {
+        if (weights[ic1] > weight) {
+          i_swap = ic1;
+        } else {
+          break;
+        }
+      } else if (weights[ic1] >= weights[ic2]) {
+        if (weight < weights[ic1]) {
+          i_swap = ic1;
+        } else {
+          break;
+        }
+      } else {
+        if (weight < weights[ic2]) {
+          i_swap = ic2;
+        } else {
+          break;
+        }
+      }
 
-//         weights[i] = weights[i_swap]
-//         indices[i] = indices[i_swap]
-//         is_new[i] = is_new[i_swap]
+      weights[i] = weights[i_swap];
+      indices[i] = indices[i_swap];
+      is_new[i] = is_new[i_swap];
 
-//         i = i_swap
+      i = i_swap;
+    }
 
-//     weights[i] = weight
-//     indices[i] = index
-//     is_new[i] = flag
+    weights[i] = weight;
+    indices[i] = index;
+    is_new[i] = flag;
 
-//     return 1
+    return 1;
+  }
 
 
 // @numba.njit("i8(f8[:,:,:],i8,f8,i8,i8)")
@@ -319,7 +333,7 @@ class Utils {
 //         The actual value to be pushed
 
 //     flag: int
-//         Whether to flag the newly added element || not.
+//         Whether to flag the newly added element or not.
 
 //     Returns
 //     -------
@@ -421,31 +435,32 @@ class Utils {
 //     indices, weights: arrays of shape (n_samples, n_neighbors)
 //         The indices and weights sorted by increasing weight.
 //     """
-//  static Matrix[] deheap_sort(Matrix[] heap) {
-//    Matrix indices = heap[0];
-//    Matrix weights = heap[1];
-//
-//    for (int i = 0; i < indices.shape()[0]; ++i) {
-//
-//      float[] ind_heap = indices.row(i);
-//      float[] dist_heap = weights.row(i);
-//
-//      for (int j = 0; j < ind_heap.length - 1; ++j) {
-//        //ind_heap[0], ind_heap[ ind_heap.shape[0] - j - 1 ] = ( ind_heap[ind_heap.shape[0] - j - 1],   ind_heap[0]       );
-//        float t = ind_heap[0];
-//        ind_heap[0] = ind_heap[ind_heap.length - j - 1];
-//        ind_heap[ind_heap.length - j - 1] = t;
-//        // dist_heap[0], dist_heap[   dist_heap.shape[0] - j - 1  ] = (  dist_heap[dist_heap.shape[0] - j - 1], dist_heap[0]     );
-//        t = dist_heap[0];
-//        dist_heap[0] = dist_heap[dist_heap.length - j - 1];
-//        dist_heap[dist_heap.length - j - 1] = t;
-//
-//        siftdown(dist_heap[:dist_heap.shape[0] - j - 1], ind_heap[:ind_heap.shape[0] - j - 1],  0    );
-//      }
-//    }
-//
-//    return new Matrix[]{indices, wights};
-//  }
+  static float[][][] deheap_sort(float[][][] heap) {
+    float[][] indices = heap[0];
+    float[][] weights = heap[1];
+
+    for (int i = 0; i < indices.length; ++i) {
+
+      float[] ind_heap = indices[i];
+      float[] dist_heap = weights[i];
+
+      for (int j = 0; j < ind_heap.length - 1; ++j) {
+        //ind_heap[0], ind_heap[ ind_heap.shape[0] - j - 1 ] = ( ind_heap[ind_heap.shape[0] - j - 1],   ind_heap[0]       );
+        float t = ind_heap[0];
+        ind_heap[0] = ind_heap[ind_heap.length - j - 1];
+        ind_heap[ind_heap.length - j - 1] = t;
+        // dist_heap[0], dist_heap[   dist_heap.shape[0] - j - 1  ] = (  dist_heap[dist_heap.shape[0] - j - 1], dist_heap[0]     );
+        t = dist_heap[0];
+        dist_heap[0] = dist_heap[dist_heap.length - j - 1];
+        dist_heap[dist_heap.length - j - 1] = t;
+
+        //siftdown(dist_heap[:dist_heap.shape[0] - j - 1], ind_heap[:ind_heap.shape[0] - j - 1],  0    );
+        throw new UnsupportedOperationException();
+      }
+    }
+
+    return new float[][][]{indices, weights};
+  }
 
 
 // @numba.njit("i8(f8[:, :, :],i8)")
@@ -487,15 +502,7 @@ class Utils {
 //         return -1
 
 
-// @numba.njit(parallel=true)
-// def build_candidates(
-//     current_graph,
-//     n_vertices,
-//     n_neighbors,
-//     max_candidates,
-//     rng_state,
-// ):
-//     """Build a heap of candidate neighbors for nearest neighbor descent. For
+//     Build a heap of candidate neighbors for nearest neighbor descent. For
 //     each vertex the candidate neighbors are any current neighbors, and any
 //     vertices that have the vertex as one of their nearest neighbors.
 
@@ -520,22 +527,23 @@ class Utils {
 //     -------
 //     candidate_neighbors: A heap with an array of (randomly sorted) candidate
 //     neighbors for each vertex in the graph.
-//     """
-//     candidate_neighbors = make_heap(
-//         n_vertices, max_candidates
-//     )
-//     for i in range(n_vertices):
-//         for j in range(n_neighbors):
-//             if current_graph[0, i, j] < 0:
-//                 continue
-//             idx = current_graph[0, i, j]
-//             isn = current_graph[2, i, j]
-//             d = tau_rand(rng_state)
-//             heap_push(candidate_neighbors, i, d, idx, isn)
-//             heap_push(candidate_neighbors, idx, d, i, isn)
-//             current_graph[2, i, j] = 0
-
-//     return candidate_neighbors
+  static float[][][] build_candidates(final float[][][] currentGraph, final int nVertices, final int nNeighbors, final int maxCandidates, final long[] rng_state) {
+    final float[][][] candidateNeighbors = make_heap(nVertices, maxCandidates);
+    for (int i = 0; i < nVertices; ++i) {
+      for (int j = 0; j < nNeighbors; ++j) {
+        if (currentGraph[0][i][j] < 0) {
+          continue;
+        }
+        final int idx = (int) currentGraph[0][i][j]; // todo are these casts ok
+        final int isn = (int) currentGraph[2][i][j];
+        final float d = tau_rand(rng_state);
+        heap_push(candidateNeighbors, i, d, idx, isn);
+        heap_push(candidateNeighbors, idx, d, i, isn);
+        currentGraph[2][i][j] = 0;
+      }
+    }
+    return candidateNeighbors;
+  }
 
 
 // @numba.njit(parallel=true)
