@@ -188,6 +188,12 @@ class Utils {
     }
   }
 
+  private static void fill(final int[][] a, final int val) {
+    for (final int[] b : a) {
+      Arrays.fill(b, val);
+    }
+  }
+
 //     """Constructor for the numba enabled heap objects. The heaps are used
 //     for approximate nearest neighbor search, maintaining a list of potential
 //     neighbors sorted by their distance. We also flag if potential neighbors
@@ -209,10 +215,10 @@ class Utils {
 //     -------
 //     heap: An ndarray suitable for passing to other numba enabled heap functions.
 //     """
-  static float[][][] make_heap(int n_points, int size) {
-    final float[][][] result = new float[3][n_points][size];
-    fill(result[0], -1);
-    fill(result[1], Float.POSITIVE_INFINITY);
+  static Heap make_heap(int n_points, int size) {
+    final Heap result = new Heap(new int[n_points][size], new float[n_points][size]);
+    fill(result.indices, -1);
+    fill(result.weights, Float.POSITIVE_INFINITY);
     //fill(result[2], 0);
     return result;
   }
@@ -245,10 +251,10 @@ class Utils {
 //     -------
 //     success: The number of new elements successfully pushed into the heap.
 //     """
-  static int heap_push(final float[][][] heap, final int row, final float weight, final int index, final int flag) {
-    final float[] indices = heap[0][row];
-    final float[] weights = heap[1][row];
-    final float[] is_new = heap[2][row];
+  static int heap_push(final Heap heap, final int row, final float weight, final int index, final boolean flag) {
+    final int[] indices = heap.indices[row];
+    final float[] weights = heap.weights[row];
+    final boolean[] is_new = heap.isNew[row];
 
     if (weight >= weights[0]) {
       return 0;
@@ -273,9 +279,9 @@ class Utils {
       final int ic2 = ic1 + 1;
       int i_swap;
 
-      if (ic1 >= heap[0][0].length) {
+      if (ic1 >= heap.indices[0].length) {
         break;
-      } else if (ic2 >= heap[0][0].length) {
+      } else if (ic2 >= heap.indices[0].length) {
         if (weights[ic1] > weight) {
           i_swap = ic1;
         } else {
@@ -388,36 +394,36 @@ class Utils {
 //     return 1
 
 
-// def siftdown(heap1, heap2, elt):
-//     """Restore the heap property for a heap with an out of place element
+//     Restore the heap property for a heap with an out of place element
 //     at position ``elt``. This works with a heap pair where heap1 carries
-//     the weights and heap2 holds the corresponding elements."""
-//     while elt * 2 + 1 < heap1.shape[0]:
-//         left_child = elt * 2 + 1
-//         right_child = left_child + 1
-//         swap = elt
+//     the weights and heap2 holds the corresponding elements.
+  private static void siftdown(final float[] heap1, final int[] heap2, int elt) {
+    while (elt * 2 + 1 < heap1.length) {
+      final int leftChild = elt * 2 + 1;
+      final int rightChild = leftChild + 1;
+      int swap = elt;
 
-//         if heap1[swap] < heap1[left_child]:
-//             swap = left_child
+      if (heap1[swap] < heap1[leftChild]) {
+        swap = leftChild;
+      }
 
-//         if (
-//             right_child < heap1.shape[0]
-//             and heap1[swap] < heap1[right_child]
-//         ):
-//             swap = right_child
+      if (rightChild < heap1.length && heap1[swap] < heap1[rightChild]) {
+        swap = rightChild;
+      }
 
-//         if swap == elt:
-//             break
-//         else:
-//             heap1[elt], heap1[swap] = (
-//                 heap1[swap],
-//                 heap1[elt],
-//             )
-//             heap2[elt], heap2[swap] = (
-//                 heap2[swap],
-//                 heap2[elt],
-//             )
-//             elt = swap
+      if (swap == elt) {
+        break;
+      } else {
+        final float t = heap1[swap];
+        heap1[swap] = heap1[elt];
+        heap1[elt] = t;
+        final int s = heap2[swap];
+        heap2[swap] = heap2[elt];
+        heap2[elt] = s;
+        elt = swap;
+      }
+    }
+  }
 
 
   //     """Given an array of heaps (of indices and weights), unpack the heap
@@ -435,31 +441,31 @@ class Utils {
 //     indices, weights: arrays of shape (n_samples, n_neighbors)
 //         The indices and weights sorted by increasing weight.
 //     """
-  static float[][][] deheap_sort(float[][][] heap) {
-    float[][] indices = heap[0];
-    float[][] weights = heap[1];
+  static Heap deheap_sort(Heap heap) {
+    int[][] indices = heap.indices;
+    float[][] weights = heap.weights;
 
     for (int i = 0; i < indices.length; ++i) {
 
-      float[] ind_heap = indices[i];
+      int[] ind_heap = indices[i];
       float[] dist_heap = weights[i];
 
       for (int j = 0; j < ind_heap.length - 1; ++j) {
         //ind_heap[0], ind_heap[ ind_heap.shape[0] - j - 1 ] = ( ind_heap[ind_heap.shape[0] - j - 1],   ind_heap[0]       );
-        float t = ind_heap[0];
+        int s = ind_heap[0];
         ind_heap[0] = ind_heap[ind_heap.length - j - 1];
-        ind_heap[ind_heap.length - j - 1] = t;
+        ind_heap[ind_heap.length - j - 1] = s;
         // dist_heap[0], dist_heap[   dist_heap.shape[0] - j - 1  ] = (  dist_heap[dist_heap.shape[0] - j - 1], dist_heap[0]     );
-        t = dist_heap[0];
+        final float t = dist_heap[0];
         dist_heap[0] = dist_heap[dist_heap.length - j - 1];
         dist_heap[dist_heap.length - j - 1] = t;
 
         //siftdown(dist_heap[:dist_heap.shape[0] - j - 1], ind_heap[:ind_heap.shape[0] - j - 1],  0    );
-        throw new UnsupportedOperationException();
+        siftdown(MathUtils.subarray(dist_heap, 0, dist_heap.length - j - 1), MathUtils.subarray(ind_heap, 0, ind_heap.length - j - 1), 0);
       }
     }
 
-    return new float[][][]{indices, weights};
+    return new Heap(indices, weights);
   }
 
 
@@ -527,19 +533,19 @@ class Utils {
 //     -------
 //     candidate_neighbors: A heap with an array of (randomly sorted) candidate
 //     neighbors for each vertex in the graph.
-  static float[][][] build_candidates(final float[][][] currentGraph, final int nVertices, final int nNeighbors, final int maxCandidates, final long[] rng_state) {
-    final float[][][] candidateNeighbors = make_heap(nVertices, maxCandidates);
+  static Heap build_candidates(final Heap currentGraph, final int nVertices, final int nNeighbors, final int maxCandidates, final long[] rng_state) {
+    final Heap candidateNeighbors = make_heap(nVertices, maxCandidates);
     for (int i = 0; i < nVertices; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {
-        if (currentGraph[0][i][j] < 0) {
+        if (currentGraph.indices[i][j] < 0) {
           continue;
         }
-        final int idx = (int) currentGraph[0][i][j]; // todo are these casts ok
-        final int isn = (int) currentGraph[2][i][j];
+        final int idx = currentGraph.indices[i][j]; // todo are these casts ok
+        final boolean isn = currentGraph.isNew[i][j];
         final float d = tau_rand(rng_state);
         heap_push(candidateNeighbors, i, d, idx, isn);
         heap_push(candidateNeighbors, idx, d, i, isn);
-        currentGraph[2][i][j] = 0;
+        currentGraph.isNew[i][j] = false;
       }
     }
     return candidateNeighbors;

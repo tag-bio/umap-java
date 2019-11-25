@@ -56,20 +56,20 @@ class NearestNeighborDescent {
     this.dist_args = dist_args;
   }
 
-  Object[] nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose) {
+  Heap nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose) {
     return nn_descent(data, nNeighbors, rng_state, maxCandidates, rp_tree_init, n_iters, leafArray, verbose, 0.001F, 0.5F);
   }
 
-  Object[] nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
+  Heap nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
     final int nVertices = data.shape[0];
 
-    float[][][] currentGraph = Utils.make_heap(data.shape[0], nNeighbors);
+    Heap currentGraph = Utils.make_heap(data.shape[0], nNeighbors);
     for (int i = 0; i < data.shape[0]; ++i) {
       final int[] indices = Utils.rejection_sample(nNeighbors, data.shape[0], rng_state);
       for (int j = 0; j < indices.length; ++j) {
         final float d = (float) dist.distance(data.row(i), data.row(indices[j]) /*, dist_args*/);
-        Utils.heap_push(currentGraph, i, d, indices[j], 1);
-        Utils.heap_push(currentGraph, indices[j], d, i, 1);
+        Utils.heap_push(currentGraph, i, d, indices[j], true);
+        Utils.heap_push(currentGraph, indices[j], d, i, true);
       }
     }
     if (rp_tree_init) {
@@ -83,8 +83,8 @@ class NearestNeighborDescent {
               break;
             }
             final float d = (float) dist.distance(data.row(leafArray[n][i]), data.row(leafArray[n][j]) /*,dist_args*/);
-            Utils.heap_push(currentGraph, leafArray[n][i], d, leafArray[n][j], 1);
-            Utils.heap_push(currentGraph, leafArray[n][j], d, leafArray[n][i], 1);
+            Utils.heap_push(currentGraph, leafArray[n][i], d, leafArray[n][j], true);
+            Utils.heap_push(currentGraph, leafArray[n][j], d, leafArray[n][i], true);
           }
         }
       }
@@ -95,24 +95,24 @@ class NearestNeighborDescent {
         Utils.message("\t" + n + " / " + n_iters);
       }
 
-      final float[][][] candidateNeighbors = Utils.build_candidates(currentGraph, nVertices, nNeighbors, maxCandidates, rng_state);
+      final Heap candidateNeighbors = Utils.build_candidates(currentGraph, nVertices, nNeighbors, maxCandidates, rng_state);
 
       int c = 0;
       for (int i = 0; i < nVertices; ++i) {
         for (int j = 0; j < maxCandidates; ++j) {
-          final int p = (int) (candidateNeighbors[0][i][j]);
+          final int p = candidateNeighbors.indices[i][j];
           if (p < 0 || Utils.tau_rand(rng_state) < rho) {
             continue;
           }
           for (int k = 0; k < maxCandidates; ++k) {
-            final int q = (int) (candidateNeighbors[0][i][k]);
-            if (q < 0 || candidateNeighbors[2][i][j] == 0 && candidateNeighbors[2][i][k] == 0) {
+            final int q = candidateNeighbors.indices[i][k];
+            if (q < 0 || !candidateNeighbors.isNew[i][j] && !candidateNeighbors.isNew[i][k]) {
               continue;
             }
 
             final float d = (float) dist.distance(data.row(p), data.row(q) /*, dist_args*/);
-            c += Utils.heap_push(currentGraph, p, d, q, 1);
-            c += Utils.heap_push(currentGraph, q, d, p, 1);
+            c += Utils.heap_push(currentGraph, p, d, q, true);
+            c += Utils.heap_push(currentGraph, q, d, p, true);
           }
         }
       }

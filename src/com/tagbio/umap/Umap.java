@@ -192,7 +192,7 @@ public class Umap {
   private static final double MIN_K_DIST_SCALE = 1e-3;
   private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
 
-  private static final int SMALL_PROBLEM_THRESHOLD = 4096;
+  private static final int SMALL_PROBLEM_THRESHOLD = 100; //4096;
 
   private static Random rng = new Random(42); // todo seed!!!
 
@@ -416,9 +416,9 @@ public class Umap {
         if (verbose) {
           Utils.message("NN descent for " + nIters + " iterations");
         }
-        final Object[] nn = metric_nn_descent.nn_descent(instances, nNeighbors, rng_state, 60, true, nIters, leaf_array, verbose);
-        knnIndices = (int[][]) nn[0];
-        knnDists = (float[][]) nn[1];
+        final Heap nn = metric_nn_descent.nn_descent(instances, nNeighbors, rng_state, 60, true, nIters, leaf_array, verbose);
+        knnIndices = nn.indices;
+        knnDists = nn.weights;
       }
 
       if (MathUtils.containsNegative(knnIndices)) {
