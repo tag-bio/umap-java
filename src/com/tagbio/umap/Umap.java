@@ -1383,21 +1383,24 @@ public class Umap {
 
       graph_ = fuzzySimplicialSet(instances, n_neighbors, random_state, metric, _metric_kwds, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
-      // todo this starts as LilMatrix type but ends up as a CsrMatrix!
+      // todo this starts as LilMatrix type but ends up as a CsrMatrix
+      // todo this java implementation is not sparse
       // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
       // todo overall seems to make (0,1)-matrix with a 1 at (x,y) whenever dists(x,y)!=0 or dists(y,x)!=0
-      // todo highly unsure about handling of indices below and relation of shapes
 //        Matrix tmp_search_graph = //scipy.sparse.lil_matrix((X.rows(), X.rows()), dtype = np.int8      );
 //        tmp_search_graph.rows = this._knn_indices;
 //        tmp_search_graph.data = (this._knn_dists != 0).astype(np.int8);  // todo what does this do? -- tests each element to be 0, returns True or False for each element
+      //Utils.message("knn_indices: " + _knn_indices.length + " " + _knn_indices[0].length + " " + Arrays.toString(_knn_indices[0]));
+      //Utils.message("knn_dists: " + _knn_dists.length + " " + _knn_dists[0].length);
       final float[][] tmp_data = new float[instances.rows()][instances.rows()];
       for (int k = 0; k < _knn_indices.length; ++k) {
-        final int x = _knn_indices[k][0];
-        final int y2 = _knn_indices[k][1];
-        tmp_data[x][y2] = _knn_dists[x][y2] != 0 ? 1.0F : 0.0F;
+        for (int j = 0; j < _knn_indices[k].length; ++j) {
+          final int i = _knn_indices[k][j];
+          tmp_data[k][i] = _knn_dists[k][j] != 0 ? 1.0F : 0.0F;
+        }
       }
       final Matrix tmp_matrix = new DefaultMatrix(tmp_data);
-      this._search_graph = tmp_matrix.max(tmp_matrix.transpose()).tocsr();
+      _search_graph = tmp_matrix.max(tmp_matrix.transpose()).tocsr();
 
       _distance_func = this.metric;
       if (this.metric == PrecomputedMetric.SINGLETON) {
@@ -1414,22 +1417,20 @@ public class Umap {
       if (instances.length() != y.length) {
         throw new IllegalArgumentException("Length of x =  " + instances.length() + ", length of y = " + y.length + ", while it must be equal.");
       }
-      //float[] y_ = check_array(y, ensure_2d = false);
-      float[] y_ = y;
       if (CategoricalMetric.SINGLETON.equals(this.mTargetMetric)) {
         final float farDist = mTargetWeight < 1.0 ? 2.5F * (1.0F / (1.0F - mTargetWeight)) : 1.0e12F;
-        graph_ = categoricalSimplicialSetIntersection((CooMatrix) graph_, y_, farDist);
+        graph_ = categoricalSimplicialSetIntersection((CooMatrix) graph_, y, farDist);
       } else {
-        final int targetNNeighbors = this.target_n_neighbors == -1 ? this._n_neighbors : this.target_n_neighbors;
+        final int targetNNeighbors = this.target_n_neighbors == -1 ? _n_neighbors : this.target_n_neighbors;
 
         Matrix targetGraph;
         // Handle the small case as precomputed as before
         if (y.length < SMALL_PROBLEM_THRESHOLD) {
-          final Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y_), mTargetMetric, mTargetMetricKwds);
+          final Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y), mTargetMetric, mTargetMetricKwds);
           targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, random_state, PrecomputedMetric.SINGLETON, mTargetMetricKwds, null, null, false, 1.0F, 1.0F, false);
         } else {
           // Standard case
-          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y_), targetNNeighbors, random_state, mTargetMetric, mTargetMetricKwds, null, null, false, 1.0F, 1.0F, false);
+          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, random_state, mTargetMetric, mTargetMetricKwds, null, null, false, 1.0F, 1.0F, false);
         }
         graph_ = generalSimplicialSetIntersection(graph_, targetGraph, mTargetWeight);
         graph_ = resetLocalConnectivity(graph_);

@@ -267,6 +267,19 @@ abstract class Matrix {
     return data;
   }
 
+  Matrix max(final Matrix other) {
+    if (!Arrays.equals(shape(), other.shape())) {
+      throw new IllegalArgumentException("Incompatible sizes");
+    }
+    final DefaultMatrix m = new DefaultMatrix(shape());
+    for (int k = 0; k < rows(); ++k) {
+      for (int j = 0; j < cols(); ++j) {
+        m.set(k, j, Math.max(get(k, j), other.get(k, j)));
+      }
+    }
+    return m;
+  }
+
   Matrix take(int[] indicies) {
     // todo return elements from array along selected axes
     throw new UnsupportedOperationException();
@@ -315,12 +328,6 @@ abstract class Matrix {
   Float sum() {
     // todo sum of values in matrix
     // return double?
-    throw new UnsupportedOperationException();
-  }
-
-  Matrix max(final Matrix other) {
-    // todo element-wise maximum between two matrices
-    // todo other should be same shape as this
     throw new UnsupportedOperationException();
   }
 
