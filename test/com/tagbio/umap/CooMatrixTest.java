@@ -12,10 +12,6 @@ public class CooMatrixTest extends AbstractMatrixTest {
 
   public void testSorted() {
     CooMatrix matrix = new CooMatrix(new float[] {9.1F,9.2F,8.3F,1.2F,2.3F,3.2F,3.1F,3.3F,5.3F}, new int[] {9,9,8,1,2,3,3,3,5}, new int[] {1,2,3,2,3,2,1,3,3}, new int[]{10,4});
-    System.out.println(matrix);
-    for (int i = 1; i < matrix.mRow.length; ++i) {
-      System.out.println(matrix.mRow[i] + " " + matrix.mCol[i] + " " + matrix.mData[i]);
-    }
     for (int i = 1; i < matrix.mRow.length; ++i) {
       int r = Integer.compare(matrix.mRow[i], matrix.mRow[i - 1]);
       if (r == 0) {
