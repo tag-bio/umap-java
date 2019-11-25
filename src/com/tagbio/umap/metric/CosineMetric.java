@@ -6,7 +6,9 @@ package com.tagbio.umap.metric;
  */
 public class CosineMetric extends Metric {
 
-  public CosineMetric() {
+  public static final CosineMetric SINGLETON = new CosineMetric();
+
+  private CosineMetric() {
     super(true);
   }
 

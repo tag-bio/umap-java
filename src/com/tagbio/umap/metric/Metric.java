@@ -149,22 +149,6 @@ public abstract class Metric {
 
 
 // @numba.njit()
-// def jaccard(x, y):
-//     num_non_zero = 0.0
-//     num_equal = 0.0
-//     for i in range(x.shape[0]):
-//         x_true = x[i] != 0
-//         y_true = y[i] != 0
-//         num_non_zero += x_true || y_true
-//         num_equal += x_true and y_true
-
-//     if num_non_zero == 0.0:
-//         return 0.0
-//     else:
-//         return float(num_non_zero - num_equal) / num_non_zero
-
-
-// @numba.njit()
 // def matching(x, y):
 //     num_not_equal = 0.0
 //     for i in range(x.shape[0]):
@@ -174,21 +158,6 @@ public abstract class Metric {
 
 //     return float(num_not_equal) / x.shape[0]
 
-
-// @numba.njit()
-// def dice(x, y):
-//     num_true_true = 0.0
-//     num_not_equal = 0.0
-//     for i in range(x.shape[0]):
-//         x_true = x[i] != 0
-//         y_true = y[i] != 0
-//         num_true_true += x_true and y_true
-//         num_not_equal += x_true != y_true
-
-//     if num_not_equal == 0.0:
-//         return 0.0
-//     else:
-//         return num_not_equal / (2.0 * num_true_true + num_not_equal)
 
 
 // @numba.njit()
@@ -291,37 +260,6 @@ public abstract class Metric {
 //         return (2.0 * num_true_false * num_false_true) / (
 //             num_true_true * num_false_false + num_true_false * num_false_true
 //         )
-
-
-// @numba.njit()
-// def correlation(x, y):
-//     mu_x = 0.0
-//     mu_y = 0.0
-//     norm_x = 0.0
-//     norm_y = 0.0
-//     dot_product = 0.0
-
-//     for i in range(x.shape[0]):
-//         mu_x += x[i]
-//         mu_y += y[i]
-
-//     mu_x /= x.shape[0]
-//     mu_y /= x.shape[0]
-
-//     for i in range(x.shape[0]):
-//         shifted_x = x[i] - mu_x
-//         shifted_y = y[i] - mu_y
-//         norm_x += shifted_x ** 2
-//         norm_y += shifted_y ** 2
-//         dot_product += shifted_x * shifted_y
-
-//     if norm_x == 0.0 and norm_y == 0.0:
-//         return 0.0
-//     else if dot_product == 0.0:
-//         return 1.0
-//     else:
-//         return 1.0 - (dot_product / np.sqrt(norm_x * norm_y))
-  ;
 
 
 // named_distances = {

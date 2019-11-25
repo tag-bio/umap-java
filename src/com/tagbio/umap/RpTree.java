@@ -731,8 +731,7 @@ class RpTree {
   }
 
 
-// def rptree_leaf_array(rp_forest):
-//     """Generate an array of sets of candidate nearest neighbors by
+  //     Generate an array of sets of candidate nearest neighbors by
 //     constructing a random projection forest and taking the leaves of all the
 //     trees. Any given tree has leaves that are a set of potential nearest
 //     neighbors. Given enough trees the set of all such leaves gives a good
@@ -758,11 +757,15 @@ class RpTree {
 //         Each row of leaf array is a list of indices found in a given leaf.
 //         Since not all leaves are the same size the arrays are padded out with -1
 //         to ensure we can return a single ndarray.
-//     """
-//     if len(rp_forest) > 0:
-//         leaf_array = np.vstack([tree.indices for tree in rp_forest])
-//     else:
-//         leaf_array = np.array([[-1]])
-
-//     return leaf_array
+  static int[][] rptree_leaf_array(final List<RandomProjectionTreeNode> rpForest) {
+    if (rpForest.size() > 0) {
+      final int[][] leafArray = new int[rpForest.size()][];
+      for (int k = 0; k < leafArray.length; ++k) {
+        leafArray[k] = rpForest.get(k).getIndices();
+      }
+      return leafArray;
+    } else {
+      return new int[0][0];
+    }
+  }
 }
