@@ -425,10 +425,11 @@ class RpTree {
 
       if (Math.abs(margin) < EPS) {
         side[i] = Utils.tau_rand_int(rng_state) % 2 == 0;
-        if (!side[i])
+        if (!side[i]) {
           n_left += 1;
-        else
+        } else {
           n_right += 1;
+        }
       } else if (margin > 0) {
         side[i] = false;
         n_left += 1;
@@ -671,35 +672,39 @@ class RpTree {
   }
 
 
-// @numba.njit()
-// def select_side(hyperplane, offset, point, rng_state):
-//     margin = offset
-//     for d in range(point.shape[0]):
-//         margin += hyperplane[d] * point[d]
+ static int select_side(final float[] hyperplane, final float offset, final float[] point, final long[] rng_state) {
+   float margin = offset;
+   for (int d = 0; d < point.length; ++d) {
+     margin += hyperplane[d] * point[d];
+   }
 
-//     if abs(margin) < EPS:
-//         side = tau_rand_int(rng_state) % 2
-//         if side == 0:
-//             return 0
-//         else:
-//             return 1
-//     else if margin > 0:
-//         return 0
-//     else:
-//         return 1
+   if (Math.abs(margin) < EPS) {
+     final int side = Math.abs(Utils.tau_rand_int(rng_state) % 2);
+     if (side == 0) {
+       return 0;
+     } else {
+       return 1;
+     }
+   } else if (margin > 0) {
+     return 0;
+   } else {
+     return 1;
+   }
+ }
 
+ static int[] search_flat_tree(final float[] point, final float[][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, final long[] rng_state) {
+   int node = 0;
+   while (children[node][0] > 0) {
+     final int side = select_side(hyperplanes[node], offsets[node], point, rng_state);
+     if (side == 0) {
+       node = children[node][0];
+     } else {
+       node = children[node][1];
+     }
+   }
 
-// @numba.njit()
-// def search_flat_tree(point, hyperplanes, offsets, children, indices, rng_state):
-//     node = 0
-//     while children[node, 0] > 0:
-//         side = select_side(hyperplanes[node], offsets[node], point, rng_state)
-//         if side == 0:
-//             node = children[node, 0]
-//         else:
-//             node = children[node, 1]
-
-//     return indices[-children[node, 0]]
+   return indices[-children[node][0]];
+ }
 
 
   //     """Build a random projection forest with ``n_trees``.

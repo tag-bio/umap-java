@@ -316,9 +316,7 @@ class Utils {
   }
 
 
-// @numba.njit("i8(f8[:,:,:],i8,f8,i8,i8)")
-// def unchecked_heap_push(heap, row, weight, index, flag):
-//     """Push a new element onto the heap. The heap stores potential neighbors
+//     Push a new element onto the heap. The heap stores potential neighbors
 //     for each data point. The ``row`` parameter determines which data point we
 //     are addressing, the ``weight`` determines the distance (for heap sorting),
 //     the ``index`` is the element to add, and the flag determines whether this
@@ -344,54 +342,62 @@ class Utils {
 //     Returns
 //     -------
 //     success: The number of new elements successfully pushed into the heap.
-//     """
-//     indices = heap[0, row]
-//     weights = heap[1, row]
-//     is_new = heap[2, row]
+  static int unchecked_heap_push(final Heap heap, final int row, final float weight, final int index, final boolean flag) {
+    final int[] indices = heap.indices[row];
+    final float[] weights = heap.weights[row];
+    final boolean[] is_new = heap.isNew[row];
 
-//     if weight >= weights[0]:
-//         return 0
+    if (weight >= weights[0]) {
+      return 0;
+    }
 
-//     # insert val at position zero
-//     weights[0] = weight
-//     indices[0] = index
-//     is_new[0] = flag
+    // insert val at position zero
+    weights[0] = weight;
+    indices[0] = index;
+    is_new[0] = flag;
 
-//     # descend the heap, swapping values until the max heap criterion is met
-//     i = 0
-//     while true:
-//         ic1 = 2 * i + 1
-//         ic2 = ic1 + 1
+    // descend the heap, swapping values until the max heap criterion is met
+    int i = 0;
+    while (true) {
+      final int ic1 = 2 * i + 1;
+      final int ic2 = ic1 + 1;
 
-//         if ic1 >= heap.shape[2]:
-//             break
-//         else if ic2 >= heap.shape[2]:
-//             if weights[ic1] > weight:
-//                 i_swap = ic1
-//             else:
-//                 break
-//         else if weights[ic1] >= weights[ic2]:
-//             if weight < weights[ic1]:
-//                 i_swap = ic1
-//             else:
-//                 break
-//         else:
-//             if weight < weights[ic2]:
-//                 i_swap = ic2
-//             else:
-//                 break
+      int i_swap;
+      if (ic1 >= heap.indices[0].length) {
+        break;
+      } else if (ic2 >= heap.indices[0].length) {
+        if (weights[ic1] > weight) {
+          i_swap = ic1;
+        } else {
+          break;
+        }
+      } else if (weights[ic1] >= weights[ic2]) {
+        if (weight < weights[ic1]) {
+          i_swap = ic1;
+        } else {
+          break;
+        }
+      } else {
+        if (weight < weights[ic2]) {
+          i_swap = ic2;
+        } else {
+          break;
+        }
+      }
 
-//         weights[i] = weights[i_swap]
-//         indices[i] = indices[i_swap]
-//         is_new[i] = is_new[i_swap]
+      weights[i] = weights[i_swap];
+      indices[i] = indices[i_swap];
+      is_new[i] = is_new[i_swap];
 
-//         i = i_swap
+      i = i_swap;
+    }
 
-//     weights[i] = weight
-//     indices[i] = index
-//     is_new[i] = flag
+    weights[i] = weight;
+    indices[i] = index;
+    is_new[i] = flag;
 
-//     return 1
+    return 1;
+  }
 
 
 //     Restore the heap property for a heap with an out of place element
@@ -468,10 +474,7 @@ class Utils {
     return new Heap(indices, weights);
   }
 
-
-// @numba.njit("i8(f8[:, :, :],i8)")
-// def smallest_flagged(heap, row):
-//     """Search the heap for the smallest element that is
+//     Search the heap for the smallest element that is
 //     still flagged.
 
 //     Parameters
@@ -488,24 +491,28 @@ class Utils {
 //         The index of the smallest flagged element
 //         of the ``row``th heap, || -1 if no flagged
 //         elements remain in the heap.
-//     """
-//     ind = heap[0, row]
-//     dist = heap[1, row]
-//     flag = heap[2, row]
+  static int smallest_flagged(Heap heap, final int row) {
+    final int[] ind = heap.indices[row];
+    final float[] dist = heap.weights[row];
+    final boolean[] flag = heap.isNew[row];
 
-//     min_dist = np.inf
-//     result_index = -1
+    float min_dist = Float.POSITIVE_INFINITY;
+    int result_index = -1;
 
-//     for i in range(ind.shape[0]):
-//         if flag[i] == 1 and dist[i] < min_dist:
-//             min_dist = dist[i]
-//             result_index = i
+    for (int i = 0; i < ind.length; ++i) {
+      if (flag[i] && dist[i] < min_dist) {
+        min_dist = dist[i];
+        result_index = i;
+      }
+    }
 
-//     if result_index >= 0:
-//         flag[result_index] = 0.0
-//         return int(ind[result_index])
-//     else:
-//         return -1
+    if (result_index >= 0) {
+      flag[result_index] = false;
+      return ind[result_index];
+    } else {
+      return -1;
+    }
+  }
 
 
 //     Build a heap of candidate neighbors for nearest neighbor descent. For

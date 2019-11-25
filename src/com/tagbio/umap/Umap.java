@@ -192,7 +192,7 @@ public class Umap {
   private static final double MIN_K_DIST_SCALE = 1e-3;
   private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
 
-  private static final int SMALL_PROBLEM_THRESHOLD = 4096;
+  private static final int SMALL_PROBLEM_THRESHOLD = 100; //4096;
 
   private static Random rng = new Random(42); // todo seed!!!
 
@@ -548,10 +548,6 @@ public class Umap {
   //     can have arguments passed via the metric_kwds dictionary. At this
   //     time care must be taken and dictionary elements must be ordered
   //     appropriately; this will hopefully be fixed in the future.
-
-  // metric_kwds: dict (optional, default {})
-  //     Arguments to pass on to the metric, such as the ``p`` value for
-  //     Minkowski distance.
 
   // knn_indices: array of shape (n_samples, n_neighbors) (optional)
   //     If the k-nearest neighbors of each point has already been calculated
@@ -1146,12 +1142,15 @@ public class Umap {
   private CsrMatrix _search_graph;
   private int[][] _knn_indices;
   private float[][] _knn_dists;
-  private List<?> _rp_forest;
+  private List<FlatTree> _rp_forest;
   private boolean _small_data;
   private Metric _distance_func;
   private Collection<?> _dist_args;
   private Matrix graph_;
   private Matrix mEmbedding;
+  private NearestNeighborSearch _search;
+  private NearestNeighborRandomInit _random_init;
+  private NearestNeighborTreeInit _tree_init;
 
   public void setInit(final String init) {
     this.init = init;
@@ -1375,7 +1374,7 @@ public class Umap {
       final Object[] nn = nearestNeighbors(instances, _n_neighbors, metric, mAngularRpForest, random_state, mVerbose);
       _knn_indices = (int[][]) nn[0];
       _knn_dists = (float[][]) nn[1];
-      _rp_forest = (List<?>) nn[2];
+      _rp_forest = (List<FlatTree>) nn[2];
 
       graph_ = fuzzySimplicialSet(instances, n_neighbors, random_state, metric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
@@ -1402,9 +1401,9 @@ public class Umap {
       if (this.metric == PrecomputedMetric.SINGLETON) {
         Utils.message("Using precomputed metric; transform will be unavailable for new data");
       } else {
-        // this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func);
-        // this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func);
-        throw new UnsupportedOperationException();
+        _random_init = new NearestNeighborRandomInit(_distance_func);
+        _tree_init = new NearestNeighborTreeInit(_distance_func);
+        _search = new NearestNeighborSearch(_distance_func);
       }
     }
 
@@ -1521,39 +1520,27 @@ public class Umap {
       Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, this.metric); // todo pairwise_distances from sklearn metrics
       //indices = np.argpartition(dmat, this._n_neighbors)[:, :this._n_neighbors];
       indices = MathUtils.subArray(MathUtils.argpartition(dmat, this._n_neighbors), this._n_neighbors);
-      float[][] dmat_shortened = Utils.submatrix(dmat, indices, this._n_neighbors);
-      int[][] indices_sorted = MathUtils.argsort(dmat_shortened);
-      indices = Utils.submatrix(indices, indices_sorted, this._n_neighbors);
-      dists = Utils.submatrix(dmat_shortened, indices_sorted, this._n_neighbors);
+      float[][] dmatShortened = Utils.submatrix(dmat, indices, this._n_neighbors);
+      int[][] indicesSorted = MathUtils.argsort(dmatShortened);
+      indices = Utils.submatrix(indices, indicesSorted, this._n_neighbors);
+      dists = Utils.submatrix(dmatShortened, indicesSorted, this._n_neighbors);
     } else {
-      throw new UnsupportedOperationException();
-//      init = initialise_search(
-//        this._rp_forest,
-//        this._raw_data,
-//        X,
-//        (int) (this._n_neighbors * this.transform_queue_size),
-//        this._random_init,
-//        this._tree_init,
-//        rng_state);
-//      Matrix[] result = this._search(
-//        this._raw_data,
-//        this._search_graph.indptr,
-//        this._search_graph.indices,
-//        init,
-//        X);
-//
-//      indices, dists = Utils.deheap_sort(result);
-////      indices = indices[:, :this._n_neighbors];
-////      dists = dists[:, :this._n_neighbors];
-//      indices = MathUtils.subArray(indices, this._n_neighbors);
-//      dists = MathUtils.subArray(dists, this._n_neighbors);
+      Heap init = NearestNeighborDescent.initialise_search(this._rp_forest, this._raw_data, X, (int) (this._n_neighbors * mTransformQueueSize), _random_init, _tree_init, rng_state);
+      Heap result = _search.initialized_nnd_search(_raw_data, _search_graph.indptr, _search_graph.indices, init, X);
+      result = Utils.deheap_sort(result);
+      indices = result.indices;
+      dists = result.weights;
+//      indices = indices[:, :this._n_neighbors];
+//      dists = dists[:, :this._n_neighbors];
+      indices = MathUtils.subArray(indices, this._n_neighbors);
+      dists = MathUtils.subArray(dists, this._n_neighbors);
     }
 
-    double adjusted_local_connectivity = Math.max(0, this.mLocalConnectivity - 1.0);
-    final float[][] sigmasRhos = smoothKnnDist(dists, this._n_neighbors, /* local_connectivity=*/adjusted_local_connectivity);
+    double adjusted_local_connectivity = Math.max(0, mLocalConnectivity - 1.0);
+    final float[][] sigmasRhos = smoothKnnDist(dists, this._n_neighbors, adjusted_local_connectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];
-    CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, new int[]{X.rows(), this._raw_data.rows()});
+    CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, new int[]{X.rows(), _raw_data.rows()});
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
@@ -1564,7 +1551,7 @@ public class Umap {
     // todo following need to be "reshape" as above
     int[][] inds = null;
     float[][] weights = null;
-    Matrix embedding = init_transform(inds, weights, this.mEmbedding);
+    Matrix embedding = init_transform(inds, weights, mEmbedding);
 
     final int n_epochs;
     if (this.n_epochs == null) {

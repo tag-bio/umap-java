@@ -22,6 +22,8 @@ package com.tagbio.umap;
 
 // from umap.rp_tree import search_flat_tree
 
+import java.util.List;
+
 import com.tagbio.umap.metric.Metric;
 
 class NearestNeighborDescent {
@@ -43,7 +45,7 @@ class NearestNeighborDescent {
 //         Any extra arguments that need to be passed to the distance function
 //         beyond the two arrays to be compared.
 
-//     Returns
+  //     Returns
 //     -------
 //     A numba JITd function for nearest neighbor descent computation that is
 //     specialised to the given metric.
@@ -121,85 +123,15 @@ class NearestNeighborDescent {
     return Utils.deheap_sort(currentGraph);
   }
 
-//    return nn_descent;
-//  }
+  static Heap initialise_search(final List<FlatTree> forest, final Matrix data, final Matrix query_points, final int n_neighbors, final NearestNeighborRandomInit initFromRandom, NearestNeighborTreeInit init_from_tree, final long[] rng_state) {
+    Heap results = Utils.make_heap(query_points.rows(), n_neighbors);
+    initFromRandom.init(n_neighbors, data, query_points, results, rng_state);
+    if (forest != null) {
+      for (final FlatTree tree : forest) {
+        init_from_tree.init(tree, data, query_points, results, rng_state);
+      }
+    }
+    return results;
+  }
 
-
-// def make_initialisations(dist, dist_args):
-//     @numba.njit(parallel=true)
-//     def init_from_random(n_neighbors, data, query_points, heap, rng_state):
-//         for i in range(query_points.shape[0]):
-//             indices = rejection_sample(n_neighbors, data.shape[0], rng_state)
-//             for j in range(indices.shape[0]):
-//                 if indices[j] < 0:
-//                     continue
-//                 d = dist(data[indices[j]], query_points[i], *dist_args)
-//                 heap_push(heap, i, d, indices[j], 1)
-//         return
-
-//     @numba.njit(parallel=true)
-//     def init_from_tree(tree, data, query_points, heap, rng_state):
-//         for i in range(query_points.shape[0]):
-//             indices = search_flat_tree(
-//                 query_points[i],
-//                 tree.hyperplanes,
-//                 tree.offsets,
-//                 tree.children,
-//                 tree.indices,
-//                 rng_state,
-//             )
-
-//             for j in range(indices.shape[0]):
-//                 if indices[j] < 0:
-//                     continue
-//                 d = dist(data[indices[j]], query_points[i], *dist_args)
-//                 heap_push(heap, i, d, indices[j], 1)
-
-//         return
-
-//     return init_from_random, init_from_tree
-
-
-// def initialise_search(
-//     forest, data, query_points, n_neighbors, init_from_random, init_from_tree, rng_state
-// ):
-//     results = make_heap(query_points.shape[0], n_neighbors)
-//     init_from_random(n_neighbors, data, query_points, results, rng_state)
-//     if forest is not null:
-//         for tree in forest:
-//             init_from_tree(tree, data, query_points, results, rng_state)
-
-//     return results
-
-
-// def make_initialized_nnd_search(dist, dist_args):
-//     @numba.njit(parallel=true)
-//     def initialized_nnd_search(data, indptr, indices, initialization, query_points):
-
-//         for i in numba.prange(query_points.shape[0]):
-
-//             tried = set(initialization[0, i])
-
-//             while true:
-
-//                 # Find smallest flagged vertex
-//                 vertex = smallest_flagged(initialization, i)
-
-//                 if vertex == -1:
-//                     break
-//                 candidates = indices[indptr[vertex] : indptr[vertex + 1]]
-//                 for j in range(candidates.shape[0]):
-//                     if (
-//                         candidates[j] == vertex
-//                         || candidates[j] == -1
-//                         || candidates[j] in tried
-//                     ):
-//                         continue
-//                     d = dist(data[candidates[j]], query_points[i], *dist_args)
-//                     unchecked_heap_push(initialization, i, d, candidates[j], 1)
-//                     tried.add(candidates[j])
-
-//         return initialization
-
-//     return initialized_nnd_search
 }
