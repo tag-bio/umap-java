@@ -192,7 +192,7 @@ public class Umap {
   private static final double MIN_K_DIST_SCALE = 1e-3;
   private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
 
-  private static final int SMALL_PROBLEM_THRESHOLD = 100; //4096;
+  private static final int SMALL_PROBLEM_THRESHOLD = 4096;
 
   private static Random rng = new Random(42); // todo seed!!!
 
@@ -342,7 +342,7 @@ public class Umap {
 
   // knn_dists: array of shape (n_samples, nNeighbors)
   //     The distances to the ``nNeighbors`` closest points in the dataset.
-  private static Object[] nearestNeighbors(final Matrix instances, final int nNeighbors, Metric metric, final Map<String, Object> metricKwds, boolean angular, final long[] random_state, final boolean verbose) {
+  private static Object[] nearestNeighbors(final Matrix instances, final int nNeighbors, Metric metric, boolean angular, final long[] random_state, final boolean verbose) {
     if (verbose) {
       Utils.message("Finding Nearest Neighbors");
     }
@@ -376,9 +376,9 @@ public class Umap {
         // todo this is nonsense now, since metric cannot be a string at this point
         if (Sparse.sparse_named_distances.containsKey(metric)) {
           distance_func = Sparse.sparse_named_distances.get(metric);
-          if (Sparse.sparse_need_n_features.contains(metric)) {
-            metricKwds.put("n_features", instances.cols());
-          }
+//          if (Sparse.sparse_need_n_features.contains(metric)) {
+//            metricKwds.put("n_features", instances.cols());
+//          }
         } else {
           throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
         }
@@ -404,7 +404,7 @@ public class Umap {
         //throw new UnsupportedOperationException();
         // todo following evilness returns a function to do the nearest neighbour thing
         //metric_nn_descent = NearestNeighborDescent.make_nn_descent(distance_func, tuple(metricKwds.values()));
-        final NearestNeighborDescent metric_nn_descent = new NearestNeighborDescent(distance_func, metricKwds);
+        final NearestNeighborDescent metric_nn_descent = new NearestNeighborDescent(distance_func);
         int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5 / 20.0)));
         int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
 
@@ -594,10 +594,10 @@ public class Umap {
   //     A fuzzy simplicial set represented as a sparse matrix. The (i,
   //     j) entry of the matrix represents the membership strength of the
   //     1-simplex between the ith and jth sample points.
-  private static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final long[] random_state, final Metric metric, final Map<String, Object> metric_kwds, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final float localConnectivity, final boolean verbose) {
+  private static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final long[] random_state, final Metric metric, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final float localConnectivity, final boolean verbose) {
 
     if (knnIndices == null || knnDists == null) {
-      final Object[] nn = nearestNeighbors(instances, nNeighbors, metric, metric_kwds, angular, random_state, verbose);
+      final Object[] nn = nearestNeighbors(instances, nNeighbors, metric, angular, random_state, verbose);
       knnIndices = (int[][]) nn[0];
       knnDists = (float[][]) nn[1];
     }
@@ -991,7 +991,7 @@ public class Umap {
   // embedding: array of shape (n_samples, nComponents)
   //     The optimized of ``graph`` into an ``nComponents`` dimensional
   //     euclidean space.
-  private static Matrix simplicialSetEmbedding(Matrix data, Matrix graph_in, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, long[] random_state, Metric metric, Map<String, Object> metric_kwds, boolean verbose) {
+  private static Matrix simplicialSetEmbedding(Matrix data, Matrix graph_in, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, long[] random_state, Metric metric, boolean verbose) {
 
     // todo this code suggests that duplicate (row,col) pairs might be possible in graph_in, by our tocoo() is broken for that situation and the subsequent sum_duplicates will achieve nothing
     // todo possibly this sum_duplicates is not needed at all
@@ -1142,8 +1142,6 @@ public class Umap {
   private boolean _sparse_data;
   private float _a;
   private float _b;
-  private HashMap<String, Object> _metric_kwds;
-  private HashMap<String, Object> mTargetMetricKwds;
   private Matrix _raw_data;
   private CsrMatrix _search_graph;
   private int[][] _knn_indices;
@@ -1324,8 +1322,6 @@ public class Umap {
       this._a = this.a;
       this._b = this.b;
     }
-    this._metric_kwds = new HashMap<>(this.metric_kwds);
-    this.mTargetMetricKwds = new HashMap<>(this.target_metric_kwds);
 
 //      if (isinstance(this.init, np.ndarray)) {
 //        init = check_array(this.init,        /*  dtype = */np.float32,         /* accept_sparse =*/ false);
@@ -1370,18 +1366,18 @@ public class Umap {
     // Handle small cases efficiently by computing all distances
     if (instances.rows() < SMALL_PROBLEM_THRESHOLD) {
       _small_data = true;
-      final Matrix dmat = PairwiseDistances.pairwise_distances(instances, metric, _metric_kwds);
-      graph_ = fuzzySimplicialSet(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, _metric_kwds, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      final Matrix dmat = PairwiseDistances.pairwise_distances(instances, metric);
+      graph_ = fuzzySimplicialSet(dmat, _n_neighbors, random_state, PrecomputedMetric.SINGLETON, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
       // System.out.println("graph: " + ((CooMatrix) graph_).sparseToString());
     } else {
       _small_data = false;
       // Standard case
-      final Object[] nn = nearestNeighbors(instances, _n_neighbors, metric, _metric_kwds, mAngularRpForest, random_state, mVerbose);
+      final Object[] nn = nearestNeighbors(instances, _n_neighbors, metric, mAngularRpForest, random_state, mVerbose);
       _knn_indices = (int[][]) nn[0];
       _knn_dists = (float[][]) nn[1];
       _rp_forest = (List<?>) nn[2];
 
-      graph_ = fuzzySimplicialSet(instances, n_neighbors, random_state, metric, _metric_kwds, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      graph_ = fuzzySimplicialSet(instances, n_neighbors, random_state, metric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
       // todo this starts as LilMatrix type but ends up as a CsrMatrix
       // todo this java implementation is not sparse
@@ -1406,9 +1402,8 @@ public class Umap {
       if (this.metric == PrecomputedMetric.SINGLETON) {
         Utils.message("Using precomputed metric; transform will be unavailable for new data");
       } else {
-        _dist_args = _metric_kwds.values(); // todo this is weird? -- how do values get associated with what they are?
-        // this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func, this._dist_args);
-        // this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func, this._dist_args);
+        // this._random_init, this._tree_init = NearestNeighborDescent.make_initialisations(this._distance_func);
+        // this._search = NearestNeighborDescent.make_initialized_nnd_search(this._distance_func);
         throw new UnsupportedOperationException();
       }
     }
@@ -1417,7 +1412,7 @@ public class Umap {
       if (instances.length() != y.length) {
         throw new IllegalArgumentException("Length of x =  " + instances.length() + ", length of y = " + y.length + ", while it must be equal.");
       }
-      if (CategoricalMetric.SINGLETON.equals(this.mTargetMetric)) {
+      if (CategoricalMetric.SINGLETON.equals(mTargetMetric)) {
         final float farDist = mTargetWeight < 1.0 ? 2.5F * (1.0F / (1.0F - mTargetWeight)) : 1.0e12F;
         graph_ = categoricalSimplicialSetIntersection((CooMatrix) graph_, y, farDist);
       } else {
@@ -1426,11 +1421,11 @@ public class Umap {
         Matrix targetGraph;
         // Handle the small case as precomputed as before
         if (y.length < SMALL_PROBLEM_THRESHOLD) {
-          final Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y), mTargetMetric, mTargetMetricKwds);
-          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, random_state, PrecomputedMetric.SINGLETON, mTargetMetricKwds, null, null, false, 1.0F, 1.0F, false);
+          final Matrix ydmat = PairwiseDistances.pairwise_distances(MathUtils.promoteTranspose(y), mTargetMetric);
+          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, random_state, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1.0F, false);
         } else {
           // Standard case
-          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, random_state, mTargetMetric, mTargetMetricKwds, null, null, false, 1.0F, 1.0F, false);
+          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, random_state, mTargetMetric, null, null, false, 1.0F, 1.0F, false);
         }
         graph_ = generalSimplicialSetIntersection(graph_, targetGraph, mTargetWeight);
         graph_ = resetLocalConnectivity(graph_);
@@ -1443,7 +1438,7 @@ public class Umap {
       Utils.message("Construct embedding");
     }
 
-    mEmbedding = simplicialSetEmbedding(_raw_data, graph_, n_components, mInitialAlpha, _a, _b, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, random_state, metric, _metric_kwds, mVerbose);
+    mEmbedding = simplicialSetEmbedding(_raw_data, graph_, n_components, mInitialAlpha, _a, _b, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, random_state, metric, mVerbose);
 
     if (mVerbose) {
       Utils.message("Finished embedding");
@@ -1523,7 +1518,7 @@ public class Umap {
     int[][] indices;
     float[][] dists;
     if (this._small_data) {
-      Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, /*metric = */this.metric, this._metric_kwds); // todo pairwise_distances from sklearn metrics
+      Matrix dmat = PairwiseDistances.pairwise_distances(X, this._raw_data, this.metric); // todo pairwise_distances from sklearn metrics
       //indices = np.argpartition(dmat, this._n_neighbors)[:, :this._n_neighbors];
       indices = MathUtils.subArray(MathUtils.argpartition(dmat, this._n_neighbors), this._n_neighbors);
       float[][] dmat_shortened = Utils.submatrix(dmat, indices, this._n_neighbors);

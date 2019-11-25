@@ -22,14 +22,11 @@ package com.tagbio.umap;
 
 // from umap.rp_tree import search_flat_tree
 
-import java.util.Map;
-
 import com.tagbio.umap.metric.Metric;
 
 class NearestNeighborDescent {
 
   private final Metric dist;
-  private final Map<String, Object> dist_args;
 
 //     """Create a numba accelerated version of nearest neighbor descent
 //     specialised for the given distance metric and metric arguments. Numba
@@ -51,9 +48,8 @@ class NearestNeighborDescent {
 //     A numba JITd function for nearest neighbor descent computation that is
 //     specialised to the given metric.
 //     """
-  NearestNeighborDescent(final Metric dist, final Map<String, Object> dist_args) {
+  NearestNeighborDescent(final Metric dist) {
     this.dist = dist;
-    this.dist_args = dist_args;
   }
 
   Heap nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose) {

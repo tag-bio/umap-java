@@ -1,7 +1,5 @@
 package com.tagbio.umap;
 
-import java.util.Map;
-
 import com.tagbio.umap.metric.Metric;
 import com.tagbio.umap.metric.PrecomputedMetric;
 
@@ -17,7 +15,7 @@ class PairwiseDistances {
 
   private PairwiseDistances() { }
 
-  static Matrix pairwise_distances(final Matrix x, final Metric metric, final Map<String, Object> keywords) {
+  static Matrix pairwise_distances(final Matrix x, final Metric metric) {
     // todo special metric precomputed
     if (PrecomputedMetric.SINGLETON.equals(metric)) {
       return x;
@@ -37,7 +35,7 @@ class PairwiseDistances {
     return new DefaultMatrix(distances);
   }
 
-  static Matrix pairwise_distances(final Matrix x, final Matrix y, final Metric metric, final Map<String, Object> keywords) {
+  static Matrix pairwise_distances(final Matrix x, final Matrix y, final Metric metric) {
     if (PrecomputedMetric.SINGLETON.equals(metric)) {
       throw new IllegalArgumentException("Cannot use this method with precomputed");
     }
