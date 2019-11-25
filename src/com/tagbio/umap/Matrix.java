@@ -9,9 +9,6 @@ import java.util.Arrays;
  */
 abstract class Matrix {
 
-  // todo perhaps should be an interface or at least abstract
-  // subclasses CooMatrix, CsrMatrix (pos LilMatrix) + a non-sparse float[][] backed implementation
-
   /** Array containing the dimensions of the matrix <code>(rows, columns)</code>. */
   protected int[] shape;
 
@@ -131,21 +128,6 @@ abstract class Matrix {
     return res;
   }
 
-  Matrix hadamardMultiply(final Matrix m) {
-    if (!Arrays.equals(shape, m.shape)) {
-      throw new IllegalArgumentException("Incompatible matrix sizes");
-    }
-    final DefaultMatrix res = new DefaultMatrix(shape);
-    final int rows = rows();
-    final int cols = cols();
-    for (int i = 0; i < rows; ++i) {
-      for (int j = 0; j < cols; ++j) {
-        res.set(i, j, get(i, j) * m.get(i, j));
-      }
-    }
-    return res;
-  }
-
   Matrix multiply(final float x) {
     final DefaultMatrix res = new DefaultMatrix(shape);
     final int rows = rows();
@@ -175,6 +157,43 @@ abstract class Matrix {
       }
     }
     return res;
+  }
+
+  Matrix hadamardMultiply(final Matrix m) {
+    if (!Arrays.equals(shape, m.shape)) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final DefaultMatrix res = new DefaultMatrix(shape);
+    final int rows = rows();
+    final int cols = cols();
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        res.set(i, j, get(i, j) * m.get(i, j));
+      }
+    }
+    return res;
+  }
+
+  /**
+   * Compute the Hadamard product of this matrix with its own transpose.
+   * @return <code>this circ this^T</code>
+   */
+  Matrix hadamardMultiplyTranspose() {
+    if (rows() != cols()) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    return hadamardMultiply(transpose());
+  }
+
+  /**
+   * Compute the addition of this matrix with its own transpose.
+   * @return <code>this + this^T</code>
+   */
+  Matrix addTranspose() {
+    if (rows() != cols()) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    return add(transpose());
   }
 
   private int countZeros() {

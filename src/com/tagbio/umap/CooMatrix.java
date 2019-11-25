@@ -265,6 +265,53 @@ class CooMatrix extends Matrix {
   }
 
   @Override
+  Matrix hadamardMultiplyTranspose() {
+    if (rows() != cols()) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    // This product cannot have more non-zero entries than the input
+    final int[] r = new int[row.length];
+    final int[] c = new int[col.length];
+    final float[] d = new float[data.length];
+    int j = 0;
+    for (int k = 0; k < row.length; ++k) {
+      final float v = d[k] * get(col[k], row[k]);
+      if (v != 0) {
+        r[j] = row[k];
+        c[j] = col[k];
+        d[j++] = v;
+      }
+    }
+    return j == row.length
+      ? new CooMatrix(d, r, c, shape)
+      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), shape);
+  }
+
+  @Override
+  Matrix addTranspose() {
+    if (rows() != cols()) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    // This sum cannot have more non-zero entries than the input (and usually will have the
+    // same size, unless particular entries sum to 0).
+    final int[] r = new int[row.length];
+    final int[] c = new int[col.length];
+    final float[] d = new float[data.length];
+    int j = 0;
+    for (int k = 0; k < row.length; ++k) {
+      final float v = d[k] + get(col[k], row[k]);
+      if (v != 0) {
+        r[j] = row[k];
+        c[j] = col[k];
+        d[j++] = v;
+      }
+    }
+    return j == row.length
+      ? new CooMatrix(d, r, c, shape)
+      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), shape);
+  }
+
+  @Override
   Matrix multiply(final Matrix m) {
     if (!(m instanceof CooMatrix)) {
       return super.multiply(m).tocoo();

@@ -623,10 +623,9 @@ public class Umap {
     final float[] rhos = sigmasRhos[1];
 
     final Matrix result = computeMembershipStrengths(knnIndices, knnDists, sigmas, rhos, new int[]{instances.rows(), instances.rows()}).eliminateZeros();
-    final Matrix transpose = result.transpose();
-    final Matrix prodMatrix = result.hadamardMultiply(transpose);
+    final Matrix prodMatrix = result.hadamardMultiplyTranspose();
 
-    return result.add(transpose).subtract(prodMatrix).multiply(setOpMixRatio).add(prodMatrix.multiply(1.0F - setOpMixRatio)).eliminateZeros();
+    return result.addTranspose().subtract(prodMatrix).multiply(setOpMixRatio).add(prodMatrix.multiply(1.0F - setOpMixRatio)).eliminateZeros();
   }
 
 
@@ -689,9 +688,8 @@ public class Umap {
   //     assumption restored.
   private static Matrix resetLocalConnectivity(final Matrix simplicialSet) {
     final Matrix nss = Normalize.normalize(simplicialSet, "max");
-    final Matrix transpose = nss.transpose();
-    final Matrix prodMatrix = nss.hadamardMultiply(transpose);
-    return nss.add(transpose).subtract(prodMatrix).eliminateZeros();
+    final Matrix prodMatrix = nss.hadamardMultiplyTranspose();
+    return nss.addTranspose().subtract(prodMatrix).eliminateZeros();
   }
 
   // Combine a fuzzy simplicial set with another fuzzy simplicial set
