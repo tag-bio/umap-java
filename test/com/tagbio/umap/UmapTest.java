@@ -77,9 +77,13 @@ public class UmapTest extends TestCase {
     umap.setInit("random");
     umap.setVerbose(true);
     final Matrix matrix = umap.fit_transform(data.getData());
-    System.out.println(matrix);
+    //System.out.println(matrix);
     assertEquals(1797, matrix.shape()[0]);
     assertEquals(2, matrix.shape()[1]);
+    final String[] names = data.getSampleNames();
+    for (int r = 0; r < matrix.shape()[0]; ++r) {
+      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+    }
   }
 
 //np.random.seed(42)
