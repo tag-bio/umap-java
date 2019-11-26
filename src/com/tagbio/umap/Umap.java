@@ -1114,7 +1114,6 @@ public class Umap {
   private int n_components = 2;
   private Integer n_epochs = null;
   private Metric metric = EuclideanMetric.SINGLETON;
-  private final Map<String, String> metric_kwds = new HashMap<>();
   private float mLearningRate = 1.0F;
   private float mRepulsionStrength = 1.0F;
   private float mMinDist = 0.1F;
@@ -1172,20 +1171,8 @@ public class Umap {
     this.metric = metric;
   }
 
-  public void clearMetricKeywords() {
-    metric_kwds.clear();
-  }
-
-  public void addMetricKeyword(final String key, final String value) {
-    metric_kwds.put(key, value);
-  }
-
-  public void clearTargetMetricKeywords() {
-    target_metric_kwds.clear();
-  }
-
-  public void addTargetMetricKeyword(final String key, final String value) {
-    target_metric_kwds.put(key, value);
+  public void setMetric(final String metric) {
+    setMetric(Metric.getMetric(metric));
   }
 
   public void setLearningRate(final float rate) {
@@ -1218,6 +1205,10 @@ public class Umap {
 
   public void setTargetMetric(final Metric targetMetric) {
     mTargetMetric = targetMetric;
+  }
+
+  public void setTargetMetric(final String targetMetric) {
+    setTargetMetric(Metric.getMetric(targetMetric));
   }
 
   public void setVerbose(final boolean verbose) {

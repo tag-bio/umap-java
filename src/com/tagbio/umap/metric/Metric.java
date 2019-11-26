@@ -1,9 +1,15 @@
 package com.tagbio.umap.metric;
 
-// # Author: Leland McInnes <leland.mcinnes@gmail.com>
-// #
-// # License: BSD 3 clause
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * Definition of metrics. Individual subclasses implement specific metrics.
+ * A convenience function to select metrics by a string name is also provided.
+ * @author Leland McInness (Python)
+ * @author Sean A. Irvine
+ * @author Richard Littin
+ */
 public abstract class Metric {
 
   private final boolean mIsAngular;
@@ -11,7 +17,6 @@ public abstract class Metric {
   Metric(final boolean isAngular) {
     mIsAngular = isAngular;
   }
-
 
   /**
    * Distance metric.
@@ -29,40 +34,44 @@ public abstract class Metric {
     return mIsAngular;
   }
 
-// named_distances = {
-//     # general minkowski distances
-//     "euclidean": euclidean,
-//     "l2": euclidean,
-//     "manhattan": manhattan,
-//     "taxicab": manhattan,
-//     "l1": manhattan,
-//     "chebyshev": chebyshev,
-//     "linfinity": chebyshev,
-//     "linfty": chebyshev,
-//     "linf": chebyshev,
-//     "minkowski": minkowski,
-//     # Standardised/weighted distances
-//     "seuclidean": standardised_euclidean,
-//     "standardised_euclidean": standardised_euclidean,
-//     "wminkowski": weighted_minkowski,
-//     "weighted_minkowski": weighted_minkowski,
-//     "mahalanobis": mahalanobis,
-//     # Other distances
-//     "canberra": canberra,
-//     "cosine": cosine,
-//     "correlation": correlation,
-//     "haversine": haversine,
-//     "braycurtis": bray_curtis,
-//     # Binary distances
-//     "hamming": hamming,
-//     "jaccard": jaccard,
-//     "dice": dice,
-//     "matching": matching,
-//     "kulsinski": kulsinski,
-//     "rogerstanimoto": rogers_tanimoto,
-//     "russellrao": russellrao,
-//     "sokalsneath": sokal_sneath,
-//     "sokalmichener": sokal_michener,
-//     "yule": yule,
+  private static final Map<String, Metric> METRICS = new HashMap<>();
+  static {
+    METRICS.put("euclidean", EuclideanMetric.SINGLETON);
+    METRICS.put("l2", EuclideanMetric.SINGLETON);
+    METRICS.put("manhattan", ManhattanMetric.SINGLETON);
+    METRICS.put("l1", ManhattanMetric.SINGLETON);
+    METRICS.put("taxicab", ManhattanMetric.SINGLETON);
+    METRICS.put("chebyshev", ChebyshevMetric.SINGLETON);
+    METRICS.put("linfinity", ChebyshevMetric.SINGLETON);
+    METRICS.put("linfty", ChebyshevMetric.SINGLETON);
+    METRICS.put("linf", ChebyshevMetric.SINGLETON);
+    METRICS.put("canberra", CanberraMetric.SINGLETON);
+    METRICS.put("cosine", CosineMetric.SINGLETON);
+    METRICS.put("correlation", CorrelationMetric.SINGLETON);
+    METRICS.put("haversine", HaversineMetric.SINGLETON);
+    METRICS.put("braycurtis", BrayCurtisMetric.SINGLETON);
+    METRICS.put("hamming", HammingMetric.SINGLETON);
+    METRICS.put("jaccard", JaccardMetric.SINGLETON);
+    METRICS.put("dice", DiceMetric.SINGLETON);
+    METRICS.put("matching", MatchingMetric.SINGLETON);
+    METRICS.put("kulsinski", KulsinskiMetric.SINGLETON);
+    METRICS.put("rogerstanimoto", RogersTanimotoMetric.SINGLETON);
+    METRICS.put("russellrao", RussellRaoMetric.SINGLETON);
+    METRICS.put("sokalsneath", SokalSneathMetric.SINGLETON);
+    METRICS.put("sokalmichener", SokalMichenerMetric.SINGLETON);
+    METRICS.put("yule", YuleMetric.SINGLETON);
+  }
 
+  /**
+   * Retrieve a metric by name.
+   * @param name name of metric
+   * @return metric
+   */
+  public static Metric getMetric(final String name) {
+    final Metric m = METRICS.get(name.toLowerCase());
+    if (m == null) {
+      throw new IllegalArgumentException("Unknown metric: " + name);
+    }
+    return m;
+  }
 }
