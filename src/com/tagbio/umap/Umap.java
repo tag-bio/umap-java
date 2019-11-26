@@ -23,109 +23,12 @@ import com.tagbio.umap.metric.ReducedEuclideanMetric;
 
 // Parameters
 // ----------
-// n_neighbors: float (optional, default 15)
-//     The size of local neighborhood (in terms of number of neighboring
-//     sample points) used for manifold approximation. Larger values
-//     result in more global views of the manifold, while smaller
-//     values result in more local data being preserved. In general
-//     values should be in the range 2 to 100.
-
-// n_components: int (optional, default 2)
-//     The dimension of the space to embed into. This defaults to 2 to
-//     provide easy visualization, but can reasonably be set to any
-//     integer value in the range 2 to 100.
-
-// metric: string || function (optional, default 'euclidean')
-//     The metric to use to compute distances in high dimensional space.
-//     If a string is passed it must match a valid predefined metric. If
-//     a general metric is required a function that takes two 1d arrays and
-//     returns a float can be provided. For performance purposes it is
-//     required that this be a numba jit'd function. Valid string metrics
-//     include:
-//         * euclidean
-//         * manhattan
-//         * chebyshev
-//         * minkowski
-//         * canberra
-//         * braycurtis
-//         * mahalanobis
-//         * wminkowski
-//         * seuclidean
-//         * cosine
-//         * correlation
-//         * haversine
-//         * hamming
-//         * jaccard
-//         * dice
-//         * russelrao
-//         * kulsinski
-//         * rogerstanimoto
-//         * sokalmichener
-//         * sokalsneath
-//         * yule
-//     Metrics that take arguments (such as minkowski, mahalanobis etc.)
-//     can have arguments passed via the metric_kwds dictionary. At this
-//     time care must be taken and dictionary elements must be ordered
-//     appropriately; this will hopefully be fixed in the future.
-
-// n_epochs: int (optional, default null)
-//     The number of training epochs to be used in optimizing the
-//     low dimensional embedding. Larger values result in more accurate
-//     embeddings. If null is specified a value will be selected based on
-//     the size of the input dataset (200 for large datasets, 500 for small).
-
-// learning_rate: float (optional, default 1.0)
-//     The initial learning rate for the embedding optimization.
 
 // init: string (optional, default 'spectral')
 //     How to initialize the low dimensional embedding. Options are:
 //         * 'spectral': use a spectral embedding of the fuzzy 1-skeleton
 //         * 'random': assign initial embedding positions at random.
 //         * A numpy array of initial embedding positions.
-
-// min_dist: float (optional, default 0.1)
-//     The effective minimum distance between embedded points. Smaller values
-//     will result in a more clustered/clumped embedding where nearby points
-//     on the manifold are drawn closer together, while larger values will
-//     result on a more even dispersal of points. The value should be set
-//     relative to the ``spread`` value, which determines the scale at which
-//     embedded points will be spread out.
-
-// spread: float (optional, default 1.0)
-//     The effective scale of embedded points. In combination with ``min_dist``
-//     this determines how clustered/clumped the embedded points are.
-
-// set_op_mix_ratio: float (optional, default 1.0)
-//     Interpolate between (fuzzy) union and intersection as the set operation
-//     used to combine local fuzzy simplicial sets to obtain a global fuzzy
-//     simplicial sets. Both fuzzy set operations use the product t-norm.
-//     The value of this parameter should be between 0.0 and 1.0; a value of
-//     1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy
-//     intersection.
-
-// local_connectivity: int (optional, default 1)
-//     The local connectivity required -- i.e. the number of nearest
-//     neighbors that should be assumed to be connected at a local level.
-//     The higher this value the more connected the manifold becomes
-//     locally. In practice this should be not more than the local intrinsic
-//     dimension of the manifold.
-
-// repulsion_strength: float (optional, default 1.0)
-//     Weighting applied to negative samples in low dimensional embedding
-//     optimization. Values higher than one will result in greater weight
-//     being given to negative samples.
-
-// negative_sample_rate: int (optional, default 5)
-//     The number of negative samples to select per positive sample
-//     in the optimization process. Increasing this value will result
-//     in greater repulsive force being applied, greater optimization
-//     cost, but slightly more accuracy.
-
-// transform_queue_size: float (optional, default 4.0)
-//     For transform operations (embedding new points using a trained model_
-//     this will control how aggressively to search for nearest neighbors.
-//     Larger values will result in slower performance but more accurate
-//     nearest neighbor evaluation.
 
 // a: float (optional, default null)
 //     More specific parameters controlling the embedding. If null these
@@ -135,16 +38,6 @@ import com.tagbio.umap.metric.ReducedEuclideanMetric;
 //     More specific parameters controlling the embedding. If null these
 //     values are set automatically as determined by ``min_dist`` and
 //     ``spread``.
-
-// random: int, RandomState instance || null, optional (default: null)
-//     If int, random is the seed used by the random number generator;
-//     If RandomState instance, random is the random number generator;
-//     If null, the random number generator is the RandomState instance used
-//     by `np.random`.
-
-// metric_kwds: dict (optional, default null)
-//     Arguments to pass on to the metric, such as the ``p`` value for
-//     Minkowski distance. If null then no arguments are passed on.
 
 // angular_rp_forest: bool (optional, default false)
 //     Whether to use an angular random projection forest to initialise
@@ -156,19 +49,6 @@ import com.tagbio.umap.metric.ReducedEuclideanMetric;
 // target_n_neighbors: int (optional, default -1)
 //     The number of nearest neighbors to use to construct the target simplcial
 //     set. If set to -1 use the ``n_neighbors`` value.
-
-// target_metric: string || callable (optional, default 'categorical')
-//     The metric used to measure distance for a target array is using supervised
-//     dimension reduction. By default this is 'categorical' which will measure
-//     distance in terms of whether categories match || are different. Furthermore,
-//     if semi-supervised is required target values of -1 will be trated as
-//     unlabelled under the 'categorical' metric. If the target array takes
-//     continuous values (e.g. for a regression problem) then metric of 'l1'
-//     || 'l2' is probably more appropriate.
-
-// target_metric_kwds: dict (optional, default null)
-//     Keyword argument to pass to the target metric when performing
-//     supervised dimension reduction. If null then no arguments are passed on.
 
 // target_weight: float (optional, default 0.5)
 //     weighting factor between data topology and target topology. A value of
@@ -231,7 +111,7 @@ public class Umap {
     nn_dist: array of shape (n_samples,)
         The distance to the 1st nearest neighbor for each point.
   */
-  private static float[][] smoothKnnDist(float[][] distances, double k, int nIter, double localConnectivity, double bandwidth) {
+  private static float[][] smoothKnnDist(final float[][] distances, final double k, final int nIter, final int localConnectivity, final double bandwidth) {
     final double target = MathUtils.log2(k) * bandwidth;
     final float[] rho = new float[distances.length];
     final float[] result = new float[distances.length];
@@ -300,7 +180,7 @@ public class Umap {
     return new float[][]{result, rho};
   }
 
-  private static float[][] smoothKnnDist(float[][] distances, double k, double localConnectivitiy) {
+  private static float[][] smoothKnnDist(float[][] distances, double k, int localConnectivitiy) {
     return smoothKnnDist(distances, k, 64, localConnectivitiy, 1.0);
   }
 
@@ -564,7 +444,7 @@ public class Umap {
   //     1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy
   //     intersection.
 
-  // local_connectivity: int (optional, default 1)
+  // localConnectivity: int (optional, default 1)
   //     The local connectivity required -- i.e. the number of nearest
   //     neighbors that should be assumed to be connected at a local level.
   //     The higher this value the more connected the manifold becomes
@@ -580,7 +460,7 @@ public class Umap {
   //     A fuzzy simplicial set represented as a sparse matrix. The (i,
   //     j) entry of the matrix represents the membership strength of the
   //     1-simplex between the ith and jth sample points.
-  private static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final Random random, final Metric metric, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final float localConnectivity, final boolean verbose) {
+  private static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final Random random, final Metric metric, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final int localConnectivity, final boolean verbose) {
 
     if (knnIndices == null || knnDists == null) {
       final Object[] nn = nearestNeighbors(instances, nNeighbors, metric, angular, random, verbose);
@@ -1096,16 +976,16 @@ public class Umap {
 
   private boolean mAngularRpForest = false;
   private String init = "spectral";
-  private int n_neighbors = 15;
-  private int n_components = 2;
-  private Integer n_epochs = null;
+  private int mNNeighbors = 15;
+  private int mNComponents = 2;
+  private Integer mNEpochs = null;
   private Metric mMetric = EuclideanMetric.SINGLETON;
   private float mLearningRate = 1.0F;
   private float mRepulsionStrength = 1.0F;
   private float mMinDist = 0.1F;
   private float mSpread = 1.0F;
   private float mSetOpMixRatio = 1.0F;
-  private float mLocalConnectivity = 1.0F;
+  private int mLocalConnectivity = 1;
   private int mNegativeSampleRate = 5;
   private float mTransformQueueSize = 4.0F;
   private Metric mTargetMetric = CategoricalMetric.SINGLETON;
@@ -1139,70 +1019,234 @@ public class Umap {
     this.init = init;
   }
 
-  public void setNumberNearestNeighbours(final int nNeighbors) {
-    this.n_neighbors = nNeighbors;
+  /**
+   * Set the size local neighborhood (in terms of number of neighboring
+   * sample points) used for manifold approximation. Larger values
+   * result in more global views of the manifold, while smaller
+   * values result in more local data being preserved. In general
+   * values should be in the range 2 to 100.  The default is 15.
+   * @param neighbors number of neighbors
+   */
+  public void setNumberNearestNeighbours(final int neighbors) {
+    if (neighbors < 2) {
+      throw new IllegalArgumentException("Number of neighbors must be greater than 2.");
+    }
+    mNNeighbors = neighbors;
   }
 
-  public void setNumberComponents(final int nComponents) {
-    this.n_components = nComponents;
+  /**
+   * Set the dimension of the space to embed into. This defaults to 2 to
+   * provide easy visualization, but can reasonably be set to any
+   * integer value in the range 2 to 100.
+   * @param components dimension of embedding space
+   */
+  public void setNumberComponents(final int components) {
+    if (components < 1) {
+      throw new IllegalArgumentException("Number of components must be greater than 0.");
+    }
+    mNComponents = components;
   }
 
-  public void setNumberEpochs(final int nEpochs) {
-    this.n_epochs = nEpochs;
+  /**
+   * Set the number of training epochs to be used in optimizing the
+   * low dimensional embedding. Larger values result in more accurate
+   * embeddings. If null is specified a value will be selected based on
+   * the size of the input dataset (200 for large datasets, 500 for small).
+   * The minimum value is 11.
+   * @param epochs number of epochs or null
+   */
+  public void setNumberEpochs(final Integer epochs) {
+    if (epochs != null && epochs <= 10) {
+      throw new IllegalArgumentException("Epochs must be larger than 10.");
+    }
+    mNEpochs = epochs;
   }
 
+  /**
+   * Set the metric to use to compute distances in high dimensional space.  If the
+   * metric requires additional parameters, then they are assumed to have been
+   * already appropriately initialized.
+   * @param metric metric function
+   */
   public void setMetric(final Metric metric) {
+    if (metric == null) {
+      throw new NullPointerException("Null metric not permitted.");
+    }
     mMetric = metric;
   }
 
+  /**
+   * Set the metric to use to compute distances in high dimensional space by name.
+   * Valid string metrics include:
+   * euclidean,
+   * manhattan,
+   * chebyshev,
+   * minkowski,
+   * canberra,
+   * braycurtis,
+   * cosine,
+   * correlation,
+   * haversine,
+   * hamming,
+   * jaccard,
+   * dice,
+   * russelrao,
+   * kulsinski,
+   * rogerstanimoto,
+   * sokalmichener,
+   * sokalsneath,
+   * yule.
+   * @param metric metric function specified by name
+   */
   public void setMetric(final String metric) {
     setMetric(Metric.getMetric(metric));
   }
 
+  /**
+   * Set the initial learning rate for the embedding optimization.
+   * Default 1.0.
+   * @param rate learning rate
+   */
   public void setLearningRate(final float rate) {
+    if (mLearningRate <= 0.0) {
+      throw new IllegalArgumentException("Learning rate must be positive.");
+    }
     mLearningRate = rate;
   }
 
-  public void setRepulsionStrength(final float repulsion_strength) {
-    this.mRepulsionStrength = repulsion_strength;
+  /**
+   * Set weighting applied to negative samples in low dimensional embedding
+   * optimization. Values higher than one will result in greater weight
+   * being given to negative samples. Default 1.0.
+   * @param repulsionStrength repulsion strength
+   */
+  public void setRepulsionStrength(final float repulsionStrength) {
+    if (repulsionStrength < 0.0) {
+      throw new IllegalArgumentException("Repulsion strength cannot be negative.");
+    }
+    mRepulsionStrength = repulsionStrength;
   }
 
-  public void setMinDist(final float min_dist) {
-    this.mMinDist = min_dist;
+  /**
+   * Set the effective minimum distance between embedded points. Smaller values
+   * will result in a more clustered/clumped embedding where nearby points
+   * on the manifold are drawn closer together, while larger values will
+   * result on a more even dispersal of points. The value should be set
+   * relative to the <code>spread</code> value, which determines the scale at which
+   * embedded points will be spread out. Default 0.1.
+   * @param minDist minimum distance
+   */
+  public void setMinDist(final float minDist) {
+    if (minDist <= 0.0) {
+      throw new IllegalArgumentException("Minimum distance must be greater than 0.0.");
+    }
+    mMinDist = minDist;
   }
 
+  /**
+   * Set the effective scale of embedded points. In combination with <code>minDist</code>
+   * this determines how clustered/clumped the embedded points are. Default 1.0.
+   * @param spread spread value
+   */
   public void setSpread(final float spread) {
-    this.mSpread = spread;
+    mSpread = spread;
   }
 
+  /**
+   * Interpolate between (fuzzy) union and intersection as the set operation
+   * used to combine local fuzzy simplicial sets to obtain a global fuzzy
+   * simplicial sets. Both fuzzy set operations use the product t-norm.
+   * The value of this parameter should be between 0.0 and 1.0; a value of
+   * 1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy
+   * intersection. Default 1.0.
+   * @param setOpMixRatio set operation mixing ratio
+   */
   public void setSetOpMixRatio(final float setOpMixRatio) {
+    if (setOpMixRatio < 0.0 || setOpMixRatio > 1.0) {
+      throw new IllegalArgumentException("Set operation mixing ratio be between 0.0 and 1.0.");
+    }
     mSetOpMixRatio = setOpMixRatio;
   }
 
-  public void setLocalConnectivity(final float localConnectivity) {
+  /**
+   * Set the local connectivity required; i.e., the number of nearest
+   * neighbors that should be assumed to be connected at a local level.
+   * The higher this value the more connected the manifold becomes
+   * locally. In practice this should be not more than the local intrinsic
+   * dimension of the manifold. Default 1.
+   * @param localConnectivity local connectivity
+   */
+  public void setLocalConnectivity(final int localConnectivity) {
     mLocalConnectivity = localConnectivity;
   }
 
+  /**
+   * Set the number of negative samples to select per positive sample
+   * in the optimization process. Increasing this value will result
+   * in greater repulsive force being applied, greater optimization
+   * cost, but slightly more accuracy. Default 5.
+   * @param negativeSampleRate negative sample rate
+   */
   public void setNegativeSampleRate(final int negativeSampleRate) {
+    if (negativeSampleRate <= 0) {
+      throw new IllegalArgumentException("Negative sample rate must be positive.");
+    }
     mNegativeSampleRate = negativeSampleRate;
   }
 
+  /**
+   * Set the metric used to measure distance for a target array is using supervised
+   * dimension reduction. By default this is <code>CategoricalMetric.SINGLETON</code> which will measure
+   * distance in terms of whether categories match or are different. Furthermore,
+   * if semi-supervised is required target values of -1 will be treated as
+   * unlabelled under the <code>CategoricalMetric</code> metric. If the target array takes
+   * continuous values (e.g. for a regression problem) then metric of 'l1'
+   * or 'l2' is probably more appropriate.
+   * @param targetMetric target metric
+   */
   public void setTargetMetric(final Metric targetMetric) {
     mTargetMetric = targetMetric;
   }
 
+  /**
+   * Set the target metric by name (see <code>setMetric</code> for a list of values).
+   * @param targetMetric target metric
+   */
   public void setTargetMetric(final String targetMetric) {
     setTargetMetric(Metric.getMetric(targetMetric));
   }
 
+  /**
+   * If true, turn on additional diagnostic output.
+   * @param verbose verbose level
+   */
   public void setVerbose(final boolean verbose) {
     mVerbose = verbose;
   }
 
+  /**
+   * Set the random number generator to be used.
+   * @param random randomness source
+   */
   public void setRandom(final Random random) {
-    this.mRandom = random;
+    mRandom = random;
   }
 
+  /**
+   * Set the seed of the random number generator.
+   * @param seed seed value
+   */
+  public void setSeed(final long seed) {
+    mRandom.setSeed(seed);
+  }
+
+  /**
+   * For transform operations (embedding new points using a trained model
+   * this will control how aggressively to search for nearest neighbors.
+   * Larger values will result in slower performance but more accurate
+   * nearest neighbor evaluation. Default 4.0.
+   * @param transformQueueSize
+   */
   public void setTransformQueueSize(final float transformQueueSize) {
     mTransformQueueSize = transformQueueSize;
   }
@@ -1224,20 +1268,11 @@ public class Umap {
   }
 
   private void validateParameters() {
-    if (mSetOpMixRatio < 0.0 || mSetOpMixRatio > 1.0) {
-      throw new IllegalArgumentException("set_op_mix_ratio must be between 0.0 and 1.0");
-    }
-    if (mRepulsionStrength < 0.0) {
-      throw new IllegalArgumentException("repulsion_strength cannot be negative");
-    }
     if (mMinDist > mSpread) {
-      throw new IllegalArgumentException("min_dist must be less than || equal to spread");
-    }
-    if (mMinDist < 0.0) {
-      throw new IllegalArgumentException("min_dist must be greater than 0.0");
+      throw new IllegalArgumentException("minDist must be less than or equal to spread");
     }
 //    if (!isinstance(init, str) && !isinstance(init, np.ndarray)) {
-//      throw new IllegalArgumentException("init must be a string || ndarray");
+//      throw new IllegalArgumentException("init must be a string or ndarray");
 //    }
     if (!"spectral".equals(init) && !"random".equals(init)) {
       throw new IllegalArgumentException("string init values must be 'spectral' || 'random'");
@@ -1245,23 +1280,8 @@ public class Umap {
 //    if (isinstance(init, np.ndarray) && init.shape[1] != n_components) {
 //      throw new IllegalArgumentException("init ndarray must match n_components value");
 //    }
-    if (mNegativeSampleRate < 0) {
-      throw new IllegalArgumentException("negative sample rate must be positive");
-    }
-    if (mInitialAlpha < 0.0) {
-      throw new IllegalArgumentException("learning_rate must be positive");
-    }
-    if (n_neighbors < 2) {
-      throw new IllegalArgumentException("n_neighbors must be greater than 2");
-    }
     if (mTargetNNeighbors < 2 && mTargetNNeighbors != -1) {
       throw new IllegalArgumentException("target_n_neighbors must be greater than 2");
-    }
-    if (n_components < 1) {
-      throw new IllegalArgumentException("n_components must be greater than 0");
-    }
-    if (n_epochs != null && n_epochs <= 10) {
-      throw new IllegalArgumentException("n_epochs must be a positive integer larger than 10");
     }
   }
 
@@ -1309,16 +1329,16 @@ public class Umap {
     this.validateParameters();
 
     // Error check n_neighbors based on data size
-    if (instances.rows() <= this.n_neighbors) {
+    if (instances.rows() <= this.mNNeighbors) {
       if (instances.rows() == 1) {
-        mEmbedding = new DefaultMatrix(new float[1][this.n_components]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
+        mEmbedding = new DefaultMatrix(new float[1][this.mNComponents]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
         return;
       }
 
       Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
       _n_neighbors = instances.rows() - 1;
     } else {
-      _n_neighbors = this.n_neighbors;
+      _n_neighbors = this.mNNeighbors;
     }
 
     if (instances instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
@@ -1351,7 +1371,7 @@ public class Umap {
       _knn_dists = (float[][]) nn[1];
       mRpForest = (List<FlatTree>) nn[2];
 
-      graph_ = fuzzySimplicialSet(instances, n_neighbors, random, mMetric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      graph_ = fuzzySimplicialSet(instances, mNNeighbors, random, mMetric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
       // todo this starts as LilMatrix type but ends up as a CsrMatrix
       // todo this java implementation is not sparse
@@ -1396,23 +1416,23 @@ public class Umap {
         // Handle the small case as precomputed as before
         if (y.length < SMALL_PROBLEM_THRESHOLD) {
           final Matrix ydmat = PairwiseDistances.pairwiseDistances(MathUtils.promoteTranspose(y), mTargetMetric);
-          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, random, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1.0F, false);
+          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, random, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1, false);
         } else {
           // Standard case
-          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, random, mTargetMetric, null, null, false, 1.0F, 1.0F, false);
+          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, random, mTargetMetric, null, null, false, 1.0F, 1, false);
         }
         graph_ = generalSimplicialSetIntersection(graph_, targetGraph, mTargetWeight);
         graph_ = resetLocalConnectivity(graph_);
       }
     }
 
-    final int nEpochs = this.n_epochs == null ? 0 : this.n_epochs;
+    final int nEpochs = this.mNEpochs == null ? 0 : this.mNEpochs;
 
     if (mVerbose) {
       Utils.message("Construct embedding");
     }
 
-    mEmbedding = simplicialSetEmbedding(mRawData, graph_, n_components, mInitialAlpha, _a, _b, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, random, mMetric, mVerbose);
+    mEmbedding = simplicialSetEmbedding(mRawData, graph_, mNComponents, mInitialAlpha, _a, _b, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, random, mMetric, mVerbose);
 
     if (mVerbose) {
       Utils.message("Finished embedding");
@@ -1503,8 +1523,8 @@ public class Umap {
       dists = MathUtils.subArray(dists, _n_neighbors);
     }
 
-    double adjusted_local_connectivity = Math.max(0, mLocalConnectivity - 1.0);
-    final float[][] sigmasRhos = smoothKnnDist(dists, _n_neighbors, adjusted_local_connectivity);
+    int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);
+    final float[][] sigmasRhos = smoothKnnDist(dists, _n_neighbors, adjustedLocalConnectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];
     CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, new int[]{X.rows(), mRawData.rows()});
@@ -1521,7 +1541,7 @@ public class Umap {
     Matrix embedding = init_transform(inds, weights, mEmbedding);
 
     final int nEpochs;
-    if (this.n_epochs == null) {
+    if (this.mNEpochs == null) {
       // For smaller datasets we can use more epochs
       if (graph.rows() <= 10000) {
         nEpochs = 100;
@@ -1529,7 +1549,7 @@ public class Umap {
         nEpochs = 30;
       }
     } else {
-      nEpochs = this.n_epochs; // 3.0
+      nEpochs = this.mNEpochs; // 3.0
     }
 
     MathUtils.zeroEntriesBelowLimit(graph.mData, MathUtils.max(graph.mData) / (float) nEpochs);
