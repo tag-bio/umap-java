@@ -4,3 +4,4 @@
 umap-java.iml
 out
 build
+test/com/tagbio/umap/gene_exp_data.tsv.gz

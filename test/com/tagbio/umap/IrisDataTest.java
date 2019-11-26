@@ -1,9 +1,11 @@
 package com.tagbio.umap;
 
+import java.io.IOException;
+
 import junit.framework.TestCase;
 
 public class IrisDataTest extends TestCase {
-  public void testData() {
+  public void testData() throws IOException {
     final IrisData irisData = new IrisData();
     final String[] attributes = irisData.getAttributes();
     assertEquals(4, attributes.length);

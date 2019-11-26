@@ -166,8 +166,8 @@ class RpTree {
     final int dim = data.cols();
 
     // Select two random points, set the hyperplane between them
-    final int left_index = Utils.tau_rand_int(rng_state) % indices.length;
-    int right_index = Utils.tau_rand_int(rng_state) % indices.length;
+    final int left_index = Math.abs(Utils.tau_rand_int(rng_state) % indices.length);
+    int right_index = Math.abs(Utils.tau_rand_int(rng_state) % indices.length);
     right_index += left_index == right_index ? 1 : 0;
     right_index = right_index % indices.length;
     int left = indices[left_index];
@@ -660,9 +660,9 @@ class RpTree {
     if (tree.getHyperplane().shape.length > 1) {
       // sparse case
       final int max_hyperplane_nnz = max_sparse_hyperplane_size(tree);
-      hyperplanes = new float[n_nodes][tree.getHyperplane().inds.length][max_hyperplane_nnz];
+      hyperplanes = new float[n_nodes][tree.getHyperplane().shape[0]][max_hyperplane_nnz];
     } else {
-      hyperplanes = new float[n_nodes][tree.getHyperplane().inds.length][1]; // todo ???
+      hyperplanes = new float[n_nodes][tree.getHyperplane().shape[0]][1]; // todo ???
     }
     final float[] offsets = new float[n_nodes];
     final int[][] children = negOnes(n_nodes, 2);
@@ -730,6 +730,7 @@ class RpTree {
         result.add(flatten_tree(make_tree(data, rng_state, leaf_size, angular), leaf_size));
       }
     } catch (RuntimeException e) {
+      e.printStackTrace();
       Utils.message("Random Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");
     }
     return result;

@@ -80,7 +80,7 @@ class NearestNeighborDescent {
             if (leafArray[n][j] < 0) {
               break;
             }
-            final float d = (float) dist.distance(data.row(leafArray[n][i]), data.row(leafArray[n][j]) /*,dist_args*/);
+            final float d = (float) dist.distance(data.row(leafArray[n][i]), data.row(leafArray[n][j]));
             Utils.heapPush(currentGraph, leafArray[n][i], d, leafArray[n][j], true);
             Utils.heapPush(currentGraph, leafArray[n][j], d, leafArray[n][i], true);
           }
@@ -108,7 +108,7 @@ class NearestNeighborDescent {
               continue;
             }
 
-            final float d = (float) dist.distance(data.row(p), data.row(q) /*, dist_args*/);
+            final float d = (float) dist.distance(data.row(p), data.row(q));
             c += Utils.heapPush(currentGraph, p, d, q, true);
             c += Utils.heapPush(currentGraph, q, d, p, true);
           }
