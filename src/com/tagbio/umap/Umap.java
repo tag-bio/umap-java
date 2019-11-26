@@ -192,7 +192,7 @@ public class Umap {
   private static final double MIN_K_DIST_SCALE = 1e-3;
   private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
 
-  private static final int SMALL_PROBLEM_THRESHOLD = 4096;
+  private static final int SMALL_PROBLEM_THRESHOLD = 100; //4096;
 
   private static Random rng = new Random(42); // todo seed!!!
 

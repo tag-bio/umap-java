@@ -29,69 +29,6 @@ public abstract class Metric {
     return mIsAngular;
   }
 
-  // todo move rest of these to subclasses a la EuclideanMetric
-
-
-
-// @numba.njit()
-// def sokal_michener(x, y):
-//     num_not_equal = 0.0
-//     for i in range(x.shape[0]):
-//         x_true = x[i] != 0
-//         y_true = y[i] != 0
-//         num_not_equal += x_true != y_true
-
-//     return (2.0 * num_not_equal) / (x.shape[0] + num_not_equal)
-
-
-// @numba.njit()
-// def sokal_sneath(x, y):
-//     num_true_true = 0.0
-//     num_not_equal = 0.0
-//     for i in range(x.shape[0]):
-//         x_true = x[i] != 0
-//         y_true = y[i] != 0
-//         num_true_true += x_true and y_true
-//         num_not_equal += x_true != y_true
-
-//     if num_not_equal == 0.0:
-//         return 0.0
-//     else:
-//         return num_not_equal / (0.5 * num_true_true + num_not_equal)
-
-
-// @numba.njit()
-// def haversine(x, y):
-//     if x.shape[0] != 2:
-//         throw new IllegalArgumentException("haversine is only defined for 2 dimensional data")
-//     sin_lat = np.sin(0.5 * (x[0] - y[0]))
-//     sin_long = np.sin(0.5 * (x[1] - y[1]))
-//     result = np.sqrt(sin_lat ** 2 + np.cos(x[0]) * np.cos(y[0]) * sin_long ** 2)
-//     return 2.0 * np.arcsin(result)
-
-
-// @numba.njit()
-// def yule(x, y):
-//     num_true_true = 0.0
-//     num_true_false = 0.0
-//     num_false_true = 0.0
-//     for i in range(x.shape[0]):
-//         x_true = x[i] != 0
-//         y_true = y[i] != 0
-//         num_true_true += x_true and y_true
-//         num_true_false += x_true and (not y_true)
-//         num_false_true += (not x_true) and y_true
-
-//     num_false_false = x.shape[0] - num_true_true - num_true_false - num_false_true
-
-//     if num_true_false == 0.0 || num_false_true == 0.0:
-//         return 0.0
-//     else:
-//         return (2.0 * num_true_false * num_false_true) / (
-//             num_true_true * num_false_false + num_true_false * num_false_true
-//         )
-
-
 // named_distances = {
 //     # general minkowski distances
 //     "euclidean": euclidean,

@@ -88,22 +88,22 @@ public class UmapTest extends TestCase {
 //    }
   }
 
-//  public void testGenes() throws IOException {
-//    final Data data = new GeneData();
-//    System.out.println("Done reading");
-//    final Umap umap = new Umap();
-//    umap.setInit("random");
-//    umap.setVerbose(true);
-//    System.out.println("Starting transform");
-//    final Matrix matrix = umap.fit_transform(data.getData());
-//    //System.out.println(matrix);
-//    assertEquals(5902, matrix.shape()[0]);
-//    assertEquals(2, matrix.shape()[1]);
-//    final String[] names = data.getSampleNames();
-//    for (int r = 0; r < matrix.shape()[0]; ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
-//    }
-//  }
+  public void testGenes() throws IOException {
+    final Data data = new GeneData();
+    System.out.println("Done reading");
+    final Umap umap = new Umap();
+    umap.setInit("random");
+    umap.setVerbose(true);
+    System.out.println("Starting transform");
+    final Matrix matrix = umap.fit_transform(data.getData());
+    //System.out.println(matrix);
+    assertEquals(5902, matrix.shape()[0]);
+    assertEquals(2, matrix.shape()[1]);
+    final String[] names = data.getSampleNames();
+    for (int r = 0; r < matrix.shape()[0]; ++r) {
+      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+    }
+  }
 
 //np.random.seed(42)
 //spatial_data = np.random.randn(10, 20)
