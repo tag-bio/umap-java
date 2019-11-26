@@ -7,7 +7,7 @@ public class RogersTanimotoMetric extends Metric {
 
   public static final RogersTanimotoMetric SINGLETON = new RogersTanimotoMetric();
 
-  private RogersTanimotoMetric() {
+  RogersTanimotoMetric() {
     super(false);
   }
 
