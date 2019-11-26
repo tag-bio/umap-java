@@ -66,7 +66,7 @@ public class UmapTest extends TestCase {
     umap.setInit("random");
     umap.setVerbose(true);
     final Matrix matrix = umap.fit_transform(data.getData());
-    //System.out.println(matrix);
+    System.out.println(matrix);
     assertEquals(150, matrix.shape()[0]);
     assertEquals(2, matrix.shape()[1]);
   }

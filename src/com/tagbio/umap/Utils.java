@@ -159,7 +159,7 @@ class Utils {
 //     sample: array of shape(n_samples,)
 //         The ``n_samples`` randomly selected elements from the pool.
 //     """
-  static int[] rejection_sample(final int n_samples, final int pool_size, final long[] rng_state) {
+  static int[] rejectionSample(final int n_samples, final int pool_size, final long[] rng_state) {
     final int[] result = new int[n_samples];
     for (int i = 0; i < n_samples; ++i) {
       boolean reject_sample = true;
@@ -251,7 +251,7 @@ class Utils {
 //     -------
 //     success: The number of new elements successfully pushed into the heap.
 //     """
-  static int heap_push(final Heap heap, final int row, final float weight, final int index, final boolean flag) {
+  static int heapPush(final Heap heap, final int row, final float weight, final int index, final boolean flag) {
     final int[] indices = heap.indices[row];
     final float[] weights = heap.weights[row];
     final boolean[] is_new = heap.isNew[row];
@@ -550,8 +550,8 @@ class Utils {
         final int idx = currentGraph.indices[i][j]; // todo are these casts ok
         final boolean isn = currentGraph.isNew[i][j];
         final float d = tau_rand(rng_state);
-        heap_push(candidateNeighbors, i, d, idx, isn);
-        heap_push(candidateNeighbors, idx, d, i, isn);
+        heapPush(candidateNeighbors, i, d, idx, isn);
+        heapPush(candidateNeighbors, idx, d, i, isn);
         currentGraph.isNew[i][j] = false;
       }
     }

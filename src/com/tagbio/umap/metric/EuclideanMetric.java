@@ -2,13 +2,12 @@ package com.tagbio.umap.metric;
 
 /**
  * Euclidean distance.
- * @author Sean A. Irvine
  */
 public class EuclideanMetric extends Metric {
 
   public static final EuclideanMetric SINGLETON = new EuclideanMetric();
 
-  public EuclideanMetric() {
+  private EuclideanMetric() {
     super(false);
   }
 
