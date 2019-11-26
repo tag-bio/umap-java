@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Definition of metrics. Individual subclasses implement specific metrics.
  * A convenience function to select metrics by a string name is also provided.
- * @author Leland McInness (Python)
+ * @author Leland McInnes (Python)
  * @author Sean A. Irvine
  * @author Richard Littin
  */
