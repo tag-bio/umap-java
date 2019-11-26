@@ -5,21 +5,14 @@
  */
 package com.tagbio.umap;
 
-// # Author: Leland McInnes <leland.mcinnes@gmail.com>
-// #
-// # License: BSD 3 clause
-
-// import time
-
-// import numpy as np
-// import numba
-
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Random;
 
 /**
- * @author Leland McInnes (original Python)
+ * Utility functions.
+ * @author Leland McInnes (Python)
  * @author Sean A. Irvine
  * @author Richard Littin
  */
@@ -90,42 +83,6 @@ class Utils {
   }
 
 
-  //     """A fast (pseudo)-random number generator.
-//
-//     Parameters
-//     ----------
-//     state: array of int64, shape (3,)
-//         The internal state of the rng
-//
-//     Returns
-//     -------
-//     A (pseudo)-random int32 value
-//     """
-  static int tau_rand_int(final long[] state) {
-    state[0] = (((state[0] & 4294967294L) << 12) & 0xFFFFFFFFL) ^ ((((state[0] << 13) & 0xFFFFFFFFL) ^ state[0]) >> 19);
-    state[1] = (((state[1] & 4294967288L) << 4) & 0xFFFFFFFFL) ^ ((((state[1] << 2) & 0xFFFFFFFFL) ^ state[1]) >> 25);
-    state[2] = (((state[2] & 4294967280L) << 17) & 0xFFFFFFFFL) ^ ((((state[2] << 3) & 0xFFFFFFFFL) ^ state[2]) >> 11);
-
-    return (int) (state[0] ^ state[1] ^ state[2]);
-  }
-
-
-//     """A fast (pseudo)-random number generator for floats in the range [0,1]
-
-//     Parameters
-//     ----------
-//     state: array of int64, shape (3,)
-//         The internal state of the rng
-
-  //     Returns
-//     -------
-//     A (pseudo)-random float32 in the interval [0, 1]
-//     """
-  static float tau_rand(final long[] state) {
-    return Math.abs((float) tau_rand_int(state) / 0x7FFFFFFF);
-  }
-
-
 // @numba.njit()
 // def norm(vec):
 //     """Compute the (standard l2) norm of a vector.
@@ -164,13 +121,13 @@ class Utils {
 //     sample: array of shape(n_samples,)
 //         The ``n_samples`` randomly selected elements from the pool.
 //     """
-  static int[] rejectionSample(final int n_samples, final int pool_size, final long[] rng_state) {
+  static int[] rejectionSample(final int n_samples, final int pool_size, final Random rng_state) {
     final int[] result = new int[n_samples];
     for (int i = 0; i < n_samples; ++i) {
       boolean reject_sample = true;
       int j = -1;
       while (reject_sample) {
-        j = Math.abs(tau_rand_int(rng_state) % pool_size);
+        j = rng_state.nextInt(pool_size);
         boolean ok = true;
         for (int k = 0; k < i; ++k) {
           if (j == result[k]) {
@@ -199,7 +156,7 @@ class Utils {
     }
   }
 
-//     """Constructor for the numba enabled heap objects. The heaps are used
+//     Constructor for the numba enabled heap objects. The heaps are used
 //     for approximate nearest neighbor search, maintaining a list of potential
 //     neighbors sorted by their distance. We also flag if potential neighbors
 //     are newly added to the list or not. Internally this is stored as
@@ -219,9 +176,8 @@ class Utils {
   //     Returns
 //     -------
 //     heap: An ndarray suitable for passing to other numba enabled heap functions.
-//     """
-  static Heap make_heap(int n_points, int size) {
-    final Heap result = new Heap(new int[n_points][size], new float[n_points][size]);
+  static Heap makeHeap(int nPoints, int size) {
+    final Heap result = new Heap(new int[nPoints][size], new float[nPoints][size]);
     fill(result.indices, -1);
     fill(result.weights, Float.POSITIVE_INFINITY);
     //fill(result[2], 0);
@@ -259,7 +215,7 @@ class Utils {
   static int heapPush(final Heap heap, final int row, final float weight, final int index, final boolean flag) {
     final int[] indices = heap.indices[row];
     final float[] weights = heap.weights[row];
-    final boolean[] is_new = heap.isNew[row];
+    final boolean[] isNew = heap.isNew[row];
 
     if (weight >= weights[0]) {
       return 0;
@@ -275,47 +231,47 @@ class Utils {
     // insert val at position zero
     weights[0] = weight;
     indices[0] = index;
-    is_new[0] = flag;
+    isNew[0] = flag;
 
     // descend the heap, swapping values until the max heap criterion is met
     int i = 0;
     while (true) {
       final int ic1 = 2 * i + 1;
       final int ic2 = ic1 + 1;
-      int i_swap;
+      int iSwap;
 
       if (ic1 >= heap.indices[0].length) {
         break;
       } else if (ic2 >= heap.indices[0].length) {
         if (weights[ic1] > weight) {
-          i_swap = ic1;
+          iSwap = ic1;
         } else {
           break;
         }
       } else if (weights[ic1] >= weights[ic2]) {
         if (weight < weights[ic1]) {
-          i_swap = ic1;
+          iSwap = ic1;
         } else {
           break;
         }
       } else {
         if (weight < weights[ic2]) {
-          i_swap = ic2;
+          iSwap = ic2;
         } else {
           break;
         }
       }
 
-      weights[i] = weights[i_swap];
-      indices[i] = indices[i_swap];
-      is_new[i] = is_new[i_swap];
+      weights[i] = weights[iSwap];
+      indices[i] = indices[iSwap];
+      isNew[i] = isNew[iSwap];
 
-      i = i_swap;
+      i = iSwap;
     }
 
     weights[i] = weight;
     indices[i] = index;
-    is_new[i] = flag;
+    isNew[i] = flag;
 
     return 1;
   }
@@ -347,10 +303,10 @@ class Utils {
 //     Returns
 //     -------
 //     success: The number of new elements successfully pushed into the heap.
-  static int unchecked_heap_push(final Heap heap, final int row, final float weight, final int index, final boolean flag) {
+  static int uncheckedHeapPush(final Heap heap, final int row, final float weight, final int index, final boolean flag) {
     final int[] indices = heap.indices[row];
     final float[] weights = heap.weights[row];
-    final boolean[] is_new = heap.isNew[row];
+    final boolean[] isNew = heap.isNew[row];
 
     if (weight >= weights[0]) {
       return 0;
@@ -359,7 +315,7 @@ class Utils {
     // insert val at position zero
     weights[0] = weight;
     indices[0] = index;
-    is_new[0] = flag;
+    isNew[0] = flag;
 
     // descend the heap, swapping values until the max heap criterion is met
     int i = 0;
@@ -367,39 +323,39 @@ class Utils {
       final int ic1 = 2 * i + 1;
       final int ic2 = ic1 + 1;
 
-      int i_swap;
+      int iSwap;
       if (ic1 >= heap.indices[0].length) {
         break;
       } else if (ic2 >= heap.indices[0].length) {
         if (weights[ic1] > weight) {
-          i_swap = ic1;
+          iSwap = ic1;
         } else {
           break;
         }
       } else if (weights[ic1] >= weights[ic2]) {
         if (weight < weights[ic1]) {
-          i_swap = ic1;
+          iSwap = ic1;
         } else {
           break;
         }
       } else {
         if (weight < weights[ic2]) {
-          i_swap = ic2;
+          iSwap = ic2;
         } else {
           break;
         }
       }
 
-      weights[i] = weights[i_swap];
-      indices[i] = indices[i_swap];
-      is_new[i] = is_new[i_swap];
+      weights[i] = weights[iSwap];
+      indices[i] = indices[iSwap];
+      isNew[i] = isNew[iSwap];
 
-      i = i_swap;
+      i = iSwap;
     }
 
     weights[i] = weight;
     indices[i] = index;
-    is_new[i] = flag;
+    isNew[i] = flag;
 
     return 1;
   }
@@ -437,7 +393,7 @@ class Utils {
   }
 
 
-  //     """Given an array of heaps (of indices and weights), unpack the heap
+//     Given an array of heaps (of indices and weights), unpack the heap
 //     out to give and array of sorted lists of indices and weights by increasing
 //     weight. This is effectively just the second half of heap sort (the first
 //     half not being required since we already have the data in a heap).
@@ -452,27 +408,27 @@ class Utils {
 //     indices, weights: arrays of shape (n_samples, n_neighbors)
 //         The indices and weights sorted by increasing weight.
 //     """
-  static Heap deheap_sort(Heap heap) {
+  static Heap deheapSort(Heap heap) {
     int[][] indices = heap.indices;
     float[][] weights = heap.weights;
 
     for (int i = 0; i < indices.length; ++i) {
 
-      int[] ind_heap = indices[i];
-      float[] dist_heap = weights[i];
+      int[] indHeap = indices[i];
+      float[] distHeap = weights[i];
 
-      for (int j = 0; j < ind_heap.length - 1; ++j) {
-        //ind_heap[0], ind_heap[ ind_heap.shape[0] - j - 1 ] = ( ind_heap[ind_heap.shape[0] - j - 1],   ind_heap[0]       );
-        int s = ind_heap[0];
-        ind_heap[0] = ind_heap[ind_heap.length - j - 1];
-        ind_heap[ind_heap.length - j - 1] = s;
-        // dist_heap[0], dist_heap[   dist_heap.shape[0] - j - 1  ] = (  dist_heap[dist_heap.shape[0] - j - 1], dist_heap[0]     );
-        final float t = dist_heap[0];
-        dist_heap[0] = dist_heap[dist_heap.length - j - 1];
-        dist_heap[dist_heap.length - j - 1] = t;
+      for (int j = 0; j < indHeap.length - 1; ++j) {
+        //indHeap[0], indHeap[ indHeap.shape[0] - j - 1 ] = ( indHeap[indHeap.shape[0] - j - 1],   indHeap[0]       );
+        int s = indHeap[0];
+        indHeap[0] = indHeap[indHeap.length - j - 1];
+        indHeap[indHeap.length - j - 1] = s;
+        // distHeap[0], distHeap[   distHeap.shape[0] - j - 1  ] = (  distHeap[distHeap.shape[0] - j - 1], distHeap[0]     );
+        final float t = distHeap[0];
+        distHeap[0] = distHeap[distHeap.length - j - 1];
+        distHeap[distHeap.length - j - 1] = t;
 
-        //siftdown(dist_heap[:dist_heap.shape[0] - j - 1], ind_heap[:ind_heap.shape[0] - j - 1],  0    );
-        siftdown(MathUtils.subarray(dist_heap, 0, dist_heap.length - j - 1), MathUtils.subarray(ind_heap, 0, ind_heap.length - j - 1), 0);
+        //siftdown(distHeap[:distHeap.shape[0] - j - 1], indHeap[:indHeap.shape[0] - j - 1],  0    );
+        siftdown(MathUtils.subarray(distHeap, 0, distHeap.length - j - 1), MathUtils.subarray(indHeap, 0, indHeap.length - j - 1), 0);
       }
     }
 
@@ -496,24 +452,24 @@ class Utils {
 //         The index of the smallest flagged element
 //         of the ``row``th heap, || -1 if no flagged
 //         elements remain in the heap.
-  static int smallest_flagged(Heap heap, final int row) {
+  static int smallestFlagged(final Heap heap, final int row) {
     final int[] ind = heap.indices[row];
     final float[] dist = heap.weights[row];
     final boolean[] flag = heap.isNew[row];
 
-    float min_dist = Float.POSITIVE_INFINITY;
-    int result_index = -1;
+    float minDist = Float.POSITIVE_INFINITY;
+    int resultIndex = -1;
 
     for (int i = 0; i < ind.length; ++i) {
-      if (flag[i] && dist[i] < min_dist) {
-        min_dist = dist[i];
-        result_index = i;
+      if (flag[i] && dist[i] < minDist) {
+        minDist = dist[i];
+        resultIndex = i;
       }
     }
 
-    if (result_index >= 0) {
-      flag[result_index] = false;
-      return ind[result_index];
+    if (resultIndex >= 0) {
+      flag[resultIndex] = false;
+      return ind[resultIndex];
     } else {
       return -1;
     }
@@ -545,16 +501,16 @@ class Utils {
 //     -------
 //     candidate_neighbors: A heap with an array of (randomly sorted) candidate
 //     neighbors for each vertex in the graph.
-  static Heap build_candidates(final Heap currentGraph, final int nVertices, final int nNeighbors, final int maxCandidates, final long[] rng_state) {
-    final Heap candidateNeighbors = make_heap(nVertices, maxCandidates);
+  static Heap buildCandidates(final Heap currentGraph, final int nVertices, final int nNeighbors, final int maxCandidates, final Random random) {
+    final Heap candidateNeighbors = makeHeap(nVertices, maxCandidates);
     for (int i = 0; i < nVertices; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {
         if (currentGraph.indices[i][j] < 0) {
           continue;
         }
-        final int idx = currentGraph.indices[i][j]; // todo are these casts ok
+        final int idx = currentGraph.indices[i][j];
         final boolean isn = currentGraph.isNew[i][j];
-        final float d = tau_rand(rng_state);
+        final float d = random.nextFloat();
         heapPush(candidateNeighbors, i, d, idx, isn);
         heapPush(candidateNeighbors, idx, d, i, isn);
         currentGraph.isNew[i][j] = false;
@@ -709,10 +665,4 @@ class Utils {
     }
     return submat;
   }
-
-
-// # Generates a timestamp for use in logging messages when verbose=true
-// def ts():
-//     return time.ctime(time.time())
-
 }

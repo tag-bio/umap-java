@@ -5,6 +5,8 @@
  */
 package com.tagbio.umap;
 
+import java.util.Random;
+
 import com.tagbio.umap.metric.Metric;
 
 /**
@@ -18,7 +20,7 @@ class NearestNeighborRandomInit {
     mDist = dist;
   }
 
-  void init(final int nNeighbors, final Matrix data, final Matrix queryPoints, final Heap heap, final long[] rng_state) {
+  void init(final int nNeighbors, final Matrix data, final Matrix queryPoints, final Heap heap, final Random rng_state) {
     for (int i = 0; i < queryPoints.rows(); ++i) {
       final int[] indices = Utils.rejectionSample(nNeighbors, data.shape[0], rng_state);
       for (int j = 0; j < indices.length; ++j) {

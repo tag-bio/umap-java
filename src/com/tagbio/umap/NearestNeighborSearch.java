@@ -33,7 +33,7 @@ class NearestNeighborSearch {
       while (true) {
 
         // Find smallest flagged vertex
-        final int vertex = Utils.smallest_flagged(initialization, i);
+        final int vertex = Utils.smallestFlagged(initialization, i);
 
         if (vertex == -1) {
           break;
@@ -45,7 +45,7 @@ class NearestNeighborSearch {
             continue;
           }
           float d = (float) mDist.distance(data.row(candidates[j]), query_points.row(i));
-          Utils.unchecked_heap_push(initialization, i, d, candidates[j], true);
+          Utils.uncheckedHeapPush(initialization, i, d, candidates[j], true);
           tried.add(candidates[j]);
         }
       }
