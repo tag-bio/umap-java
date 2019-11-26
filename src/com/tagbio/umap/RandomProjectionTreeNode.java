@@ -34,12 +34,12 @@ class RandomProjectionTreeNode {
     return mLeftChild == null && mRightChild == null;
   }
 
-  int num_nodes() {
-    return 1 + (mLeftChild != null ? mLeftChild.num_nodes() : 0) + (mRightChild != null ? mRightChild.num_nodes() : 0);
+  int numNodes() {
+    return 1 + (mLeftChild != null ? mLeftChild.numNodes() : 0) + (mRightChild != null ? mRightChild.numNodes() : 0);
   }
 
-  int num_leaves() {
-    return isLeaf() ? 1 : mLeftChild.num_leaves() + mRightChild.num_leaves();
+  int numLeaves() {
+    return isLeaf() ? 1 : mLeftChild.numLeaves() + mRightChild.numLeaves();
   }
 
   RandomProjectionTreeNode getLeftChild() {

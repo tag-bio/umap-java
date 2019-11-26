@@ -9,26 +9,21 @@ import com.tagbio.umap.metric.Metric;
 import com.tagbio.umap.metric.PrecomputedMetric;
 
 /**
+ * Compute pairwise distances between instances using a specified metric.
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
-class PairwiseDistances {
+final class PairwiseDistances {
 
   // replacement for sklearn.pairwise_distances
-  // todo testing
-  // todo possibly smarter version for sparse data
-  // todo can this assume symmetric metric (i.e. d(x,y)=d(y,x)) ?
 
   private PairwiseDistances() { }
 
-  static Matrix pairwise_distances(final Matrix x, final Metric metric) {
-    // todo special metric precomputed
+  static Matrix pairwiseDistances(final Matrix x, final Metric metric) {
     if (PrecomputedMetric.SINGLETON.equals(metric)) {
       return x;
     }
-    // todo keywords
-    // todo potential parallel
-    //Utils.message("Starting distance calculation");
-    final int n = x.shape()[0];
+    final int n = x.rows();
     final float[][] distances = new float[n][n];
     for (int k = 0; k < n; ++k) {
       final float[] xk = x.row(k);
@@ -36,18 +31,15 @@ class PairwiseDistances {
         distances[k][j] = (float) metric.distance(xk, x.row(j));
       }
     }
-    //Utils.message("Finished distance calculation");
     return new DefaultMatrix(distances);
   }
 
-  static Matrix pairwise_distances(final Matrix x, final Matrix y, final Metric metric) {
+  static Matrix pairwiseDistances(final Matrix x, final Matrix y, final Metric metric) {
     if (PrecomputedMetric.SINGLETON.equals(metric)) {
       throw new IllegalArgumentException("Cannot use this method with precomputed");
     }
-    // todo keywords
-    // todo potential parallel
-    final int xn = x.shape()[0];
-    final int yn = y.shape()[0];
+    final int xn = x.rows();
+    final int yn = y.rows();
     final float[][] distances = new float[xn][yn];
     for (int k = 0; k < xn; ++k) {
       final float[] xk = x.row(k);

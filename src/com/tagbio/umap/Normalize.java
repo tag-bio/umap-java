@@ -8,7 +8,7 @@ package com.tagbio.umap;
 /**
  * @author Sean A. Irvine
  */
-public class Normalize {
+class Normalize {
 
   // After sklearn.preprocessing.normalize
   // todo only need support "max" and "l1" for now

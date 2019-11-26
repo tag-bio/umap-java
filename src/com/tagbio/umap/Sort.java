@@ -12,7 +12,7 @@ package com.tagbio.umap;
  * @author Sean A. Irvine
  * @author John Cleary
  */
-public final class Sort {
+final class Sort {
 
   private Sort() {
   }

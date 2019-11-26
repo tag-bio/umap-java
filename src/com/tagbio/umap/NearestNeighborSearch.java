@@ -21,9 +21,9 @@ class NearestNeighborSearch {
     mDist = dist;
   }
 
-  Heap initialized_nnd_search(final Matrix data, final int[] indptr, final int[] indices, Heap initialization, final Matrix query_points) {
+  Heap initialized_nnd_search(final Matrix data, final int[] indptr, final int[] indices, Heap initialization, final Matrix queryPoints) {
 
-    for (int i = 0; i < query_points.rows(); ++i) {
+    for (int i = 0; i < queryPoints.rows(); ++i) {
 
       final Set<Integer> tried = new TreeSet<>();
       for (final int t : initialization.indices[i]) {
@@ -44,7 +44,7 @@ class NearestNeighborSearch {
           if (candidates[j] == vertex || candidates[j] == -1 || tried.contains(candidates[j])) {
             continue;
           }
-          float d = (float) mDist.distance(data.row(candidates[j]), query_points.row(i));
+          float d = (float) mDist.distance(data.row(candidates[j]), queryPoints.row(i));
           Utils.uncheckedHeapPush(initialization, i, d, candidates[j], true);
           tried.add(candidates[j]);
         }

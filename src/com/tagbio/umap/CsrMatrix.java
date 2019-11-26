@@ -60,32 +60,32 @@ class CsrMatrix extends Matrix {
   }
 
   @Override
-  CsrMatrix tocsr() {
+  CsrMatrix toCsr() {
     return this;
   }
 
   @Override
   Matrix add(final Matrix m) {
     // todo this could do this without using super
-    return super.add(m).tocsr();
+    return super.add(m).toCsr();
   }
 
   @Override
   Matrix subtract(final Matrix m) {
     // todo this could do this without using super
-    return super.subtract(m).tocsr();
+    return super.subtract(m).toCsr();
   }
 
   @Override
   Matrix multiply(final Matrix m) {
     // todo this could do this without using super
-    return super.multiply(m).tocsr();
+    return super.multiply(m).toCsr();
   }
 
   @Override
   Matrix transpose() {
     // todo this could do this without using super
-    return super.transpose().tocsr();
+    return super.transpose().toCsr();
   }
 
   @Override

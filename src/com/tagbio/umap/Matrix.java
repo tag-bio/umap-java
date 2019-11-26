@@ -217,7 +217,7 @@ abstract class Matrix {
     throw new UnsupportedOperationException();
   }
 
-  CooMatrix tocoo() {
+  CooMatrix toCoo() {
     final int len = (int) (length() - countZeros());
     final int[] row = new int[len];
     final int[] col = new int[len];
@@ -235,7 +235,7 @@ abstract class Matrix {
     return new CooMatrix(data, row, col, shape);
   }
 
-  CsrMatrix tocsr() {
+  CsrMatrix toCsr() {
     final int len = (int) (length() - countZeros());
     final int[] indptr = new int[rows() + 1];
     final int[] indices = new int[len];

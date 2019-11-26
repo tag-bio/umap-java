@@ -186,10 +186,10 @@ class MathUtils {
   }
 
   // Do equivalent of numpy: x[np.newaxis, :].T
-  static Matrix promoteTranspose(final float[] x) {
-    final float[][] res = new float[x.length][1];
-    for (int k = 0; k < x.length; ++k) {
-      res[k][0] = x[k];
+  static Matrix promoteTranspose(final float[] a) {
+    final float[][] res = new float[a.length][1];
+    for (int k = 0; k < a.length; ++k) {
+      res[k][0] = a[k];
     }
     return new DefaultMatrix(res);
   }

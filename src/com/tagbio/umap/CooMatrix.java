@@ -217,7 +217,7 @@ class CooMatrix extends Matrix {
   }
 
   @Override
-  CooMatrix tocoo() {
+  CooMatrix toCoo() {
     return this;
   }
 
@@ -249,19 +249,19 @@ class CooMatrix extends Matrix {
   @Override
   Matrix add(final Matrix m) {
     // todo this could do this without using super
-    return super.add(m).tocoo();
+    return super.add(m).toCoo();
   }
 
   @Override
   Matrix subtract(final Matrix m) {
     // todo this could do this without using super
-    return super.subtract(m).tocoo();
+    return super.subtract(m).toCoo();
   }
 
   @Override
   Matrix hadamardMultiply(final Matrix m) {
     // todo this could do this without using super
-    return super.hadamardMultiply(m).tocoo();
+    return super.hadamardMultiply(m).toCoo();
   }
 
   @Override
@@ -314,7 +314,7 @@ class CooMatrix extends Matrix {
   @Override
   Matrix multiply(final Matrix m) {
     if (!(m instanceof CooMatrix)) {
-      return super.multiply(m).tocoo();
+      return super.multiply(m).toCoo();
     }
     // We are multiplying two CooMatrices together
     // todo can this be made faster?
@@ -334,7 +334,7 @@ class CooMatrix extends Matrix {
         }
       }
     }
-    return new DefaultMatrix(res).tocoo();
+    return new DefaultMatrix(res).toCoo();
   }
 
   @Override
