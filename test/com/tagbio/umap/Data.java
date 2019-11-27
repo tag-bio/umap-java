@@ -22,9 +22,10 @@ abstract class Data {
   private final List<String> mSampleNames = new ArrayList<>();
 
   private static InputStream getStream(final String resource) throws IOException {
+    final BufferedInputStream resourceAsStream = new BufferedInputStream(Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource)));
     return resource.endsWith(".gz")
-      ? new GZIPInputStream(new BufferedInputStream(Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource))))
-      : new BufferedInputStream(Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource)));
+      ? new GZIPInputStream(resourceAsStream)
+      : resourceAsStream;
   }
 
   Data(final String dataFile) throws IOException {
