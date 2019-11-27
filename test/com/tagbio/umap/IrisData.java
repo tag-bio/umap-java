@@ -12,6 +12,10 @@ public class IrisData extends Data {
     super("com/tagbio/umap/iris.tsv");
   }
 
+  public IrisData(boolean small) throws IOException {
+    super(small ? "com/tagbio/umap/iris-small.tsv" : "com/tagbio/umap/iris.tsv");
+  }
+
   public static void main(String[] args) throws IOException {
     Data id = new IrisData();
 
