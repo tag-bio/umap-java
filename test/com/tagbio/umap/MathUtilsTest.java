@@ -81,4 +81,14 @@ public class MathUtilsTest extends TestCase {
   public void testIdentity() {
     assertTrue(Arrays.equals(new int[] {0, 1, 2, 3, 4}, MathUtils.identity(5)));
   }
+
+  public void testArgSort() {
+    float[] data = new float[] {9,2,3,5,1,12,34,26,0,-43};
+    int[] res = MathUtils.argsort(data);
+    assertEquals(data.length, res.length);
+    int[] expected = new int[]{9,8,4,1,2,3,0,5,7,6};
+    for (int i = 0; i < res.length; ++i) {
+      assertEquals("i="+i, expected[i], res[i]);
+    }
+  }
 }
