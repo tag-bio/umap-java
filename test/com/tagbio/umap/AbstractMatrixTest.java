@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 import java.util.Arrays;
@@ -28,8 +33,8 @@ public abstract class AbstractMatrixTest extends TestCase {
   public void testEquals() {
     final Matrix m = getMatrixA();
     assertEquals(m, m);
-    assertEquals(m, m.tocoo());
-    assertEquals(m, m.tocsr());
+    assertEquals(m, m.toCoo());
+    assertEquals(m, m.toCsr());
     assertFalse(m.equals(null));
     assertFalse(m.equals(m.transpose()));
   }

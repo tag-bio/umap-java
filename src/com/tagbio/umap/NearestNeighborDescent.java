@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 // # Author: Leland McInnes <leland.mcinnes@gmail.com>
@@ -23,6 +28,7 @@ package com.tagbio.umap;
 // from umap.rp_tree import search_flat_tree
 
 import java.util.List;
+import java.util.Random;
 
 import com.tagbio.umap.metric.Metric;
 
@@ -54,16 +60,16 @@ class NearestNeighborDescent {
     this.dist = dist;
   }
 
-  Heap nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose) {
-    return nn_descent(data, nNeighbors, rng_state, maxCandidates, rp_tree_init, n_iters, leafArray, verbose, 0.001F, 0.5F);
+  Heap nn_descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose) {
+    return nn_descent(data, nNeighbors, random, maxCandidates, rp_tree_init, n_iters, leafArray, verbose, 0.001F, 0.5F);
   }
 
-  Heap nn_descent(final Matrix data, final int nNeighbors, final long[] rng_state, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
+  Heap nn_descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rp_tree_init, final int n_iters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
     final int nVertices = data.shape[0];
 
-    Heap currentGraph = Utils.make_heap(data.shape[0], nNeighbors);
+    Heap currentGraph = Utils.makeHeap(data.shape[0], nNeighbors);
     for (int i = 0; i < data.shape[0]; ++i) {
-      final int[] indices = Utils.rejectionSample(nNeighbors, data.shape[0], rng_state);
+      final int[] indices = Utils.rejectionSample(nNeighbors, data.shape[0], random);
       for (int j = 0; j < indices.length; ++j) {
         final float d = (float) dist.distance(data.row(i), data.row(indices[j]) /*, dist_args*/);
         Utils.heapPush(currentGraph, i, d, indices[j], true);
@@ -93,13 +99,13 @@ class NearestNeighborDescent {
         Utils.message("\t" + n + " / " + n_iters);
       }
 
-      final Heap candidateNeighbors = Utils.build_candidates(currentGraph, nVertices, nNeighbors, maxCandidates, rng_state);
+      final Heap candidateNeighbors = Utils.buildCandidates(currentGraph, nVertices, nNeighbors, maxCandidates, random);
 
       int c = 0;
       for (int i = 0; i < nVertices; ++i) {
         for (int j = 0; j < maxCandidates; ++j) {
           final int p = candidateNeighbors.indices[i][j];
-          if (p < 0 || Utils.tau_rand(rng_state) < rho) {
+          if (p < 0 || random.nextFloat() < rho) {
             continue;
           }
           for (int k = 0; k < maxCandidates; ++k) {
@@ -120,15 +126,15 @@ class NearestNeighborDescent {
       }
     }
 
-    return Utils.deheap_sort(currentGraph);
+    return Utils.deheapSort(currentGraph);
   }
 
-  static Heap initialise_search(final List<FlatTree> forest, final Matrix data, final Matrix query_points, final int n_neighbors, final NearestNeighborRandomInit initFromRandom, NearestNeighborTreeInit init_from_tree, final long[] rng_state) {
-    Heap results = Utils.make_heap(query_points.rows(), n_neighbors);
-    initFromRandom.init(n_neighbors, data, query_points, results, rng_state);
+  static Heap initialise_search(final List<FlatTree> forest, final Matrix data, final Matrix query_points, final int n_neighbors, final NearestNeighborRandomInit initFromRandom, NearestNeighborTreeInit init_from_tree, final Random random) {
+    Heap results = Utils.makeHeap(query_points.rows(), n_neighbors);
+    initFromRandom.init(n_neighbors, data, query_points, results, random);
     if (forest != null) {
       for (final FlatTree tree : forest) {
-        init_from_tree.init(tree, data, query_points, results, rng_state);
+        init_from_tree.init(tree, data, query_points, results, random);
       }
     }
     return results;

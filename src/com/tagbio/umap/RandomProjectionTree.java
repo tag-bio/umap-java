@@ -1,43 +1,24 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
-
-// # Author: Leland McInnes <leland.mcinnes@gmail.com>
-// #
-// # License: BSD 3 clause
-// from __future__ import print_function
-// from collections import deque, namedtuple
-// from warnings import warn
-
-// import numpy as np
-// import numba
-
-// from umap.sparse import sparse_mul, sparse_diff, sparse_sum
-
-// from umap.utils import tau_rand_int, norm
-
-// import scipy.sparse
-// import locale
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
-class RpTree {
+/**
+ * Random projection trees.
+ */
+class RandomProjectionTree {
 
-// locale.setlocale(locale.LC_NUMERIC, "C")
-
-  // # Used for a floating point "nearly zero" comparison
+  // Used for a floating point "nearly zero" comparison
   private static final float EPS = 1e-8F;
 
-// RandomProjectionTreeNode = namedtuple(
-//     "RandomProjectionTreeNode",
-//     ["indices", "is_leaf", "hyperplane", "offset", "left_child", "right_child"],
-// )
-
-// FlatTree = namedtuple("FlatTree", ["hyperplanes", "offsets", "children", "indices"])
-
-
-// @numba.njit(fastmath=true)
-// def angular_random_projection_split(data, indices, rng_state):
+// def angular_random_projection_split(data, indices, random):
 //     """Given a set of ``indices`` for data points from ``data``, create
 //     a random hyperplane to split the data, returning two arrays indices
 //     that fall on either side of the hyperplane. This is the basis for a
@@ -51,7 +32,7 @@ class RpTree {
 //     indices: array of shape (tree_node_size,)
 //         The indices of the elements in the ``data`` array that are to
 //         be split in the current operation.
-//     rng_state: array of int64, shape (3,)
+//     random: array of int64, shape (3,)
 //         The internal state of the rng
 //     Returns
 //     -------
@@ -65,8 +46,8 @@ class RpTree {
 //     dim = data.shape[1]
 
 //     # Select two random points, set the hyperplane between them
-//     left_index = tau_rand_int(rng_state) % indices.shape[0]
-//     right_index = tau_rand_int(rng_state) % indices.shape[0]
+//     left_index = tau_rand_int(random) % indices.shape[0]
+//     right_index = tau_rand_int(random) % indices.shape[0]
 //     right_index += left_index == right_index
 //     right_index = right_index % indices.shape[0]
 //     left = indices[left_index]
@@ -109,7 +90,7 @@ class RpTree {
 //             margin += hyperplane_vector[d] * data[indices[i], d]
 
 //         if abs(margin) < EPS:
-//             side[i] = tau_rand_int(rng_state) % 2
+//             side[i] = tau_rand_int(random) % 2
 //             if side[i] == 0:
 //                 n_left += 1
 //             else:
@@ -152,7 +133,7 @@ class RpTree {
 //     indices: array of shape (tree_node_size,)
 //         The indices of the elements in the ``data`` array that are to
 //         be split in the current operation.
-//     rng_state: array of int64, shape (3,)
+//     random: array of int64, shape (3,)
 //         The internal state of the rng
 //     Returns
 //     -------
@@ -162,74 +143,74 @@ class RpTree {
 //     indices_right: array
 //         The elements of ``indices`` that fall on the "left" side of the
 //         random hyperplane.
-  static Object[] euclidean_random_projection_split(final Matrix data, final int[] indices, final long[] rng_state) {
+  static Object[] euclideanRandomProjectionSplit(final Matrix data, final int[] indices, final Random random) {
     final int dim = data.cols();
 
     // Select two random points, set the hyperplane between them
-    final int left_index = Math.abs(Utils.tau_rand_int(rng_state) % indices.length);
-    int right_index = Math.abs(Utils.tau_rand_int(rng_state) % indices.length);
-    right_index += left_index == right_index ? 1 : 0;
-    right_index = right_index % indices.length;
-    int left = indices[left_index];
-    int right = indices[right_index];
+    final int leftIndex = random.nextInt(indices.length);
+    int rightIndex = random.nextInt(indices.length);
+    rightIndex += leftIndex == rightIndex ? 1 : 0;
+    rightIndex = rightIndex % indices.length;
+    int left = indices[leftIndex];
+    int right = indices[rightIndex];
 
     // Compute the normal vector to the hyperplane (the vector between
     // the two points) and the offset from the origin
-    float hyperplane_offset = 0.0F;
-    float[] hyperplane_vector = new float[dim];
+    float hyperplaneOffset = 0.0F;
+    float[] hyperplaneVector = new float[dim];
 
     for (int d = 0; d < dim; ++d) {
-      hyperplane_vector[d] = data.get(left, d) - data.get(right, d);
-      hyperplane_offset -= hyperplane_vector[d] * (data.get(left, d) + data.get(right, d)) / 2.0;
+      hyperplaneVector[d] = data.get(left, d) - data.get(right, d);
+      hyperplaneOffset -= hyperplaneVector[d] * (data.get(left, d) + data.get(right, d)) / 2.0;
     }
 
     // For each point compute the margin (project into normal vector, add offset)
     // If we are on lower side of the hyperplane put in one pile, otherwise
     // put it in the other pile (if we hit hyperplane on the nose, flip a coin)
-    int n_left = 0;
-    int n_right = 0;
+    int nLeft = 0;
+    int nRight = 0;
     //side = np.empty(indices.shape[0], np.int8);
     boolean[] side = new boolean[indices.length];
     for (int i = 0; i < indices.length; ++i) {
-      float margin = hyperplane_offset;
+      float margin = hyperplaneOffset;
       for (int d = 0; d < dim; ++d) {
-        margin += hyperplane_vector[d] * data.get(indices[i], d);
+        margin += hyperplaneVector[d] * data.get(indices[i], d);
       }
       if (Math.abs(margin) < EPS) {
-        side[i] = Utils.tau_rand_int(rng_state) % 2 == 0;
+        side[i] = random.nextBoolean();
         if (!side[i]) {
-          ++n_left;
+          ++nLeft;
         } else {
-          ++n_right;
+          ++nRight;
         }
       } else if (margin > 0) {
         side[i] = false;
-        ++n_left;
+        ++nLeft;
       } else {
         side[i] = true;
-        ++n_right;
+        ++nRight;
       }
     }
     // Now that we have the counts allocate arrays
-    final int[] indices_left = new int[n_left];
-    final int[] indices_right = new int[n_right];
+    final int[] indicesLeft = new int[nLeft];
+    final int[] indicesRight = new int[nRight];
 
     // Populate the arrays with indices according to which side they fell on
-    n_left = 0;
-    n_right = 0;
+    nLeft = 0;
+    nRight = 0;
     for (int i = 0; i < side.length; ++i) {
       if (!side[i]) {
-        indices_left[n_left++] = indices[i];
+        indicesLeft[nLeft++] = indices[i];
       } else {
-        indices_right[n_right++] = indices[i];
+        indicesRight[nRight++] = indices[i];
       }
     }
-    return new Object[]{indices_left, indices_right, hyperplane_vector, hyperplane_offset};
+    return new Object[]{indicesLeft, indicesRight, hyperplaneVector, hyperplaneOffset};
   }
 
 
 // @numba.njit(fastmath=true)
-// def sparse_angular_random_projection_split(inds, indptr, data, indices, rng_state):
+// def sparse_angular_random_projection_split(inds, indptr, data, indices, random):
 //     """Given a set of ``indices`` for data points from a sparse data set
 //     presented in csr sparse format as inds, indptr and data, create
 //     a random hyperplane to split the data, returning two arrays indices
@@ -248,7 +229,7 @@ class RpTree {
 //     indices: array of shape (tree_node_size,)
 //         The indices of the elements in the ``data`` array that are to
 //         be split in the current operation.
-//     rng_state: array of int64, shape (3,)
+//     random: array of int64, shape (3,)
 //         The internal state of the rng
 //     Returns
 //     -------
@@ -260,8 +241,8 @@ class RpTree {
 //         random hyperplane.
 //     """
 //     # Select two random points, set the hyperplane between them
-//     left_index = tau_rand_int(rng_state) % indices.shape[0]
-//     right_index = tau_rand_int(rng_state) % indices.shape[0]
+//     left_index = tau_rand_int(random) % indices.shape[0]
+//     right_index = tau_rand_int(random) % indices.shape[0]
 //     right_index += left_index == right_index
 //     right_index = right_index % indices.shape[0]
 //     left = indices[left_index]
@@ -314,7 +295,7 @@ class RpTree {
 //             margin += mul_data[d]
 
 //         if abs(margin) < EPS:
-//             side[i] = tau_rand_int(rng_state) % 2
+//             side[i] = tau_rand_int(random) % 2
 //             if side[i] == 0:
 //                 n_left += 1
 //             else:
@@ -364,7 +345,7 @@ class RpTree {
 //     indices: array of shape (tree_node_size,)
 //         The indices of the elements in the ``data`` array that are to
 //         be split in the current operation.
-//     rng_state: array of int64, shape (3,)
+//     random: array of int64, shape (3,)
 //         The internal state of the rng
 //     Returns
 //     -------
@@ -374,119 +355,117 @@ class RpTree {
 //     indices_right: array
 //         The elements of ``indices`` that fall on the "left" side of the
 //         random hyperplane.
-  static Object[] sparse_euclidean_random_projection_split(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final long[] rng_state) {
+  static Object[] sparseEuclideanRandomProjectionSplit(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final Random random) {
     // Select two random points, set the hyperplane between them
-    int left_index = Utils.tau_rand_int(rng_state) % indices.length;
-    int right_index = Utils.tau_rand_int(rng_state) % indices.length;
-    right_index += left_index == right_index ? 1 : 0;
-    right_index = right_index % indices.length;
-    int left = indices[left_index];
-    int right = indices[right_index];
+    int leftIndex = random.nextInt(indices.length);
+    int rightIndex = random.nextInt(indices.length);
+    rightIndex += leftIndex == rightIndex ? 1 : 0;
+    rightIndex = rightIndex % indices.length;
+    int left = indices[leftIndex];
+    int right = indices[rightIndex];
 
-    int[] left_inds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
-    float[] left_data = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
-    int[] right_inds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
-    float[] right_data = MathUtils.subarray(data, indptr[right], indptr[right + 1]);
+    int[] leftInds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
+    float[] leftData = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
+    int[] rightInds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
+    float[] rightData = MathUtils.subarray(data, indptr[right], indptr[right + 1]);
 
     // Compute the normal vector to the hyperplane (the vector between
     // the two points) and the offset from the origin
-    float hyperplane_offset = 0.0F;
-    final Object[] sd = Sparse.sparse_diff(left_inds, left_data, right_inds, right_data);
-    final int[] hyperplane_inds = (int[]) sd[0];
-    final float[] hyperplane_data = (float[]) sd[1];
-    final Object[] ss = Sparse.sparse_sum(left_inds, left_data, right_inds, right_data);
-    int[] offset_inds = (int[]) ss[0];
-    float[] offset_data = MathUtils.divide((float[]) ss[1], 2.0F);
-    final Object[] sm = Sparse.sparse_mul(hyperplane_inds, hyperplane_data, offset_inds, offset_data);
-    offset_inds = (int[]) sm[0];
-    offset_data = (float[]) sm[1];
+    float hyperplaneOffset = 0.0F;
+    final Object[] sd = Sparse.sparseDiff(leftInds, leftData, rightInds, rightData);
+    final int[] hyperplaneInds = (int[]) sd[0];
+    final float[] hyperplaneData = (float[]) sd[1];
+    final Object[] ss = Sparse.sparseSum(leftInds, leftData, rightInds, rightData);
+    int[] offsetInds = (int[]) ss[0];
+    float[] offsetData = MathUtils.divide((float[]) ss[1], 2.0F);
+    final Object[] sm = Sparse.sparse_mul(hyperplaneInds, hyperplaneData, offsetInds, offsetData);
+    offsetInds = (int[]) sm[0];
+    offsetData = (float[]) sm[1];
 
-    for (int d = 0; d < offset_data.length; ++d) {
-      hyperplane_offset -= offset_data[d];
+    for (int d = 0; d < offsetData.length; ++d) {
+      hyperplaneOffset -= offsetData[d];
     }
 
     // For each point compute the margin (project into normal vector, add offset)
     // If we are on lower side of the hyperplane put in one pile, otherwise
     // put it in the other pile (if we hit hyperplane on the nose, flip a coin)
-    int n_left = 0;
-    int n_right = 0;
+    int nLeft = 0;
+    int nRight = 0;
     boolean[] side = new boolean[indices.length];
     for (int i = 0; i < indices.length; ++i) {
-      float margin = hyperplane_offset;
-      int[] i_inds = MathUtils.subarray(inds, indptr[indices[i]], indptr[indices[i] + 1]);
-      float[] i_data = MathUtils.subarray(data, indptr[indices[i]], indptr[indices[i] + 1]);
+      float margin = hyperplaneOffset;
+      int[] iInds = MathUtils.subarray(inds, indptr[indices[i]], indptr[indices[i] + 1]);
+      float[] iData = MathUtils.subarray(data, indptr[indices[i]], indptr[indices[i] + 1]);
 
-      final Object[] spm = Sparse.sparse_mul(hyperplane_inds, hyperplane_data, i_inds, i_data);
-      final int[] mul_inds = (int[]) spm[0];
-      final float[] mul_data = (float[]) spm[1];
-      for (int d = 0; d < mul_data.length; ++d) {
-        margin += mul_data[d];
+      final Object[] spm = Sparse.sparse_mul(hyperplaneInds, hyperplaneData, iInds, iData);
+      final int[] mulInds = (int[]) spm[0];
+      final float[] mulData = (float[]) spm[1];
+      for (int d = 0; d < mulData.length; ++d) {
+        margin += mulData[d];
       }
 
       if (Math.abs(margin) < EPS) {
-        side[i] = Utils.tau_rand_int(rng_state) % 2 == 0;
-        if (!side[i]) {
-          n_left += 1;
+        side[i] = random.nextBoolean();
+        if (side[i]) {
+          ++nLeft;
         } else {
-          n_right += 1;
+          ++nRight;
         }
       } else if (margin > 0) {
         side[i] = false;
-        n_left += 1;
+        ++nLeft;
       } else {
         side[i] = true;
-        n_right += 1;
+        ++nRight;
       }
     }
 
     // Now that we have the counts allocate arrays
-    int[] indices_left = new int[n_left];
-    int[] indices_right = new int[n_right];
+    int[] indicesLeft = new int[nLeft];
+    int[] indicesRight = new int[nRight];
 
     // Populate the arrays with indices according to which side they fell on
-    n_left = 0;
-    n_right = 0;
+    nLeft = 0;
+    nRight = 0;
     for (int i = 0; i < side.length; ++i) {
       if (!side[i]) {
-        indices_left[n_left] = indices[i];
-        n_left += 1;
+        indicesLeft[nLeft++] = indices[i];
       } else {
-        indices_right[n_right] = indices[i];
-        n_right += 1;
+        indicesRight[nRight++] = indices[i];
       }
     }
 
-    final Hyperplane hyperplane = new Hyperplane(hyperplane_inds, hyperplane_data);
+    final Hyperplane hyperplane = new Hyperplane(hyperplaneInds, hyperplaneData);
 
-    return new Object[]{indices_left, indices_right, hyperplane, hyperplane_offset};
+    return new Object[]{indicesLeft, indicesRight, hyperplane, hyperplaneOffset};
   }
 
 
-  static RandomProjectionTreeNode make_euclidean_tree(final Matrix data, final int[] indices, final long[] rng_state, final int leaf_size) {
-    if (indices.length > leaf_size) {
-      final Object[] erps = euclidean_random_projection_split(data, indices, rng_state);
-      final int[] left_indices = (int[]) erps[0];
-      final int[] right_indices = (int[]) erps[1];
+  static RandomProjectionTreeNode makeEuclideanTree(final Matrix data, final int[] indices, final Random random, final int leafSize) {
+    if (indices.length > leafSize) {
+      final Object[] erps = euclideanRandomProjectionSplit(data, indices, random);
+      final int[] leftIndices = (int[]) erps[0];
+      final int[] rightIndices = (int[]) erps[1];
       final Hyperplane hyperplane = new Hyperplane((float[]) erps[2]);
       final float offset = (float) erps[3];
 
-      final RandomProjectionTreeNode left_node = make_euclidean_tree(data, left_indices, rng_state, leaf_size);
-      final RandomProjectionTreeNode right_node = make_euclidean_tree(data, right_indices, rng_state, leaf_size);
+      final RandomProjectionTreeNode leftNode = makeEuclideanTree(data, leftIndices, random, leafSize);
+      final RandomProjectionTreeNode rightNode = makeEuclideanTree(data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, left_node, right_node);
+      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
     } else {
       return new RandomProjectionTreeNode(indices, true, null, null, null, null);
     }
   }
 
-// def make_angular_tree(data, indices, rng_state, leaf_size=30):
+// def make_angular_tree(data, indices, random, leaf_size=30):
 //     if indices.shape[0] > leaf_size:
 //         left_indices, right_indices, hyperplane, offset = angular_random_projection_split(
-//             data, indices, rng_state
+//             data, indices, random
 //         )
 
-//         left_node = make_angular_tree(data, left_indices, rng_state, leaf_size)
-//         right_node = make_angular_tree(data, right_indices, rng_state, leaf_size)
+//         left_node = make_angular_tree(data, left_indices, random, leaf_size)
+//         right_node = make_angular_tree(data, right_indices, random, leaf_size)
 
 //         node = RandomProjectionTreeNode(
 //             null, false, hyperplane, offset, left_node, right_node
@@ -497,35 +476,35 @@ class RpTree {
 //     return node
 
 
-  static RandomProjectionTreeNode make_sparse_euclidean_tree(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final long[] rng_state, final int leaf_size) {
-    if (indices.length > leaf_size) {
-      final Object[] erps = sparse_euclidean_random_projection_split(inds, indptr, data, indices, rng_state);
-      final int[] left_indices = (int[]) erps[0];
-      final int[] right_indices = (int[]) erps[1];
+  static RandomProjectionTreeNode makeSparseEuclideanTree(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final Random random, final int leafSize) {
+    if (indices.length > leafSize) {
+      final Object[] erps = sparseEuclideanRandomProjectionSplit(inds, indptr, data, indices, random);
+      final int[] leftIndices = (int[]) erps[0];
+      final int[] rightIndices = (int[]) erps[1];
       final Hyperplane hyperplane = (Hyperplane) erps[2];
       final float offset = (float) erps[3];
 
-      RandomProjectionTreeNode left_node = make_sparse_euclidean_tree(inds, indptr, data, left_indices, rng_state, leaf_size);
-      RandomProjectionTreeNode right_node = make_sparse_euclidean_tree(inds, indptr, data, right_indices, rng_state, leaf_size);
+      RandomProjectionTreeNode leftNode = makeSparseEuclideanTree(inds, indptr, data, leftIndices, random, leafSize);
+      RandomProjectionTreeNode rightNode = makeSparseEuclideanTree(inds, indptr, data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, left_node, right_node);
+      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
     } else {
       return new RandomProjectionTreeNode(indices, true, null, null, null, null);
     }
   }
 
 
-// def make_sparse_angular_tree(inds, indptr, data, indices, rng_state, leaf_size=30):
+// def make_sparse_angular_tree(inds, indptr, data, indices, random, leaf_size=30):
 //     if indices.shape[0] > leaf_size:
 //         left_indices, right_indices, hyperplane, offset = sparse_angular_random_projection_split(
-//             inds, indptr, data, indices, rng_state
+//             inds, indptr, data, indices, random
 //         )
 
 //         left_node = make_sparse_angular_tree(
-//             inds, indptr, data, left_indices, rng_state, leaf_size
+//             inds, indptr, data, left_indices, random, leaf_size
 //         )
 //         right_node = make_sparse_angular_tree(
-//             inds, indptr, data, right_indices, rng_state, leaf_size
+//             inds, indptr, data, right_indices, random, leaf_size
 //         )
 
 //         node = RandomProjectionTreeNode(
@@ -543,7 +522,7 @@ class RpTree {
 //     ----------
 //     data: array of shape (n_samples, n_features)
 //         The original data to be split
-//     rng_state: array of int64, shape (3,)
+//     random: array of int64, shape (3,)
 //         The internal state of the rng
 //     leaf_size: int (optional, default 30)
 //         The maximum size of any leaf node in the tree. Any node in the tree
@@ -558,13 +537,13 @@ class RpTree {
 //         A random projection tree node which links to its child nodes. This
 //         provides the full tree below the returned node.
 //     """
-  static RandomProjectionTreeNode make_tree(final Matrix data, final long[] rng_state, final int leaf_size, final boolean angular) {
-    final boolean is_sparse = data instanceof CsrMatrix;
+  static RandomProjectionTreeNode makeTree(final Matrix data, final Random random, final int leaf_size, final boolean angular) {
+    final boolean isSparse = data instanceof CsrMatrix;
     //final int indices = np.arange(data.shape[0]);
     final int[] indices = MathUtils.identity(data.rows());
 
     // Make a tree recursively until we get below the leaf size
-    if (is_sparse) {
+    if (isSparse) {
       final CsrMatrix csrData = (CsrMatrix) data;
       final int[] inds = csrData.indices;
       final int[] indptr = csrData.indptr;
@@ -572,74 +551,58 @@ class RpTree {
 
       if (angular) {
         throw new UnsupportedOperationException();
-        //return make_sparse_angular_tree(inds, indptr, spdata, indices, rng_state, leaf_size);
+        //return make_sparse_angular_tree(inds, indptr, spdata, indices, random, leaf_size);
       } else {
-        return make_sparse_euclidean_tree(inds, indptr, spdata, indices, rng_state, leaf_size);
+        return makeSparseEuclideanTree(inds, indptr, spdata, indices, random, leaf_size);
       }
     } else {
       if (angular) {
         throw new UnsupportedOperationException();
-        //return make_angular_tree(data, indices, rng_state, leaf_size);
+        //return make_angular_tree(data, indices, random, leaf_size);
       } else {
-        return make_euclidean_tree(data, indices, rng_state, leaf_size);
+        return makeEuclideanTree(data, indices, random, leaf_size);
       }
     }
   }
 
 
-// def num_nodes(tree):
-//     """Determine the number of nodes in a tree"""
-//     if tree.is_leaf:
-//         return 1
-//     else:
-//         return 1 + num_nodes(tree.left_child) + num_nodes(tree.right_child)
-
-
-// def num_leaves(tree):
-//     """Determine the number of leaves in a tree"""
-//     if tree.is_leaf:
-//         return 1
-//     else:
-//         return num_leaves(tree.left_child) + num_leaves(tree.right_child)
-
-
-  //     """Determine the most number on non zeros in a hyperplane entry"""
-  static int max_sparse_hyperplane_size(RandomProjectionTreeNode tree) {
+  // Determine the most number on non zeros in a hyperplane entry.
+  static int maxSparseHyperplaneSize(RandomProjectionTreeNode tree) {
     if (tree.isLeaf()) {
       return 0;
     } else {
       return Math.max(
-        tree.getHyperplane().shape[1],
-        Math.max(max_sparse_hyperplane_size(tree.getLeftChild()),
-          max_sparse_hyperplane_size(tree.getRightChild()))
+        tree.getHyperplane().mShape[1],
+        Math.max(maxSparseHyperplaneSize(tree.getLeftChild()),
+          maxSparseHyperplaneSize(tree.getRightChild()))
       );
     }
   }
 
 
-  static int[] recursive_flatten(final RandomProjectionTreeNode tree, final float[][][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, int node_num, int leaf_num) {
+  static int[] recursiveFlatten(final RandomProjectionTreeNode tree, final float[][][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, int nodeNum, int leafNum) {
     if (tree.isLeaf()) {
-      children[node_num][0] = -leaf_num;
-      //indices[leaf_num, :tree.getIndices().shape[0]] =tree.getIndices();
-      indices[leaf_num] = tree.getIndices();
-      leaf_num += 1;
-      return new int[]{node_num, leaf_num};
+      children[nodeNum][0] = -leafNum;
+      //indices[leafNum, :tree.getIndices().shape[0]] =tree.getIndices();
+      indices[leafNum] = tree.getIndices();
+      leafNum += 1;
+      return new int[]{nodeNum, leafNum};
     } else {
-      if (tree.getHyperplane().shape.length > 1) {
+      if (tree.getHyperplane().mShape.length > 1) {
         // sparse case
-        //hyperplanes[node_num][:, :tree.getHyperplane().shape[1]] =tree.getHyperplane();
+        //hyperplanes[nodeNum][:, :tree.getHyperplane().shape[1]] =tree.getHyperplane();
         throw new UnsupportedOperationException();
       } else {
-        hyperplanes[node_num] = null; //tree.getHyperplane().data; // todo
+        hyperplanes[nodeNum] = null; //tree.getHyperplane().data; // todo
       }
-      offsets[node_num] = tree.getOffset();
-      children[node_num][0] = node_num + 1;
-      final int old_node_num = node_num;
-      final int[] t = recursive_flatten(tree.getLeftChild(), hyperplanes, offsets, children, indices, node_num + 1, leaf_num);
-      node_num = t[0];
-      leaf_num = t[1];
-      children[old_node_num][1] = node_num + 1;
-      return recursive_flatten(tree.getRightChild(), hyperplanes, offsets, children, indices, node_num + 1, leaf_num);
+      offsets[nodeNum] = tree.getOffset();
+      children[nodeNum][0] = nodeNum + 1;
+      final int old_node_num = nodeNum;
+      final int[] t = recursiveFlatten(tree.getLeftChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
+      nodeNum = t[0];
+      leafNum = t[1];
+      children[old_node_num][1] = nodeNum + 1;
+      return recursiveFlatten(tree.getRightChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
     }
   }
 
@@ -652,39 +615,34 @@ class RpTree {
   }
 
 
-  static FlatTree flatten_tree(final RandomProjectionTreeNode tree, int leaf_size) {
-    final int n_nodes = tree.num_nodes();
-    final int n_leaves = tree.num_leaves();
+  static FlatTree flattenTree(final RandomProjectionTreeNode tree, final int leafSize) {
+    final int nNodes = tree.numNodes();
+    final int numLeaves = tree.numLeaves();
 
     final float[][][] hyperplanes;
-    if (tree.getHyperplane().shape.length > 1) {
+    if (tree.getHyperplane().mShape.length > 1) {
       // sparse case
-      final int max_hyperplane_nnz = max_sparse_hyperplane_size(tree);
-      hyperplanes = new float[n_nodes][tree.getHyperplane().shape[0]][max_hyperplane_nnz];
+      final int maxHyperplaneNnz = maxSparseHyperplaneSize(tree);
+      hyperplanes = new float[nNodes][tree.getHyperplane().mShape[0]][maxHyperplaneNnz];
     } else {
-      hyperplanes = new float[n_nodes][tree.getHyperplane().shape[0]][1]; // todo ???
+      hyperplanes = new float[nNodes][tree.getHyperplane().mShape[0]][1]; // todo ???
     }
-    final float[] offsets = new float[n_nodes];
-    final int[][] children = negOnes(n_nodes, 2);
-    final int[][] indices = negOnes(n_leaves, leaf_size);
-    recursive_flatten(tree, hyperplanes, offsets, children, indices, 0, 0);
+    final float[] offsets = new float[nNodes];
+    final int[][] children = negOnes(nNodes, 2);
+    final int[][] indices = negOnes(numLeaves, leafSize);
+    recursiveFlatten(tree, hyperplanes, offsets, children, indices, 0, 0);
     return new FlatTree(hyperplanes, offsets, children, indices);
   }
 
 
- static int select_side(final float[] hyperplane, final float offset, final float[] point, final long[] rng_state) {
+ static int selectSide(final float[] hyperplane, final float offset, final float[] point, final Random random) {
    float margin = offset;
    for (int d = 0; d < point.length; ++d) {
      margin += hyperplane[d] * point[d];
    }
 
    if (Math.abs(margin) < EPS) {
-     final int side = Math.abs(Utils.tau_rand_int(rng_state) % 2);
-     if (side == 0) {
-       return 0;
-     } else {
-       return 1;
-     }
+     return random.nextInt(2);
    } else if (margin > 0) {
      return 0;
    } else {
@@ -692,10 +650,10 @@ class RpTree {
    }
  }
 
- static int[] search_flat_tree(final float[] point, final float[][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, final long[] rng_state) {
+ static int[] searchFlatTree(final float[] point, final float[][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, final Random random) {
    int node = 0;
    while (children[node][0] > 0) {
-     final int side = select_side(hyperplanes[node], offsets[node], point, rng_state);
+     final int side = selectSide(hyperplanes[node], offsets[node], point, random);
      if (side == 0) {
        node = children[node][0];
      } else {
@@ -707,14 +665,14 @@ class RpTree {
  }
 
 
-  //     """Build a random projection forest with ``n_trees``.
+  //     """Build a random projection forest with ``nTrees``.
 //
 //     Parameters
 //     ----------
 //     data
 //     n_neighbors
-//     n_trees
-//     rng_state
+//     nTrees
+//     random
 //     angular
 //
 //     Returns
@@ -722,16 +680,16 @@ class RpTree {
 //     forest: list
 //         A list of random projection trees.
 //     """
-  static List<FlatTree> make_forest(final Matrix data, final int n_neighbors, final int n_trees, final long[] rng_state, final boolean angular) {
+  static List<FlatTree> makeForest(final Matrix data, final int n_neighbors, final int nTrees, final Random random, final boolean angular) {
     final ArrayList<FlatTree> result = new ArrayList<>();
-    final int leaf_size = Math.max(10, n_neighbors);
+    final int leafSize = Math.max(10, n_neighbors);
     try {
-      for (int i = 0; i < n_trees; ++i) {
-        result.add(flatten_tree(make_tree(data, rng_state, leaf_size, angular), leaf_size));
+      for (int i = 0; i < nTrees; ++i) {
+        result.add(flattenTree(makeTree(data, random, leafSize, angular), leafSize));
       }
     } catch (RuntimeException e) {
-      e.printStackTrace();
       Utils.message("Random Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");
+      throw e; // Python blindly continued from this point ... we die for now
     }
     return result;
   }
@@ -750,7 +708,7 @@ class RpTree {
 //         The data for which to generate nearest neighbor approximations.
 //     n_neighbors: int
 //         The number of nearest neighbors to attempt to approximate.
-//     rng_state: array of int64, shape (3,)
+//     random: array of int64, shape (3,)
 //         The internal state of the rng
 //     n_trees: int (optional, default 10)
 //         The number of trees to build in the forest construction.

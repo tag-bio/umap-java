@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 /**
@@ -7,7 +12,7 @@ package com.tagbio.umap;
 public class CooMatrixTest extends AbstractMatrixTest {
 
   Matrix getMatrixA() {
-    return new DefaultMatrix(new float[][] {{0, 1}, {0.5F, 2}, {1, 0}, {0, 3}}).tocoo();
+    return new DefaultMatrix(new float[][] {{0, 1}, {0.5F, 2}, {1, 0}, {0, 3}}).toCoo();
   }
 
   public void testSorted() {

@@ -1,9 +1,14 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 /**
  * @author Sean A. Irvine
  */
-public class Normalize {
+class Normalize {
 
   // After sklearn.preprocessing.normalize
   // todo only need support "max" and "l1" for now

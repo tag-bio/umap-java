@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 import java.util.Arrays;
@@ -212,7 +217,7 @@ abstract class Matrix {
     throw new UnsupportedOperationException();
   }
 
-  CooMatrix tocoo() {
+  CooMatrix toCoo() {
     final int len = (int) (length() - countZeros());
     final int[] row = new int[len];
     final int[] col = new int[len];
@@ -230,7 +235,7 @@ abstract class Matrix {
     return new CooMatrix(data, row, col, shape);
   }
 
-  CsrMatrix tocsr() {
+  CsrMatrix toCsr() {
     final int len = (int) (length() - countZeros());
     final int[] indptr = new int[rows() + 1];
     final int[] indices = new int[len];

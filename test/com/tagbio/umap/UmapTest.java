@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 //from umap.umap_ import (
@@ -67,7 +72,7 @@ public class UmapTest extends TestCase {
     final Umap umap = new Umap();
     umap.setInit("random");
     umap.setVerbose(true);
-    final Matrix matrix = umap.fit_transform(data.getData());
+    final Matrix matrix = umap.fitTransform(data.getData());
     //System.out.println(matrix);
     assertEquals(150, matrix.shape()[0]);
     assertEquals(2, matrix.shape()[1]);
@@ -78,7 +83,7 @@ public class UmapTest extends TestCase {
     final Umap umap = new Umap();
     umap.setInit("random");
     umap.setVerbose(true);
-    final Matrix matrix = umap.fit_transform(data.getData());
+    final Matrix matrix = umap.fitTransform(data.getData());
     //System.out.println(matrix);
     assertEquals(1797, matrix.shape()[0]);
     assertEquals(2, matrix.shape()[1]);

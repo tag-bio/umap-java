@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 import java.util.Set;
@@ -16,9 +21,9 @@ class NearestNeighborSearch {
     mDist = dist;
   }
 
-  Heap initialized_nnd_search(final Matrix data, final int[] indptr, final int[] indices, Heap initialization, final Matrix query_points) {
+  Heap initialized_nnd_search(final Matrix data, final int[] indptr, final int[] indices, Heap initialization, final Matrix queryPoints) {
 
-    for (int i = 0; i < query_points.rows(); ++i) {
+    for (int i = 0; i < queryPoints.rows(); ++i) {
 
       final Set<Integer> tried = new TreeSet<>();
       for (final int t : initialization.indices[i]) {
@@ -28,7 +33,7 @@ class NearestNeighborSearch {
       while (true) {
 
         // Find smallest flagged vertex
-        final int vertex = Utils.smallest_flagged(initialization, i);
+        final int vertex = Utils.smallestFlagged(initialization, i);
 
         if (vertex == -1) {
           break;
@@ -39,8 +44,8 @@ class NearestNeighborSearch {
           if (candidates[j] == vertex || candidates[j] == -1 || tried.contains(candidates[j])) {
             continue;
           }
-          float d = (float) mDist.distance(data.row(candidates[j]), query_points.row(i));
-          Utils.unchecked_heap_push(initialization, i, d, candidates[j], true);
+          float d = (float) mDist.distance(data.row(candidates[j]), queryPoints.row(i));
+          Utils.uncheckedHeapPush(initialization, i, d, candidates[j], true);
           tried.add(candidates[j]);
         }
       }

@@ -6,15 +6,14 @@
 package com.tagbio.umap.metric;
 
 /**
- * Dice distance.
- * @author Sean A. Irvine
+ * Sokal Sneath distance.
  */
-public class DiceMetric extends Metric {
+public class SokalSneathMetric extends Metric {
 
-  public static final DiceMetric SINGLETON = new DiceMetric();
+  public static final SokalSneathMetric SINGLETON = new SokalSneathMetric();
 
-  private DiceMetric() {
-    super(true);
+  private SokalSneathMetric() {
+    super(false);
   }
 
   @Override
@@ -24,14 +23,13 @@ public class DiceMetric extends Metric {
     for (int i = 0; i < x.length; ++i) {
       final boolean xTrue = x[i] != 0;
       final boolean yTrue = y[i] != 0;
-      numTrueTrue += xTrue && yTrue ? 1 : 0;
-      numNotEqual += xTrue != yTrue ? 1 : 0;
+      if (xTrue && yTrue) {
+        ++numTrueTrue;
+      }
+      if (xTrue != yTrue) {
+        ++numNotEqual;
+      }
     }
-
-    if (numNotEqual == 0) {
-      return 0.0;
-    } else {
-      return numNotEqual / (2.0 * numTrueTrue + numNotEqual);
-    }
+    return numNotEqual == 0.0 ? 0.0 : numNotEqual / (0.5 * numTrueTrue + numNotEqual);
   }
 }

@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 // # Author: Leland McInnes <leland.mcinnes@gmail.com>
@@ -51,7 +56,7 @@ class Sparse {
   }
 
 
-  static int[] arr_unique(final int[] a) {
+  static int[] arrUnique(final int[] a) {
     Arrays.sort(a);
     int dups = countDups(a);
     if (dups == 0) {
@@ -66,18 +71,17 @@ class Sparse {
     return res;
   }
 
-  static int[] arr_union(final int[] ar1, final int[] ar2) {
+  static int[] arrUnion(final int[] ar1, final int[] ar2) {
     if (ar1.length == 0) {
       return ar2;
     } else if (ar2.length == 0) {
       return ar1;
     } else {
-      return arr_unique(MathUtils.concatenate(ar1, ar2));
+      return arrUnique(MathUtils.concatenate(ar1, ar2));
     }
   }
 
-
- static int[] arr_intersect(final int[] ar1, final int[] ar2) {
+  static int[] arrIntersect(final int[] ar1, final int[] ar2) {
    final int[] res = new int[Math.max(ar1.length, ar2.length)];
    int k = 0;
    int j = 0;
@@ -97,9 +101,9 @@ class Sparse {
  }
 
 
-  static Object[] sparse_sum(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
-    final int[] result_ind = arr_union(ind1, ind2);
-    final float[] result_data = new float[result_ind.length];
+  static Object[] sparseSum(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
+    final int[] resultInd = arrUnion(ind1, ind2);
+    final float[] resultData = new float[resultInd.length];
 
     int i1 = 0;
     int i2 = 0;
@@ -113,8 +117,8 @@ class Sparse {
       if (j1 == j2) {
         final float val = data1[i1] + data2[i2];
         if (val != 0) {
-          result_ind[nnz] = j1;
-          result_data[nnz] = val;
+          resultInd[nnz] = j1;
+          resultData[nnz] = val;
           nnz += 1;
         }
         i1 += 1;
@@ -122,16 +126,16 @@ class Sparse {
       } else if (j1 < j2) {
         final float val = data1[i1];
         if (val != 0) {
-          result_ind[nnz] = j1;
-          result_data[nnz] = val;
+          resultInd[nnz] = j1;
+          resultData[nnz] = val;
           nnz += 1;
         }
         i1 += 1;
       } else {
         final float val = data2[i2];
         if (val != 0) {
-          result_ind[nnz] = j2;
-          result_data[nnz] = val;
+          resultInd[nnz] = j2;
+          resultData[nnz] = val;
           nnz += 1;
         }
         i2 += 1;
@@ -142,8 +146,8 @@ class Sparse {
     while (i1 < ind1.length) {
       final float val = data1[i1];
       if (val != 0) {
-        result_ind[nnz] = i1;
-        result_data[nnz] = val;
+        resultInd[nnz] = i1;
+        resultData[nnz] = val;
         nnz += 1;
       }
       i1 += 1;
@@ -152,26 +156,30 @@ class Sparse {
     while (i2 < ind2.length) {
       final float val = data2[i2];
       if (val != 0) {
-        result_ind[nnz] = i2;
-        result_data[nnz] = val;
+        resultInd[nnz] = i2;
+        resultData[nnz] = val;
         nnz += 1;
       }
       i2 += 1;
     }
 
-    // truncate to the correct length in case there were zeros created
-    return new Object[]{Arrays.copyOf(result_ind, nnz), Arrays.copyOf(result_data, nnz)};
+    if (nnz == resultInd.length) {
+      return new Object[] {resultInd, resultData};
+    } else {
+      // truncate to the correct length in case there were zeros created
+      return new Object[]{Arrays.copyOf(resultInd, nnz), Arrays.copyOf(resultData, nnz)};
+    }
   }
 
 
-  static Object[] sparse_diff(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
-    return sparse_sum(ind1, data1, ind2, MathUtils.negate(data2));
+  static Object[] sparseDiff(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
+    return sparseSum(ind1, data1, ind2, MathUtils.negate(data2));
   }
 
 
  static Object[] sparse_mul(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
-   final int[] result_ind = arr_intersect(ind1, ind2);
-   final float[] result_data = new float[result_ind.length];
+   final int[] resultInd = arrIntersect(ind1, ind2);
+   final float[] resultData = new float[resultInd.length];
 
    int i1 = 0;
    int i2 = 0;
@@ -185,8 +193,8 @@ class Sparse {
      if (j1 == j2) {
        final float val = data1[i1] * data2[i2];
        if (val != 0) {
-         result_ind[nnz] = j1;
-         result_data[nnz] = val;
+         resultInd[nnz] = j1;
+         resultData[nnz] = val;
          ++nnz;
        }
        ++i1;
@@ -198,8 +206,12 @@ class Sparse {
      }
    }
 
-   // truncate to the correct length in case there were zeros created
-   return new Object[]{Arrays.copyOf(result_ind, nnz), Arrays.copyOf(result_data, nnz)};
+   if (nnz == resultInd.length) {
+     return new Object[] {resultInd, resultData};
+   } else {
+     // truncate to the correct length in case there were zeros created
+     return new Object[]{Arrays.copyOf(resultInd, nnz), Arrays.copyOf(resultData, nnz)};
+   }
  }
 
 
@@ -337,34 +349,34 @@ class Sparse {
 //     return nn_descent
 
 
-  static void  general_sset_intersection(int[] indptr1, int[] indices1, float[] data1, int[] indptr2, int[] indices2, float[] data2, int[] result_row, int[] result_col, float[] result_val, double mix_weight) {
+  static void generalSsetIntersection(final int[] indptr1, final int[] indices1, final float[] data1, final int[] indptr2, final int[] indices2, final float[] data2, final int[] resultRow, final int[] resultCol, final float[] resultVal, final float mixWeight) {
 
-    final double left_min = Math.max(MathUtils.min(data1) / 2.0, 1.0e-8);
-    final double right_min = Math.max(MathUtils.min(data2) / 2.0, 1.0e-8);
+    final float leftMin = Math.max(MathUtils.min(data1) / 2.0F, 1.0e-8F);
+    final float rightMin = Math.max(MathUtils.min(data2) / 2.0F, 1.0e-8F);
 
-    for (int idx = 0; idx < result_row.length; ++idx) {
-      final int i = result_row[idx];
-      final int j = result_col[idx];
+    for (int idx = 0; idx < resultRow.length; ++idx) {
+      final int i = resultRow[idx];
+      final int j = resultCol[idx];
 
-      double left_val = left_min;
+      float leftVal = leftMin;
       for (int k = indptr1[i]; k < indptr1[i + 1]; ++k) {
         if (indices1[k] == j) {
-          left_val = data1[k];
+          leftVal = data1[k];
         }
       }
 
-      double right_val = right_min;
+      float rightVal = rightMin;
       for (int k = indptr2[i]; k < indptr2[i + 1]; ++k) {
         if (indices2[k] == j) {
-          right_val = data2[k];
+          rightVal = data2[k];
         }
       }
 
-      if (left_val > left_min || right_val > right_min) {
-        if (mix_weight < 0.5) {
-          result_val[idx] = (float) (left_val * Math.pow(right_val, mix_weight / (1.0 - mix_weight)));
+      if (leftVal > leftMin || rightVal > rightMin) {
+        if (mixWeight < 0.5) {
+          resultVal[idx] = (float) (leftVal * Math.pow(rightVal, mixWeight / (1.0 - mixWeight)));
         } else {
-          result_val[idx] = (float) (Math.pow(left_val, (1.0 - mix_weight) / mix_weight) * right_val);
+          resultVal[idx] = (float) (Math.pow(leftVal, (1.0 - mixWeight) / mixWeight) * rightVal);
         }
       }
     }

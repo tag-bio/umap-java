@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap;
 
 /**
@@ -7,7 +12,7 @@ package com.tagbio.umap;
  * @author Sean A. Irvine
  * @author John Cleary
  */
-public final class Sort {
+final class Sort {
 
   private Sort() {
   }

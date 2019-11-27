@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package com.tagbio.umap.metric;
 
 /**
@@ -7,7 +12,7 @@ public class RogersTanimotoMetric extends Metric {
 
   public static final RogersTanimotoMetric SINGLETON = new RogersTanimotoMetric();
 
-  private RogersTanimotoMetric() {
+  RogersTanimotoMetric() {
     super(false);
   }
 
