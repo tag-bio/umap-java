@@ -85,10 +85,120 @@ public class MathUtilsTest extends TestCase {
   public void testArgSort() {
     float[] data = new float[] {9,2,3,5,1,12,34,26,0,-43};
     int[] res = MathUtils.argsort(data);
-    assertEquals(data.length, res.length);
-    int[] expected = new int[]{9,8,4,1,2,3,0,5,7,6};
-    for (int i = 0; i < res.length; ++i) {
-      assertEquals("i="+i, expected[i], res[i]);
+    assertTrue(Arrays.equals(new int[]{9,8,4,1,2,3,0,5,7,6}, res));
+  }
+
+  public void testPromoteTranspose() {
+    float[] data = {9, 2, 3, 5, 1, 12, 34, 26, 0, -43};
+    final Matrix matrix = MathUtils.promoteTranspose(data);
+    assertTrue(Arrays.equals(new int[]{10, 1}, matrix.shape));
+    assertTrue(Arrays.equals(data, matrix.transpose().row(0)));
+  }
+
+  public void testSubArray1D() {
+    float[] floatSubArray = MathUtils.subarray(new float[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, 2, 7);
+    assertTrue(Arrays.equals(new float[]{3, 5, 1, 12, 34}, floatSubArray));
+    int[] intSubArray = MathUtils.subarray(new int[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, 1, 4);
+    assertTrue(Arrays.equals(new int[]{2, 3, 5}, intSubArray));
+    try {
+      MathUtils.subarray(new float[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, 7, 2);
+      fail("bad array limits");
+    } catch (NegativeArraySizeException nase) {
+      ;
+    }
+     try {
+      MathUtils.subarray(new int[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, 7, 2);
+      fail("bad array limits");
+    } catch (NegativeArraySizeException nase) {
+      ;
+    }
+   try {
+      MathUtils.subarray(new float[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, 2, 11);
+      fail("bad array limits");
+    } catch (IndexOutOfBoundsException ioobe) {
+      ;
+    }
+    try {
+      MathUtils.subarray(new int[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, 2, 11);
+      fail("bad array limits");
+    } catch (IndexOutOfBoundsException ioobe) {
+      ;
     }
   }
+
+  public void testSubArray2D() {
+    float[][] floatSubArray = MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 2);
+    assertEquals(3, floatSubArray.length);
+    for (int i = 0; i < 3; ++i) {
+      assertEquals("row" + i, 2, floatSubArray[i].length);
+    }
+    assertTrue(Arrays.equals(new float[]{1,2}, floatSubArray[0]));
+    assertTrue(Arrays.equals(new float[]{4,5}, floatSubArray[1]));
+    assertTrue(Arrays.equals(new float[]{7,8}, floatSubArray[2]));
+
+    int[][] intSubArray = MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 2);
+    assertEquals(3, intSubArray.length);
+    for (int i = 0; i < 3; ++i) {
+      assertEquals("row" + i, 2, intSubArray[i].length);
+    }
+    assertTrue(Arrays.equals(new int[]{1,2}, intSubArray[0]));
+    assertTrue(Arrays.equals(new int[]{4,5}, intSubArray[1]));
+    assertTrue(Arrays.equals(new int[]{7,8}, intSubArray[2]));
+
+    floatSubArray = MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 0);
+    assertEquals(3, floatSubArray.length);
+    for (int i = 0; i < 3; ++i) {
+      assertEquals("row" + i, 0, floatSubArray[i].length);
+    }
+
+    floatSubArray = MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 4);
+    assertEquals(3, floatSubArray.length);
+    for (int i = 0; i < 3; ++i) {
+      assertEquals("row" + i, 3, floatSubArray[i].length);
+    }
+    try {
+      MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, -22);
+      fail("bad array limits");
+    } catch (NegativeArraySizeException nase) {
+      ;
+    }
+
+    intSubArray = MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 0);
+    assertEquals(3, intSubArray.length);
+    for (int i = 0; i < 3; ++i) {
+      assertEquals("row" + i, 0, intSubArray[i].length);
+    }
+
+    intSubArray = MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 4);
+    assertEquals(3, intSubArray.length);
+    for (int i = 0; i < 3; ++i) {
+      assertEquals("row" + i, 3, intSubArray[i].length);
+    }
+    try {
+      MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, -2);
+      fail("bad array limits");
+    } catch (NegativeArraySizeException nase) {
+      ;
+    }
+
+ }
+
+  public void testZeroEntriesBelowLimit() {
+    float[] data = {9, 2, 3, 5, 1, 12, 34, 26, 0, -43};
+    MathUtils.zeroEntriesBelowLimit(data, 9);
+    assertTrue(Arrays.equals(new float[] {9, 0, 0, 0, 0, 12, 34, 26, 0, 0}, data));
+  }
+
+  public void testNegate() {
+    float[] negate = MathUtils.negate(new float[] {9, 2, 3, 5, 1, 12, 34, 26, 0, -43});
+    System.out.println(Arrays.toString(negate));
+    assertTrue(Arrays.equals(new float[] {-9, -2, -3, -5, -1, -12, -34, -26, 0, 43}, negate));
+    assertEquals(0.0F, negate[8]);
+  }
+
+  public void testConcatenate() {
+    int[] res = MathUtils.concatenate(new int []{9, 2, 3, 5, 1, 12}, new int[] { 34, 26, 0, -43});
+    assertTrue(Arrays.equals(new int[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, res));
+  }
 }
+
