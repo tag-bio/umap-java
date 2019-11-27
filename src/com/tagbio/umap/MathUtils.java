@@ -42,7 +42,7 @@ class MathUtils {
     return min;
   }
 
-  static double mean(final float[] x) {
+  static double mean(final float... x) {
     double s = 0;
     for (final float v : x) {
       s += v;
@@ -62,20 +62,20 @@ class MathUtils {
     return s / c;
   }
 
-  static double mean(final float[][] x, final int col) {
-    double s = 0;
-    for (final float[] row : x) {
-        s += row[col];
-    }
-    return s / x.length;
-  }
+//  static double mean(final float[][] x, final int col) {
+//    double s = 0;
+//    for (final float[] row : x) {
+//        s += row[col];
+//    }
+//    return s / x.length;
+//  }
 
   /**
    * Retain only positive members of x in a new array.
    * @param x array
    * @return positives
    */
-  static float[] filterPositive(final float[] x) {
+  static float[] filterPositive(final float... x) {
     int len = 0;
     for (final float v : x) {
       if (v > 0) {
