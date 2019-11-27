@@ -105,6 +105,33 @@ public class UmapTest extends TestCase {
 //    }
 //  }
 
+  public void testFindABParams() throws IOException {
+    final Data data = new IrisData();
+    final Umap umap = new Umap();
+    umap.setInit("random");
+
+    for (float spread : new float[]{-1.234F, 0.0F, 2.0F, 0.49F, 1.51F}) {
+      umap.setSpread(spread);
+      try {
+        umap.fit_transform(data.getData());
+        fail("Accepted bad spread " + spread);
+      } catch (IllegalArgumentException iae) {
+        assertTrue(iae.getMessage().contains("spread"));
+      }
+    }
+    umap.setSpread(1.0F);
+    for (float dist : new float[]{-1.234F, 0.0F, 1.0F, 1.51F}) {
+      umap.setMinDist(dist);
+      try {
+        umap.fit_transform(data.getData());
+        fail("Accepted bad dist " + dist);
+      } catch (IllegalArgumentException iae) {
+        assertTrue(iae.getMessage().contains("dist"));
+      }
+    }
+
+  }
+
 //np.random.seed(42)
 //spatial_data = np.random.randn(10, 20)
 //spatial_data = np.vstack(

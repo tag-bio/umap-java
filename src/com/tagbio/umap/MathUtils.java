@@ -122,7 +122,7 @@ class MathUtils {
   static float[] linspace(final float start, final float end, final int n) {
     final float[] res = new float[n];
     final float span = end - start;
-    final float step = span / n;
+    final float step = span / (n - 1);
     for (int k = 0; k < res.length; ++k) {
       res[k] = start + k * step;
     }

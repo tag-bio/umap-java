@@ -5,22 +5,22 @@ package com.tagbio.umap;
  */
 
 class Curve {
-    Curve() {
-    }
+  Curve() {
+  }
 
-    private static double curve(final float x, final float a, final float b) {
-        return 1.0 / (1.0 + a * Math.pow(x, 2 * b));
-    }
+  private static double curve(final float x, final float a, final float b) {
+    return 1.0 / (1.0 + a * Math.pow(x, 2 * b));
+  }
 
-    private static float[] wrap_curve(final float[] x, final float[] y, final float a, final float b) {
-        final float[] res = new float[x.length];
-        for (int i = 0; i < x.length; i++) {
-            res[i] = (float) (curve(x[i], a, b) - y[i]);
-        }
-        return res;
+  private static float[] wrap_curve(final float[] x, final float[] y, final float a, final float b) {
+    final float[] res = new float[x.length];
+    for (int i = 0; i < x.length; i++) {
+      res[i] = (float) (curve(x[i], a, b) - y[i]);
     }
+    return res;
+  }
 
-    public static float[] curve_fit(float[] xdata, float[] ydata) {
+  public static float[] curve_fit(float[] xdata, float[] ydata) {
       // Used curve method above
 
 //        def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
@@ -195,133 +195,47 @@ class Curve {
 //    >>> plt.show()
 //
 //    """
-//        if p0 is None:
-//        //# determine number of parameters by inspecting the function
-//        from scipy._lib._util import getargspec_no_self as _getargspec
-//                args, varargs, varkw, defaults = _getargspec(f)
-//        if len(args) < 2:
-//        raise ValueError("Unable to determine number of fit parameters.")
-//        n = len(args) - 1
-//
-//    else:
-//        p0 = np.atleast_1d(p0)
-//        n = p0.size
-      final int n = 2;  // number of fit parameters
+    final int n = 2;  // number of fit parameters fixed to 2 (a and b)
 
-      //lb, ub = prepare_bounds(bounds, n)
-      final float[] lb = {Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY};
-      final float[] ub = {Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY};
+    //lb, ub = prepare_bounds(bounds, n)
+    final float[] lb = {Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY};
+    final float[] ub = {Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY};
+    float[] p0 = {1.0F, 1.0F};
 
-      //if p0 is None:
-      //p0 = _initialize_feasible(lb, ub)
-      float[] p0 = {1.0F, 1.0F};
+    // only need lm method due to constraints above
+    //final String method = "lm";
 
-//        bounded_problem = np.any((lb > -np.inf) | (ub < np.inf))
-//        if method is None:
-//        if bounded_problem:
-//        method = 'trf'
-//        else:
-//        method = 'lm'
-      final String method = "lm";
+    checkValues(xdata);
+    checkValues(ydata);
 
-      // NO NEED TO TEST
-//        if method == 'lm' and bounded_problem:
-//        raise ValueError("Method 'lm' only works for unconstrained problems. "
-//        "Use 'trf' or 'dogbox' instead.")
+    //func = _wrap_func(f, xdata, ydata, transform)
+    // TODO want func(xdata, *params) - ydata - see wrap_curve above
+    // following is ripped out of leastsq function
+    float[] wrapped_curve = wrap_curve(xdata, ydata, p0[0], p0[1]);
+    final int m = wrapped_curve.length;
+    assert n > m;
 
-      //# optimization may produce garbage for float32 inputs, cast them to float64
+    final float epsfcn = 2.220446049250313e-16F; // smallest representable float
+    assert epsfcn + 1.0f != 1.0f;
+    final int maxfev = 200 * (n + 1);
 
-      //# NaNs can not be handled
-//        if check_finite:
-//        ydata = np.asarray_chkfinite(ydata, float)
-//    else:
-//        ydata = np.asarray(ydata, float)
-      for (final float value : ydata) {
-        if (Float.isNaN(value) || Float.isInfinite(value)) {
-          throw new IllegalArgumentException("Array cannot contain NaN or Infinity.");
-        }
-      }
-
-//        if isinstance(xdata, (list, tuple, np.ndarray)):
-//        //# `xdata` is passed straight to the user-defined `f`, so allow
-//        //# non-array_like `xdata`.
-//        if check_finite:
-//        xdata = np.asarray_chkfinite(xdata, float)
-//        else:
-//        xdata = np.asarray(xdata, float)
-      for (final float value : xdata) {
-        if (Float.isNaN(value) || Float.isInfinite(value)) {
-          throw new IllegalArgumentException("Array cannot contain NaN or Infinity.");
-        }
-      }
-
-//        if ydata.size == 0:
-//        raise ValueError("`ydata` must not be empty!")
-      if (ydata.length == 0) {
-        throw new IllegalArgumentException("ydata must not be empty.");
-      }
-
-      //# Determine type of sigma
-//        if sigma is not None:
-//        sigma = np.asarray(sigma)
-//
-//        //# if 1-d, sigma are errors, define transform = 1/sigma
-//        if sigma.shape == (ydata.size, ):
-//        transform = 1.0 / sigma
-//        //# if 2-d, sigma is the covariance matrix,
-//        //# define transform = L such that L L^T = C
-//        elif sigma.shape == (ydata.size, ydata.size):
-//        try:
-//                //# scipy.linalg.cholesky requires lower=True to return L L^T = A
-//        transform = cholesky(sigma, lower=True)
-//        except LinAlgError:
-//        raise ValueError("`sigma` must be positive definite.")
-//        else:
-//        raise ValueError("`sigma` has incorrect shape.")
-//    else:
-//        transform = None
-
-      //func = _wrap_func(f, xdata, ydata, transform)
-      // TODO want func(xdata, *params) - ydata - see wrap_curve above
-
-//        if callable(jac):
-//        jac = _wrap_jac(jac, xdata, transform)
-//        elif jac is None and method != 'lm':
-//        jac = '2-point'
-      // jac is None
+    int col_deriv=0;
+    float ftol=1.49012e-8F;
+    float xtol=1.49012e-8F;
+    float gtol=0.0F;
+    int factor=100;
 
       //       if method == 'lm':
-      //# Remove full_output from kwargs, otherwise we're passing it in twice.
-      //return_full = kwargs.pop('full_output', False)
-//
-//        res = leastsq(func, p0, Dfun=jac, full_output=1, **kwargs)
+ //
+        //res = leastsq(func, p0, full_output=1)
 //
 //        popt, pcov, infodict, errmsg, ier = res
 //        cost = np.sum(infodict['fvec'] ** 2)
 //        if ier not in [1, 2, 3, 4]:
 //        raise RuntimeError("Optimal parameters not found: " + errmsg)
-//    else:
-//        //# Rename maxfev (leastsq) to max_nfev (least_squares), if specified.
-//        if 'max_nfev' not in kwargs:
-//        kwargs['max_nfev'] = kwargs.pop('maxfev', None)
-//
-//        res = least_squares(func, p0, jac=jac, bounds=bounds, method=method,
-//                **kwargs)
-//
-//        if not res.success:
-//        raise RuntimeError("Optimal parameters not found: " + res.message)
-//
-//        cost = 2 * res.cost  //# res.cost is half sum of squares!
-//                popt = res.x
-//
-//        //# Do Moore-Penrose inverse discarding zero singular values.
-//                _, s, VT = svd(res.jac, full_matrices=False)
-//        threshold = np.finfo(float).eps * max(res.jac.shape) * s[0]
-//        s = s[s > threshold]
-//        VT = VT[:s.size]
-//        pcov = np.dot(VT.T / s**2, VT)
-//        return_full = False
-//
+
+
+
 //        warn_cov = False
 //        if pcov is None:
 //        //# indeterminate covariance
@@ -344,8 +258,8 @@ class Curve {
 //        return popt, pcov, infodict, errmsg, ier
 //    else:
 //        return popt, pcov
-//        return null;
-//    }
+    return null;
+  }
 //
 //
 //    static float[] leastsq(func, x0, args=(), Dfun=None, full_output=0,
@@ -535,7 +449,18 @@ class Curve {
 //    elif info == 0:
 //    raise errors[info][1](errors[info][0])
 //            return retval[0], info
-      return null;
+//      return null;
+//    }
+
+  private static void checkValues(float[] data) {
+    if (data.length == 0) {
+      throw new IllegalArgumentException("Array must not be empty.");
     }
+    for (final float value : data) {
+      if (Float.isNaN(value) || Float.isInfinite(value)) {
+        throw new IllegalArgumentException("Array cannot contain NaN or Infinity.");
+      }
+    }
+  }
 }
 
