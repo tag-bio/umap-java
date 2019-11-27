@@ -118,7 +118,7 @@ public class UmapTest extends TestCase {
     for (float spread : new float[]{-1.234F, 0.0F, 2.0F, 0.49F, 1.51F}) {
       umap.setSpread(spread);
       try {
-        umap.fit_transform(data.getData());
+        umap.fitTransform(data.getData());
         fail("Accepted bad spread " + spread);
       } catch (IllegalArgumentException iae) {
         assertTrue(iae.getMessage().contains("spread"));
@@ -126,15 +126,14 @@ public class UmapTest extends TestCase {
     }
     umap.setSpread(1.0F);
     for (float dist : new float[]{-1.234F, 0.0F, 1.0F, 1.51F}) {
-      umap.setMinDist(dist);
       try {
-        umap.fit_transform(data.getData());
+        umap.setMinDist(dist);
+        umap.fitTransform(data.getData());
         fail("Accepted bad dist " + dist);
       } catch (IllegalArgumentException iae) {
         assertTrue(iae.getMessage().contains("dist"));
       }
     }
-
   }
 
 //np.random.seed(42)

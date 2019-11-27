@@ -991,7 +991,7 @@ public class Umap {
     float start = spreadDist[spreadIndex][distIndex] + distDelta * (spreadDist[spreadIndex][distIndex+1] - spreadDist[spreadIndex][distIndex]);
     float end = spreadDist[spreadIndex+1][distIndex] + distDelta * (spreadDist[spreadIndex+1][distIndex+1] - spreadDist[spreadIndex+1][distIndex]);
     float val = start + spreadDelta * (end - start);
-    System.out.println(spreadDelta + " : " + distDelta + " : " + start + " : " + end + " : " + val);
+    //System.out.println(spreadDelta + " : " + distDelta + " : " + start + " : " + end + " : " + val);
     return val;
   }
 
@@ -1018,7 +1018,7 @@ public class Umap {
   // smooth curve (from a pre-defined family with simple gradient) that
   // best matches an offset exponential decay.
   private static float[] find_ab_params(float spread, float min_dist) {
-    System.out.println("find_ab_params(" + spread + ", " + min_dist + ")");
+    //System.out.println("find_ab_params(" + spread + ", " + min_dist + ")");
     /*
     float[] xv = MathUtils.linspace(0, spread * 3, 300);
     float[] yv = new float[xv.length];
