@@ -61,6 +61,22 @@ abstract class Matrix {
     return sb.toString();
   }
 
+  public String toStringNumpy() {
+    final StringBuilder sb = new StringBuilder("np.matrix([");
+    for (int row = 0; row < rows(); ++row) {
+      sb.append('[');
+      for (int col = 0; col < cols(); ++col) {
+        if (col > 0) {
+          sb.append(',');
+        }
+        sb.append(get(row, col));
+      }
+      sb.append("],");
+    }
+    sb.append("])");
+    return sb.toString();
+  }
+
   @Override
   public boolean equals(final Object obj) {
     if (!(obj instanceof Matrix)) {
@@ -257,6 +273,16 @@ abstract class Matrix {
   Matrix copy() {
     // todo this should be a copy of the matrix of same type -- generics on params?
     throw new UnsupportedOperationException();
+  }
+
+  float[][] toArray() {
+    final float[][] res = new float[rows()][cols()];
+    for (int r = 0; r < rows(); ++r) {
+      for (int c = 0; c < cols(); ++c) {
+        res[r][c] = get(r, c);
+      }
+    }
+    return res;
   }
 
   /**

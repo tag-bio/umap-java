@@ -16,6 +16,8 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.zip.GZIPInputStream;
 
+import com.tagbio.umap.metric.EuclideanMetric;
+
 abstract class Data {
   private float[][] mData;
   private final List<String> mAttributes = new ArrayList<>();
@@ -77,6 +79,16 @@ abstract class Data {
 
   public String[] getSampleNames() {
     return mSampleNames.toArray(new String[0]);
+  }
+
+  /**
+   * Return this dataset as a square matrix of pairwise distances between instances,
+   * with respect to Euclidean distance. Useful for testing.
+   * @return distance matrix
+   */
+  public Matrix getDistances() {
+    final Matrix instances = new DefaultMatrix(getData());
+    return PairwiseDistances.pairwiseDistances(instances, EuclideanMetric.SINGLETON);
   }
 }
 
