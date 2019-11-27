@@ -127,7 +127,7 @@ public class MathUtilsTest extends TestCase {
   }
 
   public void testSubArray2D() {
-    float[][] floatSubArray = MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 2);
+    float[][] floatSubArray = MathUtils.subarray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 2);
     assertEquals(3, floatSubArray.length);
     for (int i = 0; i < 3; ++i) {
       assertEquals("row" + i, 2, floatSubArray[i].length);
@@ -136,7 +136,7 @@ public class MathUtilsTest extends TestCase {
     assertTrue(Arrays.equals(new float[]{4,5}, floatSubArray[1]));
     assertTrue(Arrays.equals(new float[]{7,8}, floatSubArray[2]));
 
-    int[][] intSubArray = MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 2);
+    int[][] intSubArray = MathUtils.subarray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 2);
     assertEquals(3, intSubArray.length);
     for (int i = 0; i < 3; ++i) {
       assertEquals("row" + i, 2, intSubArray[i].length);
@@ -145,37 +145,37 @@ public class MathUtilsTest extends TestCase {
     assertTrue(Arrays.equals(new int[]{4,5}, intSubArray[1]));
     assertTrue(Arrays.equals(new int[]{7,8}, intSubArray[2]));
 
-    floatSubArray = MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 0);
+    floatSubArray = MathUtils.subarray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 0);
     assertEquals(3, floatSubArray.length);
     for (int i = 0; i < 3; ++i) {
       assertEquals("row" + i, 0, floatSubArray[i].length);
     }
 
-    floatSubArray = MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 4);
+    floatSubArray = MathUtils.subarray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 5);
     assertEquals(3, floatSubArray.length);
     for (int i = 0; i < 3; ++i) {
-      assertEquals("row" + i, 3, floatSubArray[i].length);
+      assertEquals("row" + i, 5, floatSubArray[i].length);
     }
     try {
-      MathUtils.subArray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, -22);
+      MathUtils.subarray(new float[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, -22);
       fail("bad array limits");
     } catch (NegativeArraySizeException nase) {
       ;
     }
 
-    intSubArray = MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 0);
+    intSubArray = MathUtils.subarray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 0);
     assertEquals(3, intSubArray.length);
     for (int i = 0; i < 3; ++i) {
       assertEquals("row" + i, 0, intSubArray[i].length);
     }
 
-    intSubArray = MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 4);
+    intSubArray = MathUtils.subarray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, 4);
     assertEquals(3, intSubArray.length);
     for (int i = 0; i < 3; ++i) {
-      assertEquals("row" + i, 3, intSubArray[i].length);
+      assertEquals("row" + i, 4, intSubArray[i].length);
     }
     try {
-      MathUtils.subArray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, -2);
+      MathUtils.subarray(new int[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, -2);
       fail("bad array limits");
     } catch (NegativeArraySizeException nase) {
       ;

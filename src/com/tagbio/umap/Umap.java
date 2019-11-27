@@ -1574,7 +1574,7 @@ public class Umap {
     float[][] dists;
     if (this.mSmallData) {
       Matrix dmat = PairwiseDistances.pairwiseDistances(X, mRawData, mMetric);
-      indices = MathUtils.subArray(MathUtils.argpartition(dmat, _n_neighbors), _n_neighbors);
+      indices = MathUtils.subarray(MathUtils.argpartition(dmat, _n_neighbors), _n_neighbors);
       float[][] dmatShortened = Utils.submatrix(dmat, indices, _n_neighbors);
       int[][] indicesSorted = MathUtils.argsort(dmatShortened);
       indices = Utils.submatrix(indices, indicesSorted, _n_neighbors);
@@ -1585,8 +1585,8 @@ public class Umap {
       result = Utils.deheapSort(result);
       indices = result.indices;
       dists = result.weights;
-      indices = MathUtils.subArray(indices, _n_neighbors);
-      dists = MathUtils.subArray(dists, _n_neighbors);
+      indices = MathUtils.subarray(indices, _n_neighbors);
+      dists = MathUtils.subarray(dists, _n_neighbors);
     }
 
     int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);

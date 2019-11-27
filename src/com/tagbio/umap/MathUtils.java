@@ -168,7 +168,7 @@ class MathUtils {
     }
   }
 
-  static float[][] subArray(final float[][] x, final int cols) {
+  static float[][] subarray(final float[][] x, final int cols) {
     final float[][] res = new float[x.length][];
     for (int k = 0; k < x.length; ++k) {
       res[k] = Arrays.copyOf(x[k], cols);
@@ -176,7 +176,7 @@ class MathUtils {
     return res;
   }
 
-  static int[][] subArray(final int[][] x, final int cols) {
+  static int[][] subarray(final int[][] x, final int cols) {
     final int[][] res = new int[x.length][];
     for (int k = 0; k < x.length; ++k) {
       res[k] = Arrays.copyOf(x[k], cols);
@@ -229,7 +229,7 @@ class MathUtils {
   static float[] negate(final float[] a) {
     final float[] res = new float[a.length];
     for (int k = 0; k < a.length; ++k) {
-      res[k] = -a[k];
+      res[k] = a[k] == 0.0f ? a[k] : -a[k];
     }
     return res;
   }
