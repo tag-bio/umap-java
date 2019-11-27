@@ -95,5 +95,16 @@ public abstract class AbstractMatrixTest extends TestCase {
     assertEquals(0.0f, m.get(2, 1));
     assertEquals(0.0f, m.get(3, 0));
     assertEquals(3.0f, m.get(3, 1));
- }
+  }
+
+  public void testHadamardMultiply() {
+    final Matrix m = getMatrixA();
+    final Matrix res = m.hadamardMultiply(m);
+    assertTrue(Arrays.equals(m.shape, res.shape));
+    for (int r = 0; r < res.shape[0]; ++r) {
+      for (int c = 0; c < res.shape[1]; ++c) {
+        assertEquals(m.get(r, c) * m.get(r, c), res.get(r, c));
+      }
+    }
+  }
 }

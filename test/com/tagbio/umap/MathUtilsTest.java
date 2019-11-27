@@ -1,8 +1,9 @@
 package com.tagbio.umap;
 
-import java.util.Arrays;
-
 import junit.framework.TestCase;
+
+import java.util.Arrays;
+import java.util.Random;
 
 public class MathUtilsTest extends TestCase {
 
@@ -93,6 +94,24 @@ public class MathUtilsTest extends TestCase {
     final Matrix matrix = MathUtils.promoteTranspose(data);
     assertTrue(Arrays.equals(new int[]{10, 1}, matrix.shape));
     assertTrue(Arrays.equals(data, matrix.transpose().row(0)));
+  }
+
+  public void testUniform() {
+    Random random = new Random(1234);
+
+    float[][] uniform = MathUtils.uniform(random, 1, 5, 3, 4);
+    assertEquals(3, uniform.length);
+
+    random = new Random(1234);
+    for (int i = 0; i < uniform.length; ++i) {
+      assertEquals(4, uniform[i].length);
+      for (int j = 0; j < uniform[i].length; ++j) {
+        float value = uniform[i][j];
+        assertTrue(value >= 1);
+        assertTrue(value <= 5);
+        assertEquals(1.0F + random.nextFloat() * 4.0F, value);
+      }
+    }
   }
 
   public void testSubArray1D() {
