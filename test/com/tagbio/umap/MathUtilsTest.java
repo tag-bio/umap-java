@@ -46,8 +46,29 @@ public class MathUtilsTest extends TestCase {
     assertTrue(Arrays.equals(new float[] {1, 42}, MathUtils.filterPositive(-7, 1, 0, -42, 42)));
   }
 
+  public void testContainsNegative() {
+    assertFalse(MathUtils.containsNegative(new int[0][0]));
+    assertFalse(MathUtils.containsNegative(new int[][] {{1}}));
+    assertTrue(MathUtils.containsNegative(new int[][] {{-1}}));
+    assertFalse(MathUtils.containsNegative(new int[][] {{1, 0, 42}, {1, 2, 3}}));
+    assertTrue(MathUtils.containsNegative(new int[][] {{1, 0, 42}, {1, 2, -3}}));
+    assertTrue(MathUtils.containsNegative(new int[][] {{-1, 0, 42}, {1, 2, 3}}));
+  }
+
+  public void testScalarMultiply() {
+    assertTrue(Arrays.equals(new float[0], MathUtils.multiply(new float[0], 2)));
+    assertTrue(Arrays.equals(new float[] {42}, MathUtils.multiply(new float[] {21}, 2)));
+    assertTrue(Arrays.equals(new float[] {21, 0, 1}, MathUtils.multiply(new float[] {42, 0, 2}, 0.5F)));
+  }
+
+  public void testScalarDivide() {
+    assertTrue(Arrays.equals(new float[0], MathUtils.divide(new float[0], 0.5F)));
+    assertTrue(Arrays.equals(new float[] {42}, MathUtils.divide(new float[] {21}, 0.5F)));
+    assertTrue(Arrays.equals(new float[] {21, 0, 1}, MathUtils.divide(new float[] {42, 0, 2}, 2)));
+  }
+
   public void testLinspace() {
-    float[] res = MathUtils.linspace(2, 5, 15);
+    final float[] res = MathUtils.linspace(2, 5, 15);
     assertNotNull(res);
     assertEquals(15, res.length);
     assertEquals(2.0F, res[0]);
@@ -55,5 +76,9 @@ public class MathUtilsTest extends TestCase {
     for (int i = 0; i < res.length; i++) {
       assertEquals(2.0F + 3.0F * i / 14.0F, res[i]);
     }
+  }
+
+  public void testIdentity() {
+    assertTrue(Arrays.equals(new int[] {0, 1, 2, 3, 4}, MathUtils.identity(5)));
   }
 }

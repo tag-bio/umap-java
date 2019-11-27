@@ -8,8 +8,11 @@ package com.tagbio.umap;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.zip.GZIPInputStream;
 
@@ -18,49 +21,49 @@ abstract class Data {
   private final List<String> mAttributes = new ArrayList<>();
   private final List<String> mSampleNames = new ArrayList<>();
 
-  Data(String dataFile) throws IOException {
-    InputStream is = new BufferedInputStream(getClass().getClassLoader().getResourceAsStream(dataFile));
-    if (dataFile.endsWith(".gz")) {
-      is = new GZIPInputStream(is);
-    }
+  private static InputStream getStream(final String resource) throws IOException {
+    return resource.endsWith(".gz")
+      ? new GZIPInputStream(new BufferedInputStream(Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource))))
+      : new BufferedInputStream(Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource)));
+  }
 
-    final List<float[]> records = new ArrayList<>();
-
-    try (final Scanner scanner = new Scanner(is)) {
-      if (scanner.hasNextLine()) {
-        // header line
-        final String line = scanner.nextLine().trim();
-        try (final Scanner rowScanner = new Scanner(line)) {
-          rowScanner.useDelimiter("\t");
-          if (rowScanner.hasNext()) {
-            final String next = rowScanner.next();
-            assert ("sample".equals(next));
-          }
-          while (rowScanner.hasNext()) {
-            mAttributes.add(rowScanner.next());
-          }
+  Data(final String dataFile) throws IOException {
+    try (final LineNumberReader r = new LineNumberReader(new InputStreamReader(getStream(dataFile)))) {
+      final List<float[]> records = new ArrayList<>();
+      String line = r.readLine();
+      if (line == null) {
+        throw new IOException("No header line");
+      }
+      // Process header line
+      line = line.trim();
+      try (final Scanner rowScanner = new Scanner(line)) {
+        rowScanner.useDelimiter("\t");
+        if (rowScanner.hasNext()) {
+          final String next = rowScanner.next();
+          assert "sample".equals(next);
+        }
+        while (rowScanner.hasNext()) {
+          mAttributes.add(rowScanner.next());
         }
       }
-      while (scanner.hasNextLine()) {
-        final String line = scanner.nextLine().trim();
+      // Process data lines
+      while ((line = r.readLine()) != null) {
+        final String[] parts = line.trim().split("\t");
+        if (parts.length != mAttributes.size() + 1) {
+          throw new RuntimeException("Incorrect number of fields in: " + line);
+        }
+        mSampleNames.add(parts[0]);
         final float[] values = new float[mAttributes.size()];
-        try (final Scanner rowScanner = new Scanner(line)) {
-          rowScanner.useDelimiter("\t");
-          if (rowScanner.hasNext()) {
-            mSampleNames.add(rowScanner.next().trim());
-          }
-          int k = 0;
-          while (rowScanner.hasNext()) {
-            values[k++] = Float.parseFloat(rowScanner.next());
-          }
+        for (int k = 0; k < values.length; ++k) {
+          values[k] = Float.parseFloat(parts[k + 1]);
         }
         records.add(values);
         if (records.size() % 100 == 0) {
-          System.out.println("Done reading: " + records.size());
+          Utils.message("Read " + records.size() + " records");
         }
       }
+      mData = records.toArray(new float[0][]);
     }
-    mData = records.toArray(new float[0][]);
   }
 
   public float[][] getData() {

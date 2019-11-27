@@ -62,9 +62,13 @@ package com.tagbio.umap;
 //warnings.filterwarnings("ignore", category=UserWarning)
 
 import java.io.IOException;
+import java.util.Random;
 
 import junit.framework.TestCase;
 
+/**
+ * Tests the corresponding class.
+ */
 public class UmapTest extends TestCase {
 
   public void testIris() throws IOException {
@@ -74,8 +78,8 @@ public class UmapTest extends TestCase {
     umap.setVerbose(true);
     final Matrix matrix = umap.fitTransform(data.getData());
     //System.out.println(matrix);
-    assertEquals(150, matrix.shape()[0]);
-    assertEquals(2, matrix.shape()[1]);
+    assertEquals(150, matrix.rows());
+    assertEquals(2, matrix.cols());
   }
 
   public void testDigits() throws IOException {
@@ -83,13 +87,14 @@ public class UmapTest extends TestCase {
     final Umap umap = new Umap();
     umap.setInit("random");
     umap.setVerbose(true);
+    umap.setNumberComponents(3);
     final Matrix matrix = umap.fitTransform(data.getData());
     //System.out.println(matrix);
-    assertEquals(1797, matrix.shape()[0]);
-    assertEquals(2, matrix.shape()[1]);
+    assertEquals(1797, matrix.rows());
+    assertEquals(3, matrix.cols());
 //    final String[] names = data.getSampleNames();
-//    for (int r = 0; r < matrix.shape()[0]; ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+//    for (int r = 0; r < matrix.rows(); ++r) {
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
 //    }
   }
 
@@ -99,13 +104,14 @@ public class UmapTest extends TestCase {
 //    final Umap umap = new Umap();
 //    umap.setInit("random");
 //    umap.setVerbose(true);
+//    umap.setNumberComponents(2);
 //    System.out.println("Starting transform");
-//    final Matrix matrix = umap.fit_transform(data.getData());
+//    final Matrix matrix = umap.fitTransform(data.getData());
 //    //System.out.println(matrix);
-//    assertEquals(5902, matrix.shape()[0]);
+//    assertEquals(5902, matrix.rows());
 //    assertEquals(2, matrix.shape()[1]);
 //    final String[] names = data.getSampleNames();
-//    for (int r = 0; r < matrix.shape()[0]; ++r) {
+//    for (int r = 0; r < matrix.rows(); ++r) {
 //      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
 //    }
 //  }
@@ -147,11 +153,19 @@ public class UmapTest extends TestCase {
 //)  # Add some all zero data for corner case test
 //sparse_spatial_data = sparse.csr_matrix(spatial_data * binary_data)
 //sparse_binary_data = sparse.csr_matrix(binary_data)
-//
-//nn_data = np.random.uniform(0, 1, size=(1000, 5))
-//nn_data = np.vstack(
-//    [nn_data, np.zeros((2, 5))]
-//)  # Add some all zero data for corner case test
+
+  private static Matrix makeNNData() {
+    final Random r = new Random();
+    final float[][] data = new float[1002][5]; // last two rows remain 0 to test corner cases
+    for (int k = 0; k < 1000; ++k) {
+      for (int j = 0; j < data[k].length; ++j) {
+        data[k][j] = r.nextFloat();
+      }
+    }
+    return new DefaultMatrix(data);
+  }
+  private static final Matrix nn_data = makeNNData();
+
 //binary_nn_data = np.random.choice(a=[False, True], size=(1000, 5), p=[0.66, 1 - 0.66])
 //binary_nn_data = np.vstack(
 //    [binary_nn_data, np.zeros((2, 5), dtype="bool")]
@@ -321,28 +335,25 @@ public class UmapTest extends TestCase {
 //@SkipTest
 //def test_scikit_learn_compatibility():
 //    check_estimator(UMAP)
+
+//  public void testNnDescentNeighborAccuracy() {
+//    final Object[] nn = Umap.nearestNeighbors(nn_data, 10, EuclideanMetric.SINGLETON, false, new Random(), false);
+//    final int[][] knnIndices = (int[][]) nn[0];
+//    final float[][] knnDists = (float[][]) nn[1];
 //
+//    KDTree tree = KDTree(nn_data);
+//    true_indices = tree.query(nn_data, 10, return_distance = False);
 //
-//def test_nn_descent_neighbor_accuracy():
-//    knn_indices, knn_dists, _ = nearest_neighbors(
-//        nn_data, 10, "euclidean", {}, False, np.random
-//    )
+//    double num_correct = 0.0;
+//    for (int i = 0; i < nn_data.rows(); ++i) {
+//      num_correct += np.sum(np.in1d(true_indices[i], knn_indices[i]));
+//    }
 //
-//    tree = KDTree(nn_data)
-//    true_indices = tree.query(nn_data, 10, return_distance=False)
-//
-//    num_correct = 0.0
-//    for i in range(nn_data.shape[0]):
-//        num_correct += np.sum(np.in1d(true_indices[i], knn_indices[i]))
-//
-//    percent_correct = num_correct / (spatial_data.shape[0] * 10)
-//    assert_greater_equal(
-//        percent_correct,
-//        0.99,
-//        "NN-descent did not get 99% " "accuracy on nearest neighbors",
-//    )
-//
-//
+//    double percent_correct = num_correct / (spatial_data.shape[0] * 10);
+//    assert_greater_equal(      percent_correct,      0.99,      "NN-descent did not get 99% ""accuracy on nearest neighbors"      );
+//  }
+
+
 //def test_angular_nn_descent_neighbor_accuracy():
 //    knn_indices, knn_dists, _ = nearest_neighbors(
 //        nn_data, 10, "cosine", {}, True, np.random
@@ -403,26 +414,30 @@ public class UmapTest extends TestCase {
 //        0.99,
 //        "NN-descent did not get 99% " "accuracy on nearest neighbors",
 //    )
+
+
+//  public void testSmoothKnnDistL1Norms() {
+//    final Object[] nn = Umap.nearestNeighbors(nn_data, 10, EuclideanMetric.SINGLETON, false, new Random(), false);
+//    final int[][] knnIndices = (int[][]) nn[0];
+//    final float[][] knnDists = (float[][]) nn[1];
+//    final float[][] sigmasRhos = Umap.smoothKnnDist(knnDists, 10, 1);
+//    final float[] sigmas = sigmasRhos[0];
+//    final float[] rhos = sigmasRhos[1];
+//    final Matrix shifted_dists = new DefaultMatrix(knnDists).subtract(MathUtils.promoteTranspose(rhos));
+//    for (int k = 0; k < shifted_dists.rows(); ++k) {
+//      for (int j = 0; j < shifted_dists.cols(); ++j) {
+//        if (shifted_dists.get(k, j) < 0) {
+//          shifted_dists.set(k, j, 0);
+//        }
+//      }
+//    }
+//    vals = np.exp(-(shifted_dists / MathUtils.promoteTranspose(sigmas)));
+//    norms = np.sum(vals, axis = 1);
 //
-//
-//def test_smooth_knn_dist_l1norms():
-//    knn_indices, knn_dists, _ = nearest_neighbors(
-//        nn_data, 10, "euclidean", {}, False, np.random
-//    )
-//    sigmas, rhos = smooth_knn_dist(knn_dists, 10)
-//    shifted_dists = knn_dists - rhos[:, np.newaxis]
-//    shifted_dists[shifted_dists < 0.0] = 0.0
-//    vals = np.exp(-(shifted_dists / sigmas[:, np.newaxis]))
-//    norms = np.sum(vals, axis=1)
-//
-//    assert_array_almost_equal(
-//        norms,
-//        1.0 + np.log2(10) * np.ones(norms.shape[0]),
-//        decimal=3,
-//        err_msg="Smooth knn-dists does not give expected" "norms",
-//    )
-//
-//
+//    assert_array_almost_equal(      norms,      1.0 + np.log2(10) * np.ones(norms.shape[0]),      decimal = 3,      err_msg = "Smooth knn-dists does not give expected norms"    );
+//  }
+
+
 //def test_nn_descent_neighbor_accuracy_callable_metric():
 //    knn_indices, knn_dists, _ = nearest_neighbors(
 //        nn_data, 10, dist.euclidean, {}, False, np.random
@@ -891,16 +906,6 @@ public class UmapTest extends TestCase {
 //    assert_less(error, 15.0, msg="Multi component embedding to far astray")
 //
 //
-//def test_negative_op():
-//    u = UMAP(set_op_mix_ratio=-1.0)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_too_large_op():
-//    u = UMAP(set_op_mix_ratio=1.5)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
 //def test_bad_too_large_min_dist():
 //    u = UMAP(min_dist=2.0)
 //    # a RuntimeWarning about division by zero in a,b curve fitting is expected
@@ -909,52 +914,107 @@ public class UmapTest extends TestCase {
 //        warnings.filterwarnings("ignore", category=RuntimeWarning)
 //        assert_raises(ValueError, u.fit, nn_data)
 //
-//
-//def test_negative_min_dist():
-//    u = UMAP(min_dist=-1)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_negative_ncomponents():
-//    u = UMAP(n_components=-1)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_non_integer_ncomponents():
-//    u = UMAP(n_components=1.5)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_too_small_nneighbors():
-//    u = UMAP(n_neighbors=0.5)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_negative_nneighbors():
-//    u = UMAP(n_neighbors=-1)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_bad_metric():
-//    u = UMAP(metric=45)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_negative_learning_rate():
-//    u = UMAP(learning_rate=-1.5)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_negative_repulsion():
-//    u = UMAP(repulsion_strength=-0.5)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_negative_sample_rate():
-//    u = UMAP(negative_sample_rate=-1)
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
+
+  public void testNegativeOp() {
+    final Umap umap = new Umap();
+    try {
+      umap.setSetOpMixRatio(-1.0F);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testTooLargeOp() {
+    final Umap umap = new Umap();
+    try {
+      umap.setSetOpMixRatio(1.5F);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testNegativeMinDist() {
+    final Umap umap = new Umap();
+    try {
+      umap.setMinDist(-1);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testNegativeComponents() {
+    final Umap umap = new Umap();
+    try {
+      umap.setNumberComponents(-1);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testTooSmallNeighbours() {
+    final Umap umap = new Umap();
+    try {
+      umap.setNumberNearestNeighbours(0);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testBadMetric() {
+    final Umap umap = new Umap();
+    try {
+      umap.setMetric("no-such-metric");
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testNegativeLearningRate() {
+    final Umap umap = new Umap();
+    try {
+      umap.setLearningRate(-1.5F);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testNegativeRepulsion() {
+    final Umap umap = new Umap();
+    try {
+      umap.setRepulsionStrength(-0.5F);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testNegativeSampleRate() {
+    final Umap umap = new Umap();
+    try {
+      umap.setNegativeSampleRate(-1);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  public void testNegativeEpochs() {
+    final Umap umap = new Umap();
+    try {
+      umap.setNumberEpochs(-2);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
+
 //def test_bad_init():
 //    u = UMAP(init="foobar")
 //    assert_raises(ValueError, u.fit, nn_data)
@@ -967,11 +1027,6 @@ public class UmapTest extends TestCase {
 //
 //def test_bad_matrix_init():
 //    u = UMAP(init=np.array([[0, 0, 0], [0, 0, 0]]))
-//    assert_raises(ValueError, u.fit, nn_data)
-//
-//
-//def test_negative_nepochs():
-//    u = UMAP(n_epochs=-2)
 //    assert_raises(ValueError, u.fit, nn_data)
 //
 //

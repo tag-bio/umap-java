@@ -111,19 +111,18 @@ class MathUtils {
     return res;
   }
 
-  static float[][] multiply(final float[][] x, final float s) {
-    final float[][] res = new float[x.length][];
-    for (int k = 0; k < x.length; ++k) {
-      res[k] = multiply(x[k], s);
-    }
-    return res;
-  }
+//  static float[][] multiply(final float[][] x, final float s) {
+//    final float[][] res = new float[x.length][];
+//    for (int k = 0; k < x.length; ++k) {
+//      res[k] = multiply(x[k], s);
+//    }
+//    return res;
+//  }
 
   static float[] divide(final float[] x, final float s) {
     return multiply(x, 1.0F / s);
   }
 
-  // todo test cf. numpy
   static float[] linspace(final float start, final float end, final int n) {
     final float[] res = new float[n];
     final float span = end - start;

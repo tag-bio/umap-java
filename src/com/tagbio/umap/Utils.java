@@ -118,16 +118,15 @@ class Utils {
 
   //     Returns
 //     -------
-//     sample: array of shape(n_samples,)
-//         The ``n_samples`` randomly selected elements from the pool.
-//     """
-  static int[] rejectionSample(final int n_samples, final int pool_size, final Random rng_state) {
-    final int[] result = new int[n_samples];
-    for (int i = 0; i < n_samples; ++i) {
-      boolean reject_sample = true;
+//     sample: array of shape(nSamples,)
+//         The ``nSamples`` randomly selected elements from the pool.
+  static int[] rejectionSample(final int nSamples, final int poolSize, final Random random) {
+    final int[] result = new int[nSamples];
+    for (int i = 0; i < nSamples; ++i) {
+      boolean rejectSample = true;
       int j = -1;
-      while (reject_sample) {
-        j = rng_state.nextInt(pool_size);
+      while (rejectSample) {
+        j = random.nextInt(poolSize);
         boolean ok = true;
         for (int k = 0; k < i; ++k) {
           if (j == result[k]) {
@@ -136,7 +135,7 @@ class Utils {
           }
         }
         if (ok) {
-          reject_sample = false;
+          rejectSample = false;
         }
       }
       result[i] = j;

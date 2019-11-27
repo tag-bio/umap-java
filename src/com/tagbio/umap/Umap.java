@@ -59,18 +59,13 @@ import com.tagbio.umap.metric.ReducedEuclideanMetric;
 //     Random seed used for the stochastic aspects of the transform operation.
 //     This ensures consistency in transform operations.
 
-// verbose: bool (optional, default false)
-//     Controls verbosity of logging.
 public class Umap {
-
-//  private static final int INT32_MIN = Integer.MIN_VALUE + 1;
-//  private static final int INT32_MAX = Integer.MAX_VALUE - 1;
 
   private static final double SMOOTH_K_TOLERANCE = 1e-5;
   private static final double MIN_K_DIST_SCALE = 1e-3;
   private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
 
-  private static final int SMALL_PROBLEM_THRESHOLD = 100; //4096;
+  private static final int SMALL_PROBLEM_THRESHOLD = 4096;
 
   /*
     Compute a continuous version of the distance to the kth nearest
@@ -105,10 +100,10 @@ public class Umap {
 
     Returns
     -------
-    knn_dist: array of shape (n_samples,)
+    knn_dist: array of shape (n_samples)
         The distance to kth nearest neighbor, as suitably approximated.
 
-    nn_dist: array of shape (n_samples,)
+    nn_dist: array of shape (n_samples)
         The distance to the 1st nearest neighbor for each point.
   */
   private static float[][] smoothKnnDist(final float[][] distances, final double k, final int nIter, final int localConnectivity, final double bandwidth) {
@@ -180,7 +175,7 @@ public class Umap {
     return new float[][]{result, rho};
   }
 
-  private static float[][] smoothKnnDist(float[][] distances, double k, int localConnectivitiy) {
+  static float[][] smoothKnnDist(float[][] distances, double k, int localConnectivitiy) {
     return smoothKnnDist(distances, k, 64, localConnectivitiy, 1.0);
   }
 
@@ -218,7 +213,7 @@ public class Umap {
 
   // knn_dists: array of shape (n_samples, nNeighbors)
   //     The distances to the ``nNeighbors`` closest points in the dataset.
-  private static Object[] nearestNeighbors(final Matrix instances, final int nNeighbors, Metric metric, boolean angular, final Random random, final boolean verbose) {
+  static Object[] nearestNeighbors(final Matrix instances, final int nNeighbors, Metric metric, boolean angular, final Random random, final boolean verbose) {
     if (verbose) {
       Utils.message("Finding Nearest Neighbors");
     }
@@ -274,7 +269,7 @@ public class Umap {
 //        knnIndices = (int[][]) nn[0];
 //        knnDists = (float[][]) nn[1];
       } else {
-        final NearestNeighborDescent metric_nn_descent = new NearestNeighborDescent(distance_func);
+        final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(distance_func);
         int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5 / 20.0)));
         int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
 
@@ -282,17 +277,17 @@ public class Umap {
           Utils.message("Building RP forest with " + nTrees + " trees");
         }
         rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, angular);
-        final int[][] leaf_array = RandomProjectionTree.rptree_leaf_array(rpForest);
+        final int[][] leafArray = RandomProjectionTree.rptree_leaf_array(rpForest);
         if (verbose) {
           Utils.message("NN descent for " + nIters + " iterations");
         }
-        final Heap nn = metric_nn_descent.nn_descent(instances, nNeighbors, random, 60, true, nIters, leaf_array, verbose);
+        final Heap nn = metricNearestNeighborsDescent.descent(instances, nNeighbors, random, 60, true, nIters, leafArray, verbose);
         knnIndices = nn.indices;
         knnDists = nn.weights;
       }
 
       if (MathUtils.containsNegative(knnIndices)) {
-        Utils.message("Failed to correctly find nNeighbors for some samples. Results may be less than ideal. Try re-running with different parameters.");
+        Utils.message("Failed to correctly find nearest neighbors for some samples. Results may be less than ideal. Try re-running with different parameters.");
       }
     }
     if (verbose) {
@@ -1179,7 +1174,7 @@ public class Umap {
    * @param rate learning rate
    */
   public void setLearningRate(final float rate) {
-    if (mLearningRate <= 0.0) {
+    if (rate <= 0.0) {
       throw new IllegalArgumentException("Learning rate must be positive.");
     }
     mLearningRate = rate;
@@ -1585,7 +1580,7 @@ public class Umap {
       indices = Utils.submatrix(indices, indicesSorted, _n_neighbors);
       dists = Utils.submatrix(dmatShortened, indicesSorted, _n_neighbors);
     } else {
-      Heap init = NearestNeighborDescent.initialise_search(mRpForest, mRawData, X, (int) (_n_neighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
+      Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, X, (int) (_n_neighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
       Heap result = _search.initialized_nnd_search(mRawData, mSearchGraph.indptr, mSearchGraph.indices, init, X);
       result = Utils.deheapSort(result);
       indices = result.indices;
