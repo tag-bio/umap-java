@@ -17,8 +17,8 @@ public class GeneData extends Data {
   }
 
   public void setSampleNamesFromInfo(String columnName) throws IOException {
-    final Map<String, Integer> targetIndex = new HashMap<>();
-
+    final Map<String, String> targetIndex = new HashMap<>();
+    final Map<String, String> nameIndex = new HashMap<>();
     try (final LineNumberReader r = new LineNumberReader(new InputStreamReader(getStream("com/tagbio/umap/gene_exp_info.tsv")))) {
       String line = r.readLine();
       if (line == null) {
@@ -42,15 +42,16 @@ public class GeneData extends Data {
         final String[] parts = line.trim().split("\t");
         final String value = parts[columnNumber];
         if (!targetIndex.containsKey(value)) {
-          targetIndex.put(value, targetIndex.size());
+          targetIndex.put(value, Integer.toString(targetIndex.size()));
         }
+        nameIndex.put(parts[0], targetIndex.get(value));
       }
     }
 
-    final String[] attributes = getAttributes();
-    for (int i = 0; i < attributes.length; ++i) {
-      attributes[i] = targetIndex.getOrDefault(attributes[i], Integer.valueOf(0)).toString();
+    final String[] names = getSampleNames();
+    for (int i = 0; i < names.length; ++i) {
+      names[i] = nameIndex.getOrDefault(names[i], "0");
     }
-    setAttributes(attributes);
+    setSampleNames(names);
   }
 }

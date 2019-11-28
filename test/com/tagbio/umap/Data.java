@@ -77,18 +77,18 @@ abstract class Data {
     return mAttributes.toArray(new String[0]);
   }
 
-  public void setAttributes(String [] attributes) {
-    if (attributes.length != mAttributes.size()) {
-      throw new IllegalArgumentException("Incorrect number of attributes.");
-    }
-    mAttributes.clear();
-    for (String a : attributes) {
-      mAttributes.add(a);
-    }
-  }
-
   public String[] getSampleNames() {
     return mSampleNames.toArray(new String[0]);
+  }
+
+  public void setSampleNames(String [] name) {
+    if (name.length != mSampleNames.size()) {
+      throw new IllegalArgumentException("Incorrect number of name.");
+    }
+    mSampleNames.clear();
+    for (String a : name) {
+      mSampleNames.add(a);
+    }
   }
 
   /**
