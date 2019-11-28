@@ -95,27 +95,28 @@ public class UmapTest extends TestCase {
     //System.out.println(matrix);
     assertEquals(1797, matrix.rows());
     assertEquals(3, matrix.cols());
-    final String[] names = data.getSampleNames();
-    for (int r = 0; r < matrix.rows(); ++r) {
-      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
-    }
+//    final String[] names = data.getSampleNames();
+//    for (int r = 0; r < matrix.rows(); ++r) {
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
+//    }
   }
 
 //  public void testGenes() throws IOException {
-//    final Data data = new GeneData();
+//    final GeneData data = new GeneData();
+//    data.setSampleNamesFromInfo("noncancer_cell_type");
 //    System.out.println("Done reading");
 //    final Umap umap = new Umap();
 //    umap.setInit("random");
 //    umap.setVerbose(true);
-//    umap.setNumberComponents(2);
+//    umap.setNumberComponents(3);
 //    System.out.println("Starting transform");
 //    final Matrix matrix = umap.fitTransform(data.getData());
 //    //System.out.println(matrix);
 //    assertEquals(5902, matrix.rows());
-//    assertEquals(2, matrix.shape()[1]);
+//    assertEquals(3, matrix.shape()[1]);
 //    final String[] names = data.getSampleNames();
 //    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
 //    }
 //  }
 
