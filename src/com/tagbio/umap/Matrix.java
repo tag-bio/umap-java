@@ -311,6 +311,28 @@ abstract class Matrix {
     return m;
   }
 
+  /**
+   * Return a row normalized version of this matrix.  That is, each row is normalized
+   * by the maximum element on the row.
+   * @return row normalized matrix
+   */
+  Matrix rowNormalize() {
+    final float[][] d = new float[rows()][];
+    for (int k = 0; k < rows(); ++k) {
+      final float[] row = row(k);
+      final float max = MathUtils.max(row);
+      if (max == 0) {
+        d[k] = Arrays.copyOf(row, cols());
+      } else {
+        d[k] = new float[cols()];
+        for (int j = 0; j < cols(); ++j) {
+          d[k][j] = row[j] / max;
+        }
+      }
+    }
+    return new DefaultMatrix(d);
+  }
+
   Matrix take(int[] indicies) {
     // todo return elements from array along selected axes
     throw new UnsupportedOperationException();

@@ -292,29 +292,36 @@ class CooMatrix extends Matrix {
       : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), mShape);
   }
 
-//  @Override
-//  Matrix addTranspose() {
-//    if (rows() != cols()) {
-//      throw new IllegalArgumentException("Incompatible matrix sizes");
-//    }
-//    // This sum cannot have more non-zero entries than the input (and usually will have the
-//    // same size, unless particular entries sum to 0).
-//    final int[] r = new int[mRow.length];
-//    final int[] c = new int[mCol.length];
-//    final float[] d = new float[mData.length];
-//    int j = 0;
-//    for (int k = 0; k < mRow.length; ++k) {
-//      final float v = d[k] + get(mCol[k], mRow[k]);
-//      if (v != 0) {
-//        r[j] = mRow[k];
-//        c[j] = mCol[k];
-//        d[j++] = v;
-//      }
-//    }
-//    return j == mRow.length
-//      ? new CooMatrix(d, r, c, shape)
-//      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), shape);
-//  }
+  @Override
+  Matrix addTranspose() {
+    if (rows() != cols()) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final int maxNonZero = Math.min(rows() * cols(), 2 * mRow.length);
+    final int[] r = new int[maxNonZero];
+    final int[] c = new int[maxNonZero];
+    final float[] d = new float[maxNonZero];
+    int j = 0;
+    for (int k = 0; k < mRow.length; ++k) {
+      final int rk = mRow[k];
+      final int ck = mCol[k];
+      final float tk = get(ck, rk);
+      final float v = mData[k] + tk;
+      if (v != 0) {
+        r[j] = rk;
+        c[j] = ck;
+        d[j++] = v;
+        if (rk != ck && tk == 0) {
+          r[j] = ck;
+          c[j] = rk;
+          d[j++] = v;
+        }
+      }
+    }
+    return j == maxNonZero
+      ? new CooMatrix(d, r, c, mShape)
+      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), mShape);
+  }
 
   @Override
   Matrix multiply(final Matrix m) {
@@ -358,4 +365,27 @@ class CooMatrix extends Matrix {
     }
     return sb.toString();
   }
+
+  @Override
+  Matrix rowNormalize() {
+    final float[] d = new float[mData.length];
+    int k = 0;
+    int row = -1;
+    float max = 0;
+    while (k < mRow.length) {
+      if (mRow[k] != row) {
+        // Moving to a new row, compute max
+        max = mData[k];
+        for (int j = k + 1; j < mRow.length && mRow[j] == mRow[k]; ++j) {
+          max = Math.max(max, mData[j]);
+        }
+      }
+      if (max != 0) {
+        d[k] = mData[k] / max;
+      }
+      ++k;
+    }
+    return new CooMatrix(d, Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), mShape);
+  }
+
 }

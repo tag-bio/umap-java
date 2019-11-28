@@ -369,37 +369,17 @@ public class Umap {
     return result.addTranspose().subtract(prodMatrix).multiply(setOpMixRatio).add(prodMatrix.multiply(1.0F - setOpMixRatio)).eliminateZeros();
   }
 
-
-  // Under the assumption of categorical distance for the intersecting
-  // simplicial set perform a fast intersection.
-
-  // Parameters
-  // ----------
-  // rows: array
-  //     An array of the row of each non-zero in the sparse matrix
-  //     representation.
-
-  // cols: array
-  //     An array of the column of each non-zero in the sparse matrix
-  //     representation.
-
-  // values: array
-  //     An array of the value of each non-zero in the sparse matrix
-  //     representation.
-
-  // target: array of shape (n_samples)
-  //     The categorical labels to use in the intersection.
-
-  // unknown_dist: float (optional, default 1.0)
-  //     The distance an unknown label (-1) is assumed to be from any point.
-
-  // far_dist float (optional, default 5.0)
-  //     The distance between unmatched labels.
-
-  // Returns
-  // -------
-  // null
-  private static void fastIntersection(final int[] rows, final int[] cols, final float[] values, final float[] target, final double unknownDist, final double farDist) {
+  /**
+   * Under the assumption of categorical distance for the intersecting
+   * simplicial set perform a fast intersection.
+   * @param rows An array of the row of each non-zero in the sparse matrix representation.
+   * @param cols An array of the column of each non-zero in the sparse matrix representation.
+   * @param values An array of the value of each non-zero in the sparse matrix representation.
+   * @param target (array of shape <code>nSamples</code>) The categorical labels to use in the intersection.
+   * @param unknownDist The distance an unknown label (-1) is assumed to be from any point.
+   * @param farDist The distance between unmatched labels.
+   */
+  static void fastIntersection(final int[] rows, final int[] cols, final float[] values, final float[] target, final float unknownDist, final float farDist) {
     for (int nz = 0; nz < rows.length; ++nz) {
       final int i = rows[nz];
       final int j = cols[nz];
@@ -411,24 +391,16 @@ public class Umap {
     }
   }
 
-  // Reset the local connectivity requirement -- each data sample should
-  // have complete confidence in at least one 1-simplex in the simplicial set.
-  // We can enforce this by locally rescaling confidences, and then remerging the
-  // different local simplicial sets together.
-
-  // Parameters
-  // ----------
-  // simplicial_set: sparse matrix
-  //     The simplicial set for which to recalculate with respect to local
-  //     connectivity.
-
-  // Returns
-  // -------
-  // simplicialSet: sparse_matrix
-  //     The recalculated simplicial set, now with the local connectivity
-  //     assumption restored.
+  /**
+   * Reset the local connectivity requirement -- each data sample should
+   * have complete confidence in at least one 1-simplex in the simplicial set.
+   * We can enforce this by locally rescaling confidences, and then remerging the
+   * different local simplicial sets together.
+   * @param simplicialSet The simplicial set for which to recalculate with respect to local connectivity.
+   * @return The recalculated simplicial set, now with the local connectivity assumption restored.
+   */
   private static Matrix resetLocalConnectivity(final Matrix simplicialSet) {
-    final Matrix nss = Normalize.normalize(simplicialSet, "max");
+    final Matrix nss = simplicialSet.rowNormalize();
     final Matrix prodMatrix = nss.hadamardMultiplyTranspose();
     return nss.addTranspose().subtract(prodMatrix).eliminateZeros();
   }
@@ -471,7 +443,7 @@ public class Umap {
     final CsrMatrix left = simplicialSet1.toCsr();
     final CsrMatrix right = simplicialSet2.toCsr();
 
-    Sparse.generalSsetIntersection(left.indptr, left.indices, left.data, right.indptr, right.indices, right.data, result.mRow, result.mCol, result.mData, weight);
+    Sparse.generalSsetIntersection(left.mIndptr, left.mIndices, left.mData, right.mIndptr, right.mIndices, right.mData, result.mRow, result.mCol, result.mData, weight);
 
     return result;
   }
@@ -1477,7 +1449,7 @@ public class Umap {
       dists = Utils.submatrix(dmatShortened, indicesSorted, _n_neighbors);
     } else {
       Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, X, (int) (_n_neighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
-      Heap result = _search.initialized_nnd_search(mRawData, mSearchGraph.indptr, mSearchGraph.indices, init, X);
+      Heap result = _search.initialized_nnd_search(mRawData, mSearchGraph.mIndptr, mSearchGraph.mIndices, init, X);
       result = Utils.deheapSort(result);
       indices = result.indices;
       dists = result.weights;

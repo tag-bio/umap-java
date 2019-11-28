@@ -1187,23 +1187,56 @@ public class UmapTest extends TestCase {
     }, m.toArray());
   }
 
-//  public void testFuzzySimplicialSet() throws IOException {
-//    final Matrix distances = new IrisData(true).getDistances();
-//    final Matrix m = Umap.fuzzySimplicialSet(distances, 2, null, PrecomputedMetric.SINGLETON, null, null, false, 1, 1, false);
-//    // Comparison values from Python
-//    System.out.println(m);
-//    assertArrayEquals(new double[][]{
-//      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-//      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-//      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-//      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
-//      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-//      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-//      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
-//      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
-//      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
-//      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-//    }, m.toArray());
-//  }
+  public void testFuzzySimplicialSet() throws IOException {
+    final Matrix distances = new IrisData(true).getDistances();
+    final Matrix m = Umap.fuzzySimplicialSet(distances, 2, null, PrecomputedMetric.SINGLETON, null, null, false, 1, 1, false);
+    // Comparison values from Python
+    /*
+    [[0.         0.         0.99999222 0.         0.         0.          0.         0.         0.         0.        ]
+     [0.         0.         1.         0.         0.         0.          0.         0.         0.         0.        ]
+     [0.99999222 1.         0.         0.         0.         0.          0.         0.         0.         0.99999443]
+     [0.         0.         0.         0.         0.99999023 1.          0.         0.         0.         0.        ]
+     [0.         0.         0.         0.99999023 0.         0.          0.         0.         0.         0.        ]
+     [0.         0.         0.         1.         0.         0.          0.99999344 0.         0.         0.        ]
+     [0.         0.         0.         0.         0.         0.99999344  0.         0.         0.         0.        ]
+     [0.         0.         0.         0.         0.         0.          0.         0.         1.         0.        ]
+     [0.         0.         0.         0.         0.         0.          0.         1.         0.         0.        ]
+     [0.         0.         0.99999443 0.         0.         0.          0.         0.         0.         0.        ]]
+     */
+    assertArrayEquals(new double[][]{
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0},
+      {0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    }, m.toArray());
+  }
+
+  public void testFastIntersection() throws IOException {
+    final CooMatrix distances = new IrisData(true).getDistances().toCoo();
+    final float[] target = new float[distances.rows()];
+    for (int k = 0; k < target.length; ++k) {
+      target[k] = k % 3;
+    }
+    Umap.fastIntersection(distances.mRow, distances.mCol, distances.mData, target, 1.0F, 1.0e8F);
+    // Comparison values from Python
+    assertArrayEquals(new double[][]{
+      {0, 0, 0, 4.003748, 0, 0, 4.853864, 0, 0, 6.3450766},
+      {0, 0, 0, 0, 3.6864617, 0, 0, 4.134005, 0, 0},
+      {0, 0, 0, 0, 0, 4.4158807, 0, 0, 4.544227, 0},
+      {4.003748, 0, 0, 0, 0, 0, 1.1, 0, 0, 9.126335},
+      {0, 3.6864617, 0, 0, 0, 0, 0, 1.2165527, 0, 0},
+      {0, 0, 4.4158807, 0, 0, 0, 0, 0, 1.4662877, 0},
+      {4.853864, 0, 0, 1.1, 0, 0, 0, 0, 0, 9.481561},
+      {0, 4.134005, 0, 0, 1.2165527, 0, 0, 0, 0, 0},
+      {0, 0, 4.544227, 0, 0, 1.4662877, 0, 0, 0, 0},
+      {6.3450766, 0, 0, 9.126335, 0, 0, 9.481561, 0, 0, 0},
+    }, distances.toArray());
+  }
 
 }
