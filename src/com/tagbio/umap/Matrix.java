@@ -15,10 +15,10 @@ import java.util.Arrays;
 abstract class Matrix {
 
   /** Array containing the dimensions of the matrix <code>(rows, columns)</code>. */
-  protected int[] shape;
+  protected int[] mShape;
 
   Matrix(final int... shape) {
-    this.shape = shape;
+    this.mShape = shape;
     for (int s : shape) {
       if (s < 0) {
         throw new IllegalArgumentException("Illegal dimension specification: " + s);
@@ -35,7 +35,7 @@ abstract class Matrix {
    * @return number of rows
    */
   int rows() {
-    return shape[0];
+    return mShape[0];
   }
 
   /**
@@ -43,7 +43,7 @@ abstract class Matrix {
    * @return number of cols
    */
   int cols() {
-    return shape[1];
+    return mShape[1];
   }
 
   @Override
@@ -97,7 +97,7 @@ abstract class Matrix {
   }
 
   int[] shape() {
-    return shape;
+    return mShape;
   }
 
   long length() {
@@ -120,10 +120,10 @@ abstract class Matrix {
 
   Matrix add(final Matrix m) {
     //System.out.println("add: " + getClass().getSimpleName() + " + " + m.getClass().getSimpleName());
-    if (!Arrays.equals(shape, m.shape)) {
+    if (!Arrays.equals(mShape, m.mShape)) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
-    final DefaultMatrix res = new DefaultMatrix(shape);
+    final DefaultMatrix res = new DefaultMatrix(mShape);
     final int rows = rows();
     final int cols = cols();
     for (int i = 0; i < rows; ++i) {
@@ -135,10 +135,10 @@ abstract class Matrix {
   }
 
   Matrix subtract(final Matrix m) {
-    if (!Arrays.equals(shape, m.shape)) {
+    if (!Arrays.equals(mShape, m.mShape)) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
-    final DefaultMatrix res = new DefaultMatrix(shape);
+    final DefaultMatrix res = new DefaultMatrix(mShape);
     final int rows = rows();
     final int cols = cols();
     for (int i = 0; i < rows; ++i) {
@@ -150,7 +150,7 @@ abstract class Matrix {
   }
 
   Matrix multiply(final float x) {
-    final DefaultMatrix res = new DefaultMatrix(shape);
+    final DefaultMatrix res = new DefaultMatrix(mShape);
     final int rows = rows();
     final int cols = cols();
     for (int i = 0; i < rows; ++i) {
@@ -181,10 +181,10 @@ abstract class Matrix {
   }
 
   Matrix hadamardMultiply(final Matrix m) {
-    if (!Arrays.equals(shape, m.shape)) {
+    if (!Arrays.equals(mShape, m.mShape)) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
-    final DefaultMatrix res = new DefaultMatrix(shape);
+    final DefaultMatrix res = new DefaultMatrix(mShape);
     final int rows = rows();
     final int cols = cols();
     for (int i = 0; i < rows; ++i) {
@@ -248,7 +248,7 @@ abstract class Matrix {
         }
       }
     }
-    return new CooMatrix(data, row, col, shape);
+    return new CooMatrix(data, row, col, mShape);
   }
 
   CsrMatrix toCsr() {
@@ -267,7 +267,7 @@ abstract class Matrix {
       }
     }
     indptr[rows()] = len;
-    return new CsrMatrix(data, indptr, indices, shape);
+    return new CsrMatrix(data, indptr, indices, mShape);
   }
 
   Matrix copy() {

@@ -517,16 +517,16 @@ class RandomProjectionTree {
 
 
   //     """Construct a random projection tree based on ``data`` with leaves
-//     of size at most ``leaf_size``.
+//     of size at most ``leafSize``.
 //     Parameters
 //     ----------
 //     data: array of shape (n_samples, n_features)
 //         The original data to be split
 //     random: array of int64, shape (3,)
 //         The internal state of the rng
-//     leaf_size: int (optional, default 30)
+//     leafSize: int (optional, default 30)
 //         The maximum size of any leaf node in the tree. Any node in the tree
-//         with more than ``leaf_size`` will be split further to create child
+//         with more than ``leafSize`` will be split further to create child
 //         nodes.
 //     angular: bool (optional, default false)
 //         Whether to use cosine/angular distance to create splits in the tree,
@@ -537,7 +537,7 @@ class RandomProjectionTree {
 //         A random projection tree node which links to its child nodes. This
 //         provides the full tree below the returned node.
 //     """
-  static RandomProjectionTreeNode makeTree(final Matrix data, final Random random, final int leaf_size, final boolean angular) {
+  static RandomProjectionTreeNode makeTree(final Matrix data, final Random random, final int leafSize, final boolean angular) {
     final boolean isSparse = data instanceof CsrMatrix;
     //final int indices = np.arange(data.shape[0]);
     final int[] indices = MathUtils.identity(data.rows());
@@ -551,16 +551,16 @@ class RandomProjectionTree {
 
       if (angular) {
         throw new UnsupportedOperationException();
-        //return make_sparse_angular_tree(inds, indptr, spdata, indices, random, leaf_size);
+        //return make_sparse_angular_tree(inds, indptr, spdata, indices, random, leafSize);
       } else {
-        return makeSparseEuclideanTree(inds, indptr, spdata, indices, random, leaf_size);
+        return makeSparseEuclideanTree(inds, indptr, spdata, indices, random, leafSize);
       }
     } else {
       if (angular) {
         throw new UnsupportedOperationException();
-        //return make_angular_tree(data, indices, random, leaf_size);
+        //return make_angular_tree(data, indices, random, leafSize);
       } else {
-        return makeEuclideanTree(data, indices, random, leaf_size);
+        return makeEuclideanTree(data, indices, random, leafSize);
       }
     }
   }
@@ -721,7 +721,7 @@ class RandomProjectionTree {
 //         Each row of leaf array is a list of indices found in a given leaf.
 //         Since not all leaves are the same size the arrays are padded out with -1
 //         to ensure we can return a single ndarray.
-  static int[][] rptree_leaf_array(final List<FlatTree> rpForest) {
+  static int[][] rptreeLeafArray(final List<FlatTree> rpForest) {
     if (rpForest.size() > 0) {
       final int[][] leafArray = new int[rpForest.size()][];
       for (int k = 0; k < leafArray.length; ++k) {

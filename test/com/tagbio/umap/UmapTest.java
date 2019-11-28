@@ -95,10 +95,10 @@ public class UmapTest extends TestCase {
     //System.out.println(matrix);
     assertEquals(1797, matrix.rows());
     assertEquals(3, matrix.cols());
-//    final String[] names = data.getSampleNames();
-//    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
-//    }
+    final String[] names = data.getSampleNames();
+    for (int r = 0; r < matrix.rows(); ++r) {
+      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
+    }
   }
 
 //  public void testGenes() throws IOException {
@@ -1161,6 +1161,49 @@ public class UmapTest extends TestCase {
     assertTrue(Arrays.deepEquals(new int[][] {{0, 2}, {1, 2}, {2, 1}, {3, 5}, {4, 3}, {5, 3}, {6, 5}, {7, 8}, {8, 7}, {9, 2}}, id.getIndices()));
     assertArrayEquals(new double[][] {{0, 0.509902}, {0, 0.30000022}, {0, 0.30000022}, {0, 0.26457536}, {0, 0.64031225}, {0, 0.26457536}, {0, 0.86023235}, {0, 0.51961535}, {0, 0.51961535}, {0, 5.8360944}}, id.getDistances());
     assertTrue(id.getForest().isEmpty());
+  }
+
+  public void testComputeMembershipStrengths() throws IOException {
+    final Matrix distances = new IrisData(true).getDistances();
+    final float[][] sigmaRhos = Umap.smoothKnnDist(distances.toArray(), 2, 1);
+    final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, false);
+    final CooMatrix m = Umap.computeMembershipStrengths(id.getIndices(), id.getDistances(), sigmaRhos[0], sigmaRhos[1], distances.mShape);
+    // Comparison values from Python
+    // The next three lines are order dependent in the CooMatrix, so not ideal for comparison
+    // assertTrue(Arrays.equals(new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9}, m.mRow));
+    // assertTrue(Arrays.equals(new int[]{0, 2, 1, 2, 2, 1, 3, 5, 3, 4, 5, 3, 5, 6, 7, 8, 7, 8, 2, 9}, m.mCol));
+    // assertArrayEquals(new double[]{0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0}, m.mData);
+    assertArrayEquals(new double[][]{
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    }, m.toArray());
+  }
+
+  public void testFuzzySimplicialSet() throws IOException {
+    final Matrix distances = new IrisData(true).getDistances();
+    final Matrix m = Umap.fuzzySimplicialSet(distances, 2, null, PrecomputedMetric.SINGLETON, null, null, false, 1, 1, false);
+    // Comparison values from Python
+    System.out.println(m);
+    assertArrayEquals(new double[][]{
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    }, m.toArray());
   }
 
 }
