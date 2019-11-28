@@ -545,9 +545,9 @@ class RandomProjectionTree {
     // Make a tree recursively until we get below the leaf size
     if (isSparse) {
       final CsrMatrix csrData = (CsrMatrix) data;
-      final int[] inds = csrData.indices;
-      final int[] indptr = csrData.indptr;
-      final float[] spdata = csrData.data;
+      final int[] inds = csrData.mIndices;
+      final int[] indptr = csrData.mIndptr;
+      final float[] spdata = csrData.mData;
 
       if (angular) {
         throw new UnsupportedOperationException();

@@ -16,34 +16,24 @@ import java.util.Arrays;
 class CsrMatrix extends Matrix {
 
   // todo I think this is internal rep of data for this form of matrix -- currently some direct external access
-  int[] indptr;  // indptr[row] to indptr[row + 1] locations of cols in indices
-  int[] indices; // positions of actual data
-  float[] data;
+  int[] mIndptr;  // indptr[row] to indptr[row + 1] locations of cols in indices
+  int[] mIndices; // positions of actual data
+  float[] mData;
 
   CsrMatrix(final float[] data, final int[] indptr, final int[] indices, final int[] lengths) {
     super(lengths);
-    this.indptr = indptr;
-    this.indices = indices;
-    this.data = data;
-  }
-
-  boolean has_sorted_indices() {
-    // todo
-    throw new UnsupportedOperationException();
-  }
-
-  void sort_indices() {
-    // todo
-    throw new UnsupportedOperationException();
+    mIndptr = indptr;
+    mIndices = indices;
+    mData = data;
   }
 
   @Override
   float get(final int row, final int col) {
-    final int colStart = indptr[row];
-    final int colEnd = indptr[row + 1];
+    final int colStart = mIndptr[row];
+    final int colEnd = mIndptr[row + 1];
     for (int p = colStart; p < colEnd; ++p) {
-      if (indices[p] == col) {
-        return data[p];
+      if (mIndices[p] == col) {
+        return mData[p];
       }
     }
     return 0;
@@ -56,7 +46,7 @@ class CsrMatrix extends Matrix {
 
   @Override
   Matrix copy() {
-    return new CsrMatrix(Arrays.copyOf(data, data.length), Arrays.copyOf(indptr, indptr.length), Arrays.copyOf(indices, indices.length), Arrays.copyOf(mShape, mShape.length));
+    return new CsrMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mIndptr, mIndptr.length), Arrays.copyOf(mIndices, mIndices.length), Arrays.copyOf(mShape, mShape.length));
   }
 
   @Override
@@ -90,10 +80,37 @@ class CsrMatrix extends Matrix {
 
   @Override
   Matrix multiply(final float x) {
-    final float[] newData = Arrays.copyOf(data, data.length);
+    final float[] newData = Arrays.copyOf(mData, mData.length);
     for (int i = 0; i < newData.length; ++i) {
       newData[i] *= x;
     }
-    return new CsrMatrix(newData, indptr, indices, mShape);
+    return new CsrMatrix(newData, mIndptr, mIndices, mShape);
   }
+
+  @Override
+  Matrix rowNormalize() {
+    final float[] d = new float[mData.length];
+    for (int row = 0; row < rows(); ++row) {
+      float max = mData[mIndptr[row]];
+      for (int j = mIndptr[row] + 1; j < mIndptr[row + 1]; ++j) {
+        max = Math.max(max, mData[j]);
+      }
+      for (int j = mIndptr[row]; j < mIndptr[row + 1]; ++j) {
+        d[j] = mData[j] / max;
+      }
+    }
+    // Note would be safer to cop mIndptr and mIndices arrays
+    return new CsrMatrix(d, mIndptr, mIndices, mShape);
+  }
+
+  boolean has_sorted_indices() {
+    // todo
+    throw new UnsupportedOperationException();
+  }
+
+  void sort_indices() {
+    // todo
+    throw new UnsupportedOperationException();
+  }
+
 }

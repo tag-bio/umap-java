@@ -24,10 +24,6 @@ class Normalize {
     if ("max".equals(method)) {
       return data.rowNormalize();
     }
-    // todo -- this is row-wise normalization
-    // for each row find maximum element, then normalize row by maximum (resp. l1-norm)
-    // return COPY of data (i.e. do not modify in place)
-    // if input is CsrMatrix, then output should be CsrMatrix
     return null;
   }
 }

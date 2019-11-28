@@ -443,7 +443,7 @@ public class Umap {
     final CsrMatrix left = simplicialSet1.toCsr();
     final CsrMatrix right = simplicialSet2.toCsr();
 
-    Sparse.generalSsetIntersection(left.indptr, left.indices, left.data, right.indptr, right.indices, right.data, result.mRow, result.mCol, result.mData, weight);
+    Sparse.generalSsetIntersection(left.mIndptr, left.mIndices, left.mData, right.mIndptr, right.mIndices, right.mData, result.mRow, result.mCol, result.mData, weight);
 
     return result;
   }
@@ -1449,7 +1449,7 @@ public class Umap {
       dists = Utils.submatrix(dmatShortened, indicesSorted, _n_neighbors);
     } else {
       Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, X, (int) (_n_neighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
-      Heap result = _search.initialized_nnd_search(mRawData, mSearchGraph.indptr, mSearchGraph.indices, init, X);
+      Heap result = _search.initialized_nnd_search(mRawData, mSearchGraph.mIndptr, mSearchGraph.mIndices, init, X);
       result = Utils.deheapSort(result);
       indices = result.indices;
       dists = result.weights;
