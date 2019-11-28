@@ -108,4 +108,7 @@ public abstract class AbstractMatrixTest extends TestCase {
     }
   }
 
+  public void testRowNormalize() {
+    assertEquals("0.0,1.0\n0.25,1.0\n1.0,0.0\n0.0,1.0\n", getMatrixA().rowNormalize().toString());
+  }
 }

@@ -1217,4 +1217,26 @@ public class UmapTest extends TestCase {
     }, m.toArray());
   }
 
+  public void testFastIntersection() throws IOException {
+    final CooMatrix distances = new IrisData(true).getDistances().toCoo();
+    final float[] target = new float[distances.rows()];
+    for (int k = 0; k < target.length; ++k) {
+      target[k] = k % 3;
+    }
+    Umap.fastIntersection(distances.mRow, distances.mCol, distances.mData, target, 1.0F, 1.0e8F);
+    // Comparison values from Python
+    assertArrayEquals(new double[][]{
+      {0, 0, 0, 4.003748, 0, 0, 4.853864, 0, 0, 6.3450766},
+      {0, 0, 0, 0, 3.6864617, 0, 0, 4.134005, 0, 0},
+      {0, 0, 0, 0, 0, 4.4158807, 0, 0, 4.544227, 0},
+      {4.003748, 0, 0, 0, 0, 0, 1.1, 0, 0, 9.126335},
+      {0, 3.6864617, 0, 0, 0, 0, 0, 1.2165527, 0, 0},
+      {0, 0, 4.4158807, 0, 0, 0, 0, 0, 1.4662877, 0},
+      {4.853864, 0, 0, 1.1, 0, 0, 0, 0, 0, 9.481561},
+      {0, 4.134005, 0, 0, 1.2165527, 0, 0, 0, 0, 0},
+      {0, 0, 4.544227, 0, 0, 1.4662877, 0, 0, 0, 0},
+      {6.3450766, 0, 0, 9.126335, 0, 0, 9.481561, 0, 0, 0},
+    }, distances.toArray());
+  }
+
 }

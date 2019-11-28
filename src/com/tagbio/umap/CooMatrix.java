@@ -365,4 +365,27 @@ class CooMatrix extends Matrix {
     }
     return sb.toString();
   }
+
+  @Override
+  Matrix rowNormalize() {
+    final float[] d = new float[mData.length];
+    int k = 0;
+    int row = -1;
+    float max = 0;
+    while (k < mRow.length) {
+      if (mRow[k] != row) {
+        // Moving to a new row, compute max
+        max = mData[k];
+        for (int j = k + 1; j < mRow.length && mRow[j] == mRow[k]; ++j) {
+          max = Math.max(max, mData[j]);
+        }
+      }
+      if (max != 0) {
+        d[k] = mData[k] / max;
+      }
+      ++k;
+    }
+    return new CooMatrix(d, Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), mShape);
+  }
+
 }
