@@ -87,10 +87,14 @@ public class CooMatrixTest extends AbstractMatrixTest {
   public void testHadamardMultiplyTranspose() {
     final float[][] d = {{1, 1, 1, 1}, {0, 1, 1, 0}, {0, 1, 0, 1}, {1, 0, 1, 0}};
     final Matrix m = new DefaultMatrix(d).toCoo();
-    final Matrix mt = m.transpose();
-    System.out.println(mt);
-    final Matrix hmt = m.hadamardMultiply(mt);
-    System.out.println(hmt);
+    final Matrix hmt = m.hadamardMultiply(m.transpose());
     assertEquals(hmt, m.hadamardMultiplyTranspose());
+  }
+
+  public void testAddTranspose() {
+    final float[][] d = {{1, 1, 1, 1}, {0, 1, 1, 0}, {0, 1, 0, 1}, {1, 0, 1, 0}};
+    final Matrix m = new DefaultMatrix(d).toCoo();
+    final Matrix hmt = m.add(m.transpose());
+    assertEquals(hmt, m.addTranspose());
   }
 }
