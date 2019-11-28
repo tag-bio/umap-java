@@ -56,7 +56,7 @@ class CsrMatrix extends Matrix {
 
   @Override
   Matrix copy() {
-    return new CsrMatrix(Arrays.copyOf(data, data.length), Arrays.copyOf(indptr, indptr.length), Arrays.copyOf(indices, indices.length), Arrays.copyOf(shape, shape.length));
+    return new CsrMatrix(Arrays.copyOf(data, data.length), Arrays.copyOf(indptr, indptr.length), Arrays.copyOf(indices, indices.length), Arrays.copyOf(mShape, mShape.length));
   }
 
   @Override
@@ -94,6 +94,6 @@ class CsrMatrix extends Matrix {
     for (int i = 0; i < newData.length; ++i) {
       newData[i] *= x;
     }
-    return new CsrMatrix(newData, indptr, indices, shape);
+    return new CsrMatrix(newData, indptr, indices, mShape);
   }
 }

@@ -67,46 +67,31 @@ public class Umap {
 
   private static final int SMALL_PROBLEM_THRESHOLD = 4096;
 
-  /*
-    Compute a continuous version of the distance to the kth nearest
-    neighbor. That is, this is similar to knn-distance but allows continuous
-    k values rather than requiring an integral k. In essence we are simply
-    computing the distance such that the cardinality of fuzzy set we generate
-    is k.
-
-    Parameters
-    ----------
-    distances: array of shape (n_samples, n_neighbors)
-        Distances to nearest neighbors for each samples. Each row should be a
-        sorted list of distances to a given samples nearest neighbors.
-
-    k: float
-        The number of nearest neighbors to approximate for.
-
-    nIter: int (optional, default 64)
-        We need to binary search for the correct distance value. This is the
-        max number of iterations to use in such a search.
-
-    localConnectivity: int (optional, default 1)
-        The local connectivity required -- i.e. the number of nearest
-        neighbors that should be assumed to be connected at a local level.
-        The higher this value the more connected the manifold becomes
-        locally. In practice this should be not more than the local intrinsic
-        dimension of the manifold.
-
-    bandwidth: float (optional, default 1)
-        The target bandwidth of the kernel, larger values will produce
-        larger return values.
-
-    Returns
-    -------
-    knn_dist: array of shape (n_samples)
-        The distance to kth nearest neighbor, as suitably approximated.
-
-    nn_dist: array of shape (n_samples)
-        The distance to the 1st nearest neighbor for each point.
-  */
-  private static float[][] smoothKnnDist(final float[][] distances, final double k, final int nIter, final int localConnectivity, final double bandwidth) {
+  /**
+   * Compute a continuous version of the distance to the kth nearest
+   * neighbor. That is, this is similar to knn-distance but allows continuous
+   * k values rather than requiring an integral k. In essence we are simply
+   * computing the distance such that the cardinality of fuzzy set we generate
+   * is k.
+   * @param distances array of shape (nSamples, nNeighbors)
+   * Distances to nearest neighbors for each samples. Each row should be a
+   * sorted list of distances to a given samples nearest neighbors.
+   * @param k The number of nearest neighbors to approximate for.
+   * @param nIter We need to binary search for the correct distance value. This is the
+   * max number of iterations to use in such a search.
+   * @param localConnectivity The local connectivity required; i.e., the number of nearest
+   * neighbors that should be assumed to be connected at a local level.
+   * The higher this value the more connected the manifold becomes
+   * locally. In practice this should be not more than the local intrinsic
+   * dimension of the manifold.
+   * @param bandwidth The target bandwidth of the kernel, larger values will produce
+   * larger return values.
+   * @return two arrays knnDist array of shape (nSamples)
+   *         The distance to kth nearest neighbor, as suitably approximated.
+   *         nnDist: array of shape (nSamples)
+   *         The distance to the 1st nearest neighbor for each point.
+   */
+  private static float[][] smoothKnnDist(final float[][] distances, final float k, final int nIter, final int localConnectivity, final float bandwidth) {
     final double target = MathUtils.log2(k) * bandwidth;
     final float[] rho = new float[distances.length];
     final float[] result = new float[distances.length];
@@ -122,14 +107,14 @@ public class Umap {
       final float[] nonZeroDists = MathUtils.filterPositive(ithDistances);
       if (nonZeroDists.length >= localConnectivity) {
         final int index = (int) Math.floor(localConnectivity);
-        final double interpolation = localConnectivity - index;
+        final float interpolation = localConnectivity - index;
         if (index > 0) {
           rho[i] = nonZeroDists[index - 1];
           if (interpolation > SMOOTH_K_TOLERANCE) {
             rho[i] += interpolation * (nonZeroDists[index] - nonZeroDists[index - 1]);
           }
         } else {
-          rho[i] = (float) (interpolation * nonZeroDists[0]);
+          rho[i] = interpolation * nonZeroDists[0];
         }
       } else if (nonZeroDists.length > 0) {
         rho[i] = MathUtils.max(nonZeroDists);
@@ -175,52 +160,33 @@ public class Umap {
     return new float[][]{result, rho};
   }
 
-  static float[][] smoothKnnDist(float[][] distances, double k, int localConnectivitiy) {
-    return smoothKnnDist(distances, k, 64, localConnectivitiy, 1.0);
+  static float[][] smoothKnnDist(final float[][] distances, final float k, final int localConnectivity) {
+    return smoothKnnDist(distances, k, 64, localConnectivity, 1.0F);
   }
 
-  // Compute the ``n_neighbors`` nearest points for each data point in ``X``
-  // under ``metric``. This may be exact, but more likely is approximated via
-  // nearest neighbor descent.
-
-  // Parameters
-  // ----------
-  // X: array of shape (n_samples, n_features)
-  //     The input data to compute the k-neighbor graph of.
-
-  // n_neighbors: int
-  //     The number of nearest neighbors to compute for each sample in ``X``.
-
-  // metric: string || callable
-  //     The metric to use for the computation.
-
-  // metric_kwds: dict
-  //     Any arguments to pass to the metric computation function.
-
-  // angular: bool
-  //     Whether to use angular rp trees in NN approximation.
-
-  // random: np.random state
-  //     The random state to use for approximate NN computations.
-
-  // verbose: bool
-  //     Whether to print status data during the computation.
-
-  // Returns
-  // -------
-  // knn_indices: array of shape (n_samples, n_neighbors)
-  //     The indices on the ``n_neighbors`` closest points in the dataset.
-
-  // knn_dists: array of shape (n_samples, nNeighbors)
-  //     The distances to the ``nNeighbors`` closest points in the dataset.
-  static Object[] nearestNeighbors(final Matrix instances, final int nNeighbors, Metric metric, boolean angular, final Random random, final boolean verbose) {
+  /**
+   * Compute the <code>nNeighbors</code> nearest points for each data point in <code>instances</code>
+   * under <code>metric</code>. This may be exact, but more likely is approximated via
+   * nearest neighbor descent.
+   * @param instances The input data to compute the k-neighbor graph of.
+   * @param nNeighbors The number of nearest neighbors to compute for each sample in ``instances``.
+   * @param metric The metric to use for the computation.
+   * @param angular Whether to use angular rp trees in NN approximation.
+   * @param random The random state to use for approximate NN computations.
+   * @param verbose Whether to print status data during the computation.
+   * @return knnIndices: array of shape <code>(nSamples, nNeighbors)</code>
+   *   The indices on the <code>nNeighbors</code> closest points in the dataset.
+   *   knnDists: array of shape <code>(nSamples, nNeighbors)</code>
+   *   The distances to the <code>nNeighbors</code> closest points in the dataset.
+   */
+  static IndexedDistances nearestNeighbors(final Matrix instances, final int nNeighbors, final Metric metric, boolean angular, final Random random, final boolean verbose) {
     if (verbose) {
       Utils.message("Finding Nearest Neighbors");
     }
 
-    int[][] knnIndices = null;
-    float[][] knnDists = null;
-    List<FlatTree> rpForest = null;
+    final int[][] knnIndices;
+    final float[][] knnDists;
+    final List<FlatTree> rpForest;
     if (metric.equals(PrecomputedMetric.SINGLETON)) {
       // Note that this does not support sparse distance matrices yet ...
       // Compute indices of n nearest neighbors
@@ -236,14 +202,14 @@ public class Umap {
       }
       rpForest = Collections.emptyList();
     } else {
-      Metric distance_func = metric;
-      angular = distance_func.isAngular();
+      Metric distanceFunc = metric;
+      angular = distanceFunc.isAngular();
 
       if (instances instanceof CsrMatrix) {
         final CsrMatrix csrInstances = (CsrMatrix) instances;
         // todo this is nonsense now, since metric cannot be a string at this point
         if (Sparse.sparse_named_distances.containsKey(metric)) {
-          distance_func = Sparse.sparse_named_distances.get(metric);
+          distanceFunc = Sparse.sparse_named_distances.get(metric);
 //          if (Sparse.sparse_need_n_features.contains(metric)) {
 //            metricKwds.put("n_features", instances.cols());
 //          }
@@ -251,7 +217,7 @@ public class Umap {
           throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
         }
         throw new UnsupportedOperationException();
-//        metric_nn_descent = Sparse.make_sparse_nn_descent(distance_func, tuple(metricKwds.values()));
+//        metric_nn_descent = Sparse.make_sparse_nn_descent(distanceFunc, tuple(metricKwds.values()));
 //
 //        int n_trees = 5 + (int) (Math.round(Math.pow(Y.rows(), 0.5 / 20.0)));
 //        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(Y.rows()))));
@@ -269,7 +235,7 @@ public class Umap {
 //        knnIndices = (int[][]) nn[0];
 //        knnDists = (float[][]) nn[1];
       } else {
-        final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(distance_func);
+        final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(distanceFunc);
         int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5 / 20.0)));
         int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
 
@@ -277,7 +243,7 @@ public class Umap {
           Utils.message("Building RP forest with " + nTrees + " trees");
         }
         rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, angular);
-        final int[][] leafArray = RandomProjectionTree.rptree_leaf_array(rpForest);
+        final int[][] leafArray = RandomProjectionTree.rptreeLeafArray(rpForest);
         if (verbose) {
           Utils.message("NN descent for " + nIters + " iterations");
         }
@@ -293,40 +259,26 @@ public class Umap {
     if (verbose) {
       Utils.message("Finished Nearest Neighbor Search");
     }
-    return new Object[]{knnIndices, knnDists, rpForest};
+    return new IndexedDistances(knnIndices, knnDists, rpForest);
   }
 
-
-  // Construct the membership strength data for the 1-skeleton of each local
-  // fuzzy simplicial set -- this is formed as a sparse matrix where each row is
-  // a local fuzzy simplicial set, with a membership strength for the
-  // 1-simplex to each other data point.
-
-  // Parameters
-  // ----------
-  // knn_indices: array of shape (n_samples, n_neighbors)
-  //     The indices on the ``n_neighbors`` closest points in the dataset.
-
-  // knn_dists: array of shape (n_samples, n_neighbors)
-  //     The distances to the ``n_neighbors`` closest points in the dataset.
-
-  // sigmas: array of shape(n_samples)
-  //     The normalization factor derived from the metric tensor approximation.
-
-  // rhos: array of shape(n_samples)
-  //     The local connectivity adjustment.
-
-  // Returns
-  // -------
-  // rows: array of shape (n_samples * n_neighbors)
-  //     Row data for the resulting sparse matrix (coo format)
-
-  // cols: array of shape (n_samples * n_neighbors)
-  //     Column data for the resulting sparse matrix (coo format)
-
-  // vals: array of shape (n_samples * n_neighbors)
-  //     Entries for the resulting sparse matrix (coo format)
-  private static CooMatrix computeMembershipStrengths(final int[][] knnIndices, final float[][] knnDists, final float[] sigmas, final float[] rhos, final int[] shape) {
+  /**
+   * Construct the membership strength data for the 1-skeleton of each local
+   * fuzzy simplicial set -- this is formed as a sparse matrix where each row is
+   * a local fuzzy simplicial set, with a membership strength for the
+   * 1-simplex to each other data point.
+   * @param knnIndices array of shape <code>(nSamples, nNeighbors)</code>
+   * The indices on the <code>nNeighbors</code> closest points in the dataset.
+   * @param knnDists array of shape <code>(nSamples, nNeighbors)</code>
+   * The distances to the <code>nNeighbors</code> closest points in the dataset.
+   * @param sigmas array of shape <code>(nSamples)</code>
+   * The normalization factor derived from the metric tensor approximation.
+   * @param rhos array of shape <code>(nSamples)</code>
+   * The local connectivity adjustment.
+   * @param shape shape of the result
+   * @return sparse matrix of shape <code>(nSamples, nNeighbors)</code>
+   */
+  static CooMatrix computeMembershipStrengths(final int[][] knnIndices, final float[][] knnDists, final float[] sigmas, final float[] rhos, final int[] shape) {
     final int nSamples = knnIndices.length;
     final int nNeighbors = knnIndices[0].length;
     final int size = nSamples * nNeighbors;
@@ -340,127 +292,71 @@ public class Umap {
         if (knnIndices[i][j] == -1) {
           continue;  // We didn't get the full knn for i
         }
-        final double val;
+        final float val;
         if (knnIndices[i][j] == i) {
-          val = 0.0;
+          val = 0.0F;
         } else if (knnDists[i][j] - rhos[i] <= 0.0) {
-          val = 1.0;
+          val = 1.0F;
         } else {
-          val = Math.exp(-((knnDists[i][j] - rhos[i]) / (sigmas[i])));
+          val = (float) Math.exp(-((knnDists[i][j] - rhos[i]) / (sigmas[i])));
         }
         rows[i * nNeighbors + j] = i;
         cols[i * nNeighbors + j] = knnIndices[i][j];
-        vals[i * nNeighbors + j] = (float) val;
+        vals[i * nNeighbors + j] = val;
       }
     }
     return new CooMatrix(vals, rows, cols, shape);
   }
 
-
-  // Given a set of data X, a neighborhood size, and a measure of distance
-  // compute the fuzzy simplicial set (here represented as a fuzzy graph in
-  // the form of a sparse matrix) associated to the data. This is done by
-  // locally approximating geodesic distance at each point, creating a fuzzy
-  // simplicial set for each such point, and then combining all the local
-  // fuzzy simplicial sets into a global one via a fuzzy union.
-
-  // Parameters
-  // ----------
-  // X: array of shape (n_samples, n_features)
-  //     The data to be modelled as a fuzzy simplicial set.
-
-  // n_neighbors: int
-  //     The number of neighbors to use to approximate geodesic distance.
-  //     Larger numbers induce more global estimates of the manifold that can
-  //     miss finer detail, while smaller values will focus on fine manifold
-  //     structure to the detriment of the larger picture.
-
-  // random: numpy RandomState || equivalent
-  //     A state capable being used as a numpy random state.
-
-  // metric: string || function (optional, default 'euclidean')
-  //     The metric to use to compute distances in high dimensional space.
-  //     If a string is passed it must match a valid predefined metric. If
-  //     a general metric is required a function that takes two 1d arrays and
-  //     returns a float can be provided. For performance purposes it is
-  //     required that this be a numba jit'd function. Valid string metrics
-  //     include:
-  //         * euclidean (or l2)
-  //         * manhattan (or l1)
-  //         * cityblock
-  //         * braycurtis
-  //         * canberra
-  //         * chebyshev
-  //         * correlation
-  //         * cosine
-  //         * dice
-  //         * hamming
-  //         * jaccard
-  //         * kulsinski
-  //         * mahalanobis
-  //         * matching
-  //         * minkowski
-  //         * rogerstanimoto
-  //         * russellrao
-  //         * seuclidean
-  //         * sokalmichener
-  //         * sokalsneath
-  //         * sqeuclidean
-  //         * yule
-  //         * wminkowski
-
-  //     Metrics that take arguments (such as minkowski, mahalanobis etc.)
-  //     can have arguments passed via the metric_kwds dictionary. At this
-  //     time care must be taken and dictionary elements must be ordered
-  //     appropriately; this will hopefully be fixed in the future.
-
-  // knn_indices: array of shape (n_samples, n_neighbors) (optional)
-  //     If the k-nearest neighbors of each point has already been calculated
-  //     you can pass them in here to save computation time. This should be
-  //     an array with the indices of the k-nearest neighbors as a row for
-  //     each data point.
-
-  // knn_dists: array of shape (n_samples, n_neighbors) (optional)
-  //     If the k-nearest neighbors of each point has already been calculated
-  //     you can pass them in here to save computation time. This should be
-  //     an array with the distances of the k-nearest neighbors as a row for
-  //     each data point.
-
-  // angular: bool (optional, default false)
-  //     Whether to use angular/cosine distance for the random projection
-  //     forest for seeding NN-descent to determine approximate nearest
-  //     neighbors.
-
-  // set_op_mix_ratio: float (optional, default 1.0)
-  //     Interpolate between (fuzzy) union and intersection as the set operation
-  //     used to combine local fuzzy simplicial sets to obtain a global fuzzy
-  //     simplicial sets. Both fuzzy set operations use the product t-norm.
-  //     The value of this parameter should be between 0.0 and 1.0; a value of
-  //     1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy
-  //     intersection.
-
-  // localConnectivity: int (optional, default 1)
-  //     The local connectivity required -- i.e. the number of nearest
-  //     neighbors that should be assumed to be connected at a local level.
-  //     The higher this value the more connected the manifold becomes
-  //     locally. In practice this should be not more than the local intrinsic
-  //     dimension of the manifold.
-
-  // verbose: bool (optional, default false)
-  //     Whether to report information on the current progress of the algorithm.
-
-  // Returns
-  // -------
-  // fuzzy_simplicial_set: coo_matrix
-  //     A fuzzy simplicial set represented as a sparse matrix. The (i,
-  //     j) entry of the matrix represents the membership strength of the
-  //     1-simplex between the ith and jth sample points.
-  private static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final Random random, final Metric metric, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final int localConnectivity, final boolean verbose) {
+  /**
+   * Given a set of data X, a neighborhood size, and a measure of distance
+   * compute the fuzzy simplicial set (here represented as a fuzzy graph in
+   * the form of a sparse matrix) associated to the data. This is done by
+   * locally approximating geodesic distance at each point, creating a fuzzy
+   * simplicial set for each such point, and then combining all the local
+   * fuzzy simplicial sets into a global one via a fuzzy union.
+   * @param instances The data to be modelled as a fuzzy simplicial set.
+   * @param nNeighbors The number of neighbors to use to approximate geodesic distance.
+   * Larger numbers induce more global estimates of the manifold that can
+   * miss finer detail, while smaller values will focus on fine manifold
+   * structure to the detriment of the larger picture.
+   * @param random Randomness source
+   * @param metric The metric to use to compute distances in high dimensional space.
+   * @param knnIndices array of shape <code>(nSamples, nNeighbors)</code> or null.
+   * If the k-nearest neighbors of each point has already been calculated
+   * you can pass them in here to save computation time. This should be
+   * an array with the indices of the k-nearest neighbors as a row for
+   * each data point.
+   * @param knnDists array of shape <code>(nSamples, nNeighbors)</code> or null.
+   * If the k-nearest neighbors of each point has already been calculated
+   * you can pass them in here to save computation time. This should be
+   * an array with the distances of the k-nearest neighbors as a row for
+   * each data point.
+   * @param angular Whether to use angular/cosine distance for the random projection
+   * forest for seeding NN-descent to determine approximate nearest
+   * neighbors.
+   * @param setOpMixRatio Interpolate between (fuzzy) union and intersection as the set operation
+   * used to combine local fuzzy simplicial sets to obtain a global fuzzy
+   * simplicial sets. Both fuzzy set operations use the product t-norm.
+   * The value of this parameter should be between 0.0 and 1.0; a value of
+   * 1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy
+   * intersection.
+   * @param localConnectivity The local connectivity required; i.e., the number of nearest
+   * neighbors that should be assumed to be connected at a local level.
+   * The higher this value the more connected the manifold becomes
+   * locally. In practice this should be not more than the local intrinsic
+   * dimension of the manifold.
+   * @param verbose Whether to report information on the current progress of the algorithm.
+   * @return A fuzzy simplicial set represented as a sparse matrix. The <code>(i, j)</code>
+   * entry of the matrix represents the membership strength of the
+   * 1-simplex between the ith and jth sample points.
+   */
+  static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final Random random, final Metric metric, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final int localConnectivity, final boolean verbose) {
 
     if (knnIndices == null || knnDists == null) {
-      final Object[] nn = nearestNeighbors(instances, nNeighbors, metric, angular, random, verbose);
-      knnIndices = (int[][]) nn[0];
-      knnDists = (float[][]) nn[1];
+      final IndexedDistances nn = nearestNeighbors(instances, nNeighbors, metric, angular, random, verbose);
+      knnIndices = nn.getIndices();
+      knnDists = nn.getDistances();
     }
 
     final float[][] sigmasRhos = smoothKnnDist(knnDists, nNeighbors, localConnectivity);
@@ -1432,10 +1328,10 @@ public class Umap {
     } else {
       mSmallData = false;
       // Standard case
-      final Object[] nn = nearestNeighbors(instances, _n_neighbors, mMetric, mAngularRpForest, random, mVerbose);
-      _knn_indices = (int[][]) nn[0];
-      _knn_dists = (float[][]) nn[1];
-      mRpForest = (List<FlatTree>) nn[2];
+      final IndexedDistances nn = nearestNeighbors(instances, _n_neighbors, mMetric, mAngularRpForest, random, mVerbose);
+      _knn_indices = nn.getIndices();
+      _knn_dists = nn.getDistances();
+      mRpForest = nn.getForest();
 
       graph_ = fuzzySimplicialSet(instances, mNNeighbors, random, mMetric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 

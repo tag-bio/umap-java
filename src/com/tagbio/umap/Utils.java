@@ -76,7 +76,7 @@ class Utils {
   static int[][] fastKnnIndices(final Matrix instances, final int nNeighbors) {
     final int[][] knnIndices = new int[instances.rows()][nNeighbors];
     for (int row = 0; row < instances.rows(); ++row) {
-      final int[] v = MathUtils.argsort(instances.row(row));
+      final int[] v = MathUtils.argsort(Arrays.copyOf(instances.row(row), instances.cols())); // copy to avoid changing original instances
       knnIndices[row] = Arrays.copyOf(v, nNeighbors);
     }
     return knnIndices;

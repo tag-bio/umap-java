@@ -63,6 +63,11 @@ class DefaultMatrix extends Matrix {
   }
 
   @Override
+  float[][] toArray() {
+    return mData;
+  }
+
+  @Override
   float[] row(int row) {
     return mData[row];
   }

@@ -62,7 +62,10 @@ package com.tagbio.umap;
 //warnings.filterwarnings("ignore", category=UserWarning)
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
+
+import com.tagbio.umap.metric.PrecomputedMetric;
 
 import junit.framework.TestCase;
 
@@ -92,10 +95,10 @@ public class UmapTest extends TestCase {
     //System.out.println(matrix);
     assertEquals(1797, matrix.rows());
     assertEquals(3, matrix.cols());
-//    final String[] names = data.getSampleNames();
-//    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
-//    }
+    final String[] names = data.getSampleNames();
+    for (int r = 0; r < matrix.rows(); ++r) {
+      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
+    }
   }
 
 //  public void testGenes() throws IOException {
@@ -1120,4 +1123,87 @@ public class UmapTest extends TestCase {
 //
 //    u2 = umap.transform(b)
 //    assert_array_equal(u1_orig, umap.embedding_)
+
+  private void assertArrayEquals(final double[] expected, final float[] actual) {
+    if (expected.length != actual.length) {
+      fail("Lengths mismatch: expected=" + expected.length + " actual=" + actual.length);
+    }
+    for (int k = 0; k < expected.length; ++k) {
+      assertEquals("Mismatch at index " + k + " expected=" + expected[k] + " actual=" + actual[k], expected[k], actual[k], 1e-6);
+    }
+  }
+
+  private void assertArrayEquals(final double[][] expected, final float[][] actual) {
+    if (expected.length != actual.length) {
+      fail("Lengths mismatch: expected=" + expected.length + " actual=" + actual.length);
+    }
+    for (int k = 0; k < expected.length; ++k) {
+      assertArrayEquals(expected[k], actual[k]);
+    }
+  }
+
+  public void testSmoothKnnDist() throws IOException {
+    final Matrix distances = new IrisData(true).getDistances();
+    //System.out.println(distances.toStringNumpy());
+    final float[][] smooth21 = Umap.smoothKnnDist(distances.toArray(), 2, 1);
+    // Comparison values from Python
+    assertArrayEquals(new double[] {0.00326393, 0.00322133, 0.00330938, 0.0026791, 0.00247916, 0.00266279, 0.00299635, 0.00269514, 0.00280051, 0.00712167}, smooth21[0]);
+    assertArrayEquals(new double[] {0.5385164, 0.5385164, 0.509902, 4.003748, 3.6166282, 4.1641326, 4.853864, 4.1904655, 4.4170127, 6.3450766}, smooth21[1]);
+    final float[][] smooth42 = Umap.smoothKnnDist(distances.toArray(), 4, 2);
+    assertArrayEquals(new double[] {0.71514893, 0.25, 0.25, 0.0026791, 0.00247916, 0.00266279, 0.00299635, 0.00269514, 0.00280051, 0.00712167}, smooth42[0]);
+    assertArrayEquals(new double[] {0.509902, 0.30000022, 0.30000022, 4.0963397, 3.6864617, 4.236744, 4.9020405, 4.134005, 4.402272, 5.916925}, smooth42[1]);
+  }
+
+  public void testNearestNeighborsPrecomputed() throws IOException {
+    final Matrix distances = new IrisData(true).getDistances();
+    final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, false);
+    // Comparison values from Python
+    assertTrue(Arrays.deepEquals(new int[][] {{0, 2}, {1, 2}, {2, 1}, {3, 5}, {4, 3}, {5, 3}, {6, 5}, {7, 8}, {8, 7}, {9, 2}}, id.getIndices()));
+    assertArrayEquals(new double[][] {{0, 0.509902}, {0, 0.30000022}, {0, 0.30000022}, {0, 0.26457536}, {0, 0.64031225}, {0, 0.26457536}, {0, 0.86023235}, {0, 0.51961535}, {0, 0.51961535}, {0, 5.8360944}}, id.getDistances());
+    assertTrue(id.getForest().isEmpty());
+  }
+
+  public void testComputeMembershipStrengths() throws IOException {
+    final Matrix distances = new IrisData(true).getDistances();
+    final float[][] sigmaRhos = Umap.smoothKnnDist(distances.toArray(), 2, 1);
+    final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, false);
+    final CooMatrix m = Umap.computeMembershipStrengths(id.getIndices(), id.getDistances(), sigmaRhos[0], sigmaRhos[1], distances.mShape);
+    // Comparison values from Python
+    // The next three lines are order dependent in the CooMatrix, so not ideal for comparison
+//    assertTrue(Arrays.equals(new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9}, m.mRow));
+//    assertTrue(Arrays.equals(new int[]{0, 2, 1, 2, 1, 2, 3, 5, 3, 4, 3, 5, 5, 6, 7, 8, 7, 8, 2, 9}, m.mCol));
+//    assertArrayEquals(new double[]{0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0}, m.mData);
+    assertArrayEquals(new double[][]{
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+    }, m.toArray());
+  }
+
+//  public void testFuzzySimplicialSet() throws IOException {
+//    final Matrix distances = new IrisData(true).getDistances();
+//    final Matrix m = Umap.fuzzySimplicialSet(distances, 2, null, PrecomputedMetric.SINGLETON, null, null, false, 1, 1, false);
+//    // Comparison values from Python
+//    System.out.println(m);
+//    assertArrayEquals(new double[][]{
+//      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+//      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+//      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+//      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+//      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+//      {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+//      {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+//      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+//      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+//      {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+//    }, m.toArray());
+//  }
+
 }

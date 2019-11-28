@@ -100,11 +100,12 @@ public abstract class AbstractMatrixTest extends TestCase {
   public void testHadamardMultiply() {
     final Matrix m = getMatrixA();
     final Matrix res = m.hadamardMultiply(m);
-    assertTrue(Arrays.equals(m.shape, res.shape));
-    for (int r = 0; r < res.shape[0]; ++r) {
-      for (int c = 0; c < res.shape[1]; ++c) {
+    assertTrue(Arrays.equals(m.mShape, res.mShape));
+    for (int r = 0; r < res.mShape[0]; ++r) {
+      for (int c = 0; c < res.mShape[1]; ++c) {
         assertEquals(m.get(r, c) * m.get(r, c), res.get(r, c));
       }
     }
   }
+
 }
