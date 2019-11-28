@@ -21,7 +21,7 @@ abstract class Data {
   private final List<String> mAttributes = new ArrayList<>();
   private final List<String> mSampleNames = new ArrayList<>();
 
-  private static InputStream getStream(final String resource) throws IOException {
+  protected static InputStream getStream(final String resource) throws IOException {
     final BufferedInputStream resourceAsStream = new BufferedInputStream(Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource)));
     return resource.endsWith(".gz")
       ? new GZIPInputStream(resourceAsStream)
@@ -73,6 +73,16 @@ abstract class Data {
 
   public String[] getAttributes() {
     return mAttributes.toArray(new String[0]);
+  }
+
+  public void setAttributes(String [] attributes) {
+    if (attributes.length != mAttributes.size()) {
+      throw new IllegalArgumentException("Incorrect number of attributes.");
+    }
+    mAttributes.clear();
+    for (String a : attributes) {
+      mAttributes.add(a);
+    }
   }
 
   public String[] getSampleNames() {
