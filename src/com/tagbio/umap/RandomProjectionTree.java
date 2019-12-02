@@ -7,6 +7,7 @@ package com.tagbio.umap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -643,12 +644,11 @@ class RandomProjectionTree {
    */
   static int[][] rptreeLeafArray(final List<FlatTree> rpForest) {
     if (rpForest.size() > 0) {
-      final int[][] leafArray = new int[rpForest.size()][];
-      for (int k = 0; k < leafArray.length; ++k) {
-        //leafArray[k] = rpForest.get(k).getIndices();
-        leafArray[k] = rpForest.get(k).getIndices()[0]; // todo !!! datatype mismatch ???
+      final List<int[]> leafArray = new ArrayList<>();
+      for (final FlatTree flatTree : rpForest) {
+        Collections.addAll(leafArray, flatTree.getIndices());
       }
-      return leafArray;
+      return leafArray.toArray(new int[0][]);
     } else {
       return new int[][] {{-1}};
     }
