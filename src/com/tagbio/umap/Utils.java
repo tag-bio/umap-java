@@ -101,29 +101,21 @@ class Utils {
     return (float) Math.sqrt(result);
   }
 
-
-//     """Generate n_samples many integers from 0 to pool_size such that no
-//     integer is selected twice. The duplication constraint is achieved via
-//     rejection sampling.
-
-//     Parameters
-//     ----------
-//     n_samples: int
-//         The number of random samples to select from the pool
-
-//     pool_size: int
-//         The size of the total pool of candidates to sample from
-
-//     rng_state: array of int64, shape (3,)
-//         Internal state of the random number generator
-
-  //     Returns
-//     -------
-//     sample: array of shape(nSamples,)
-//         The ``nSamples`` randomly selected elements from the pool.
+  /**
+   * Generate n_samples many integers from 0 to pool_size such that no
+   * integer is selected twice. The duplication constraint is achieved via
+   * rejection sampling.
+   * @param nSamples The number of random samples to select from the pool
+   * @param poolSize The size of the total pool of candidates to sample from
+   * @param random Randomness source
+   * @return <code>nSamples </code>randomly selected elements from the pool.
+   */
   static int[] rejectionSample(final int nSamples, final int poolSize, final Random random) {
+    if (nSamples > poolSize) {
+      throw new IllegalArgumentException();
+    }
     final int[] result = new int[nSamples];
-    for (int i = 0; i < nSamples; ++i) {
+    for (int i = 0; i < result.length; ++i) {
       boolean rejectSample = true;
       int j = -1;
       while (rejectSample) {

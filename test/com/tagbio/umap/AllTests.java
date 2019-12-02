@@ -23,6 +23,7 @@ public class AllTests extends TestSuite {
     suite.addTestSuite(IrisDataTest.class);
     suite.addTestSuite(SortTest.class);
     suite.addTestSuite(UmapTest.class);
+    suite.addTestSuite(UtilsTest.class);
     return suite;
   }
 

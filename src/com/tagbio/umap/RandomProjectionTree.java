@@ -72,7 +72,7 @@ class RandomProjectionTree {
     }
 
     for (int d = 0; d < dim; ++d) {
-      hyperplaneVector[d] = hyperplaneVector[d] / hyperplaneNorm;
+      hyperplaneVector[d] /= hyperplaneNorm;
     }
 
     // For each point compute the margin (project into normal vector)
@@ -89,10 +89,10 @@ class RandomProjectionTree {
 
       if (Math.abs(margin) < EPS) {
         side[i] = random.nextBoolean();
-        if (!side[i]) {
-          nLeft += 1;
-        } else {
+        if (side[i]) {
           nRight += 1;
+        } else {
+          nLeft += 1;
         }
       } else if (margin > 0) {
         side[i] = false;
@@ -111,10 +111,10 @@ class RandomProjectionTree {
     nLeft = 0;
     nRight = 0;
     for (int i = 0; i < side.length; ++i) {
-      if (!side[i]) {
-        indicesLeft[nLeft++] = indices[i];
-      } else {
+      if (side[i]) {
         indicesRight[nRight++] = indices[i];
+      } else {
+        indicesLeft[nLeft++] = indices[i];
       }
     }
 
@@ -146,13 +146,13 @@ class RandomProjectionTree {
     if (leftIndex == rightIndex) {
       rightIndex = (rightIndex + 1) % indices.length;
     }
-    int left = indices[leftIndex];
-    int right = indices[rightIndex];
+    final int left = indices[leftIndex];
+    final int right = indices[rightIndex];
 
     // Compute the normal vector to the hyperplane (the vector between
     // the two points) and the offset from the origin
-    float hyperplaneOffset = 0.0F;
-    float[] hyperplaneVector = new float[dim];
+    float hyperplaneOffset = 0;
+    final float[] hyperplaneVector = new float[dim];
 
     for (int d = 0; d < dim; ++d) {
       hyperplaneVector[d] = data.get(left, d) - data.get(right, d);
@@ -164,7 +164,7 @@ class RandomProjectionTree {
     // put it in the other pile (if we hit hyperplane on the nose, flip a coin)
     int nLeft = 0;
     int nRight = 0;
-    boolean[] side = new boolean[indices.length];
+    final boolean[] side = new boolean[indices.length];
     for (int i = 0; i < indices.length; ++i) {
       float margin = hyperplaneOffset;
       for (int d = 0; d < dim; ++d) {
@@ -172,10 +172,10 @@ class RandomProjectionTree {
       }
       if (Math.abs(margin) < EPS) {
         side[i] = random.nextBoolean();
-        if (!side[i]) {
-          ++nLeft;
-        } else {
+        if (side[i]) {
           ++nRight;
+        } else {
+          ++nLeft;
         }
       } else if (margin > 0) {
         side[i] = false;
@@ -193,10 +193,10 @@ class RandomProjectionTree {
     nLeft = 0;
     nRight = 0;
     for (int i = 0; i < side.length; ++i) {
-      if (!side[i]) {
-        indicesLeft[nLeft++] = indices[i];
-      } else {
+      if (side[i]) {
         indicesRight[nRight++] = indices[i];
+      } else {
+        indicesLeft[nLeft++] = indices[i];
       }
     }
     return new Object[]{indicesLeft, indicesRight, hyperplaneVector, hyperplaneOffset};
@@ -226,19 +226,21 @@ class RandomProjectionTree {
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
 
-    int[] leftInds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
-    float[] leftData = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
-    int[] rightInds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
-    float[] rightData = MathUtils.subarray(data, indptr[right], indptr[right + 1]);
+    final int[] leftInds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
+    final float[] leftData = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
+    final int[] rightInds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
+    final float[] rightData = MathUtils.subarray(data, indptr[right], indptr[right + 1]);
 
     float leftNorm = Utils.norm(leftData);
     float rightNorm = Utils.norm(rightData);
 
-    if (Math.abs(leftNorm) < EPS)
+    if (Math.abs(leftNorm) < EPS) {
       leftNorm = 1;
+    }
 
-    if (Math.abs(rightNorm) < EPS)
+    if (Math.abs(rightNorm) < EPS) {
       rightNorm = 1;
+    }
 
     // Compute the normal vector to the hyperplane (the vector between the two points)
     final float[] normalizedLeftData = MathUtils.divide(leftData, leftNorm);
@@ -248,10 +250,11 @@ class RandomProjectionTree {
     final float[] hyperplaneData = (float[]) sd[1];
 
     float hyperplaneNorm = Utils.norm(hyperplaneData);
-    if (Math.abs(hyperplaneNorm) < EPS)
+    if (Math.abs(hyperplaneNorm) < EPS) {
       hyperplaneNorm = 1;
+    }
     for (int d = 0; d < hyperplaneData.length; ++d) {
-      hyperplaneData[d] = hyperplaneData[d] / hyperplaneNorm;
+      hyperplaneData[d] /= hyperplaneNorm;
     }
 
     // For each point compute the margin (project into normal vector)
@@ -259,12 +262,12 @@ class RandomProjectionTree {
     // put it in the other pile (if we hit hyperplane on the nose, flip a coin)
     int nLeft = 0;
     int nRight = 0;
-    boolean[] side = new boolean[indices.length];
+    final boolean[] side = new boolean[indices.length];
     for (int i = 0; i < indices.length; ++i) {
       float margin = 0;
 
-      int[] iInds = MathUtils.subarray(inds, indptr[indices[i]], indptr[indices[i] + 1]);
-      float[] iData = MathUtils.subarray(data, indptr[indices[i]], indptr[indices[i] + 1]);
+      final int[] iInds = MathUtils.subarray(inds, indptr[indices[i]], indptr[indices[i] + 1]);
+      final float[] iData = MathUtils.subarray(data, indptr[indices[i]], indptr[indices[i] + 1]);
 
       final Object[] spm = Sparse.multiply(hyperplaneInds, hyperplaneData, iInds, iData);
       //final int[] mulInds = (int[]) spm[0];
@@ -274,10 +277,11 @@ class RandomProjectionTree {
       }
       if (Math.abs(margin) < EPS) {
         side[i] = random.nextBoolean();
-        if (!side[i])
-          ++nLeft;
-        else
+        if (side[i]) {
           ++nRight;
+        } else {
+          ++nLeft;
+        }
       } else if (margin > 0) {
         side[i] = false;
         ++nLeft;
@@ -295,10 +299,10 @@ class RandomProjectionTree {
     nLeft = 0;
     nRight = 0;
     for (int i = 0; i < side.length; ++i) {
-      if (!side[i]) {
-        indicesLeft[nLeft++] = indices[i];
-      } else {
+      if (side[i]) {
         indicesRight[nRight++] = indices[i];
+      } else {
+        indicesLeft[nLeft++] = indices[i];
       }
     }
 
@@ -328,13 +332,13 @@ class RandomProjectionTree {
     if (leftIndex == rightIndex) {
       rightIndex = (rightIndex + 1) % indices.length;
     }
-    int left = indices[leftIndex];
-    int right = indices[rightIndex];
+    final int left = indices[leftIndex];
+    final int right = indices[rightIndex];
 
-    int[] leftInds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
-    float[] leftData = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
-    int[] rightInds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
-    float[] rightData = MathUtils.subarray(data, indptr[right], indptr[right + 1]);
+    final int[] leftInds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
+    final float[] leftData = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
+    final int[] rightInds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
+    final float[] rightData = MathUtils.subarray(data, indptr[right], indptr[right + 1]);
 
     // Compute the normal vector to the hyperplane (the vector between
     // the two points) and the offset from the origin
@@ -343,11 +347,9 @@ class RandomProjectionTree {
     final int[] hyperplaneInds = (int[]) sd[0];
     final float[] hyperplaneData = (float[]) sd[1];
     final Object[] ss = Sparse.sparseSum(leftInds, leftData, rightInds, rightData);
-    int[] offsetInds = (int[]) ss[0];
-    float[] offsetData = MathUtils.divide((float[]) ss[1], 2.0F);
-    final Object[] sm = Sparse.multiply(hyperplaneInds, hyperplaneData, offsetInds, offsetData);
-    //offsetInds = (int[]) sm[0];
-    offsetData = (float[]) sm[1];
+    final Object[] sm = Sparse.multiply(hyperplaneInds, hyperplaneData, (int[]) ss[0], MathUtils.divide((float[]) ss[1], 2.0F));
+    //final int[] offsetInds = (int[]) sm[0];
+    final float[] offsetData = (float[]) sm[1];
 
     for (final float d : offsetData) {
       hyperplaneOffset -= d;
@@ -358,11 +360,11 @@ class RandomProjectionTree {
     // put it in the other pile (if we hit hyperplane on the nose, flip a coin)
     int nLeft = 0;
     int nRight = 0;
-    boolean[] side = new boolean[indices.length];
+    final boolean[] side = new boolean[indices.length];
     for (int i = 0; i < indices.length; ++i) {
       float margin = hyperplaneOffset;
-      int[] iInds = MathUtils.subarray(inds, indptr[indices[i]], indptr[indices[i] + 1]);
-      float[] iData = MathUtils.subarray(data, indptr[indices[i]], indptr[indices[i] + 1]);
+      final int[] iInds = MathUtils.subarray(inds, indptr[indices[i]], indptr[indices[i] + 1]);
+      final float[] iData = MathUtils.subarray(data, indptr[indices[i]], indptr[indices[i] + 1]);
 
       final Object[] spm = Sparse.multiply(hyperplaneInds, hyperplaneData, iInds, iData);
       //final int[] mulInds = (int[]) spm[0];
@@ -388,17 +390,17 @@ class RandomProjectionTree {
     }
 
     // Now that we have the counts allocate arrays
-    int[] indicesLeft = new int[nLeft];
-    int[] indicesRight = new int[nRight];
+    final int[] indicesLeft = new int[nLeft];
+    final int[] indicesRight = new int[nRight];
 
     // Populate the arrays with indices according to which side they fell on
     nLeft = 0;
     nRight = 0;
     for (int i = 0; i < side.length; ++i) {
-      if (!side[i]) {
-        indicesLeft[nLeft++] = indices[i];
-      } else {
+      if (side[i]) {
         indicesRight[nRight++] = indices[i];
+      } else {
+        indicesLeft[nLeft++] = indices[i];
       }
     }
 
@@ -424,18 +426,18 @@ class RandomProjectionTree {
     }
   }
 
-  private static RandomProjectionTreeNode makeAngularTree(final Matrix data, final int[] indices, final Random random, final int leaf_size) {
-    if (indices.length > leaf_size) {
+  private static RandomProjectionTreeNode makeAngularTree(final Matrix data, final int[] indices, final Random random, final int leafSize) {
+    if (indices.length > leafSize) {
       final Object[] erps = angularRandomProjectionSplit(data, indices, random);
       final int[] leftIndices = (int[]) erps[0];
       final int[] rightIndices = (int[]) erps[1];
       final Hyperplane hyperplane = new Hyperplane((float[]) erps[2]);
       final float offset = (float) erps[3];
 
-      final RandomProjectionTreeNode left_node = makeAngularTree(data, leftIndices, random, leaf_size);
-      final RandomProjectionTreeNode right_node = makeAngularTree(data, rightIndices, random, leaf_size);
+      final RandomProjectionTreeNode leftNode = makeAngularTree(data, leftIndices, random, leafSize);
+      final RandomProjectionTreeNode rightNode = makeAngularTree(data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, left_node, right_node);
+      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
     } else {
       return new RandomProjectionTreeNode(indices, true, null, null, null, null);
     }
@@ -466,10 +468,10 @@ class RandomProjectionTree {
       final Hyperplane hyperplane = (Hyperplane) erps[2];
       final float offset = (float) erps[3];
 
-      final RandomProjectionTreeNode left_node = makeSparseAngularTree(inds, indptr, data, leftIndices, random, leafSize);
-      final RandomProjectionTreeNode right_node = makeSparseAngularTree(inds, indptr, data, rightIndices, random, leafSize);
+      final RandomProjectionTreeNode leftNode = makeSparseAngularTree(inds, indptr, data, leftIndices, random, leafSize);
+      final RandomProjectionTreeNode rightNode = makeSparseAngularTree(inds, indptr, data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, left_node, right_node);
+      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
     } else {
       return new RandomProjectionTreeNode(indices, true, null, null, null, null);
     }
@@ -491,7 +493,6 @@ class RandomProjectionTree {
    */
   private static RandomProjectionTreeNode makeTree(final Matrix data, final Random random, final int leafSize, final boolean angular) {
     final boolean isSparse = data instanceof CsrMatrix;
-    //final int indices = np.arange(data.shape[0]);
     final int[] indices = MathUtils.identity(data.rows());
 
     // Make a tree recursively until we get below the leaf size
@@ -531,11 +532,11 @@ class RandomProjectionTree {
       children[nodeNum][0] = -leafNum;
       //indices[leafNum, :tree.getIndices().shape[0]] =tree.getIndices();
       indices[leafNum] = tree.getIndices();
-      leafNum += 1;
-      return new int[]{nodeNum, leafNum};
+      return new int[]{nodeNum, ++leafNum};
     } else {
       if (tree.getHyperplane().mShape.length > 1) {
         // sparse case
+        hyperplanes[nodeNum] = new float[][] {tree.getHyperplane().mData}; // todo dubious
         //hyperplanes[nodeNum][:, :tree.getHyperplane().shape[1]] =tree.getHyperplane();
         throw new UnsupportedOperationException();
       } else {
@@ -543,11 +544,11 @@ class RandomProjectionTree {
       }
       offsets[nodeNum] = tree.getOffset();
       children[nodeNum][0] = nodeNum + 1;
-      final int old_node_num = nodeNum;
+      final int oldNodeNum = nodeNum;
       final int[] t = recursiveFlatten(tree.getLeftChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
       nodeNum = t[0];
       leafNum = t[1];
-      children[old_node_num][1] = nodeNum + 1;
+      children[oldNodeNum][1] = nodeNum + 1;
       return recursiveFlatten(tree.getRightChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
     }
   }
@@ -579,32 +580,29 @@ class RandomProjectionTree {
     return new FlatTree(hyperplanes, offsets, children, indices);
   }
 
- private static int selectSide(final float[] hyperplane, final float offset, final float[] point, final Random random) {
+ private static boolean selectSide(final float[] hyperplane, final float offset, final float[] point, final Random random) {
    float margin = offset;
    for (int d = 0; d < point.length; ++d) {
      margin += hyperplane[d] * point[d];
    }
 
    if (Math.abs(margin) < EPS) {
-     return random.nextInt(2);
-   } else if (margin > 0) {
-     return 0;
+     return random.nextBoolean();
    } else {
-     return 1;
+     return margin <= 0;
    }
  }
 
  static int[] searchFlatTree(final float[] point, final float[][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, final Random random) {
    int node = 0;
    while (children[node][0] > 0) {
-     final int side = selectSide(hyperplanes[node], offsets[node], point, random);
-     if (side == 0) {
-       node = children[node][0];
-     } else {
+     final boolean side = selectSide(hyperplanes[node], offsets[node], point, random);
+     if (side) {
        node = children[node][1];
+     } else {
+       node = children[node][0];
      }
    }
-
    return indices[-children[node][0]];
  }
 
@@ -640,7 +638,7 @@ class RandomProjectionTree {
    * such a random projection forest is inexpensive to compute, this can be a
    * useful means of seeding other nearest neighbor algorithms.
    * @param rpForest forest
-   * @return array of shape <code>(n_leaves, max(10, n_neighbors))</code>
+   * @return array of shape <code>(nLeaves, max(10, nNeighbors))</code>
    * Each row of leaf array is a list of indices found in a given leaf.
    */
   static int[][] rptreeLeafArray(final List<FlatTree> rpForest) {
@@ -652,7 +650,7 @@ class RandomProjectionTree {
       }
       return leafArray;
     } else {
-      return new int[0][0]; // todo ingored -1 padding?
+      return new int[][] {{-1}};
     }
   }
 }

@@ -25,38 +25,40 @@ class NearestNeighborDescent {
    * @param metric distance function
    */
   NearestNeighborDescent(final Metric metric) {
-    this.mMetric = metric;
+    mMetric = metric;
   }
 
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rp_tree_init, final int nIters, final int[][] leafArray, final boolean verbose) {
-    return descent(data, nNeighbors, random, maxCandidates, rp_tree_init, nIters, leafArray, verbose, 0.001F, 0.5F);
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose) {
+    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, verbose, 0.001F, 0.5F);
   }
 
   Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
-    final int nVertices = data.rows();
 
-    Heap currentGraph = Utils.makeHeap(data.rows(), nNeighbors);
+    final int nVertices = data.rows();
+    final Heap currentGraph = Utils.makeHeap(data.rows(), nNeighbors);
     for (int i = 0; i < data.rows(); ++i) {
-      final int[] indices = Utils.rejectionSample(nNeighbors, data.rows(), random);
-      for (int j = 0; j < indices.length; ++j) {
-        final float d = (float) mMetric.distance(data.row(i), data.row(indices[j]));
-        Utils.heapPush(currentGraph, i, d, indices[j], true);
-        Utils.heapPush(currentGraph, indices[j], d, i, true);
+      final float[] iRow = data.row(i);
+      for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
+        final float d = (float) mMetric.distance(iRow, data.row(index));
+        Utils.heapPush(currentGraph, i, d, index, true);
+        Utils.heapPush(currentGraph, index, d, i, true);
       }
     }
+
     if (rpTreeInit) {
-      for (int n = 0; n < leafArray.length; ++n) {
-        for (int i = 0; i < leafArray[n].length; ++i) {
-          if (leafArray[n][i] < 0) {
+      for (final int[] leaf : leafArray) {
+        for (int i = 0; i < leaf.length; ++i) {
+          if (leaf[i] < 0) {
             break;
           }
-          for (int j = i + 1; j < leafArray[n].length; ++j) {
-            if (leafArray[n][j] < 0) {
+          final float[] iRow = data.row(leaf[i]);
+          for (int j = i + 1; j < leaf.length; ++j) {
+            if (leaf[j] < 0) {
               break;
             }
-            final float d = (float) mMetric.distance(data.row(leafArray[n][i]), data.row(leafArray[n][j]));
-            Utils.heapPush(currentGraph, leafArray[n][i], d, leafArray[n][j], true);
-            Utils.heapPush(currentGraph, leafArray[n][j], d, leafArray[n][i], true);
+            final float d = (float) mMetric.distance(iRow, data.row(leaf[j]));
+            Utils.heapPush(currentGraph, leaf[i], d, leaf[j], true);
+            Utils.heapPush(currentGraph, leaf[j], d, leaf[i], true);
           }
         }
       }
