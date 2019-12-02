@@ -83,8 +83,6 @@ class Utils {
   }
 
 
-// @numba.njit()
-// def norm(vec):
 //     """Compute the (standard l2) norm of a vector.
 
 //     Parameters
@@ -95,10 +93,13 @@ class Utils {
 //     -------
 //     The l2 norm of vec.
 //     """
-//     result = 0.0
-//     for i in range(vec.shape[0]):
-//         result += vec[i] ** 2
-//     return np.sqrt(result)
+  static float norm(final float[] vec) {
+    float result = 0;
+    for (final float v : vec) {
+      result += v * v;
+    }
+    return (float) Math.sqrt(result);
+  }
 
 
 //     """Generate n_samples many integers from 0 to pool_size such that no

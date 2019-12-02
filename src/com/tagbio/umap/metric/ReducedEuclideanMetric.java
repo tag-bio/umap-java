@@ -7,22 +7,24 @@ package com.tagbio.umap.metric;
 
 /**
  * Reduced Euclidean distance.
+ * @author Leland McInnes
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 public class ReducedEuclideanMetric extends Metric {
 
   public static final ReducedEuclideanMetric SINGLETON = new ReducedEuclideanMetric();
 
-  public ReducedEuclideanMetric() {
+  private ReducedEuclideanMetric() {
     super(false);
   }
 
   @Override
   public double distance(final float[] x, final float[] y) {
-    //  D(x, y) = \sqrt{\sum_i (x_i - y_i)^2}
-    double result = 0.0;
+    //  D(x, y) = \sum_i (x_i - y_i)^2
+    float result = 0;
     for (int i = 0; i < x.length; ++i) {
-      final double d = x[i] - y[i];
+      final float d = x[i] - y[i];
       result += d * d;
     }
     return result;

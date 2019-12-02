@@ -177,7 +177,7 @@ class Sparse {
   }
 
 
- static Object[] sparse_mul(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
+ static Object[] multiply(final int[] ind1, final float[] data1, final int[] ind2, final float[] data2) {
    final int[] resultInd = arrIntersect(ind1, ind2);
    final float[] resultData = new float[resultInd.length];
 

@@ -405,29 +405,17 @@ public class Umap {
     return nss.addTranspose().subtract(prodMatrix).eliminateZeros();
   }
 
-  // Combine a fuzzy simplicial set with another fuzzy simplicial set
-  // generated from categorical data using categorical distances. The target
-  // data is assumed to be categorical label data (a vector of labels),
-  // and this will update the fuzzy simplicial set to respect that label data.
-
-  // Parameters
-  // ----------
-  // simplicialSet: sparse matrix
-  //     The input fuzzy simplicial set.
-
-  // target: array of shape (n_samples)
-  //     The categorical labels to use in the intersection.
-
-  // unknownDist: float (optional, default 1.0)
-  //     The distance an unknown label (-1) is assumed to be from any point.
-
-  // farDist float (optional, default 5.0)
-  //     The distance between unmatched labels.
-
-  // Returns
-  // -------
-  // simplicialSet: sparse matrix
-  //     The resulting intersected fuzzy simplicial set.
+  /**
+   * Combine a fuzzy simplicial set with another fuzzy simplicial set
+   * generated from categorical data using categorical distances. The target
+   * data is assumed to be categorical label data (a vector of labels),
+   * and this will update the fuzzy simplicial set to respect that label data.
+   * @param simplicialSet The input fuzzy simplicial set.
+   * @param target The categorical labels to use in the intersection.
+   * @param unknownDist The distance an unknown label (-1) is assumed to be from any point.
+   * @param farDist The distance between unmatched labels.
+   * @return The resulting intersected fuzzy simplicial set.
+   */
   private static Matrix categoricalSimplicialSetIntersection(final CooMatrix simplicialSet, final float[] target, final float unknownDist, final float farDist) {
     fastIntersection(simplicialSet.mRow, simplicialSet.mCol, simplicialSet.mData, target, unknownDist, farDist);
     return resetLocalConnectivity(simplicialSet.eliminateZeros());
@@ -448,21 +436,14 @@ public class Umap {
     return result;
   }
 
-  // Given a set of weights and number of epochs generate the number of
-  // epochs per sample for each weight.
-
-  // Parameters
-  // ----------
-  // weights: array of shape (n_1_simplices)
-  //     The weights of how much we wish to sample each 1-simplex.
-
-  // n_epochs: int
-  //     The total number of epochs we want to train for.
-
-  // Returns
-  // -------
-  // An array of number of epochs per sample, one for each 1-simplex.
-  private static float[] makeEpochsPerSample(final float[] weights, final int nEpochs) {
+  /**
+   * Given a set of weights and number of epochs generate the number of
+   * epochs per sample for each weight.
+   * @param weights The weights of how much we wish to sample each 1-simplex.
+   * @param nEpochs The total number of epochs we want to train for.
+   * @return An array of number of epochs per sample, one for each 1-simplex.
+   */
+  static float[] makeEpochsPerSample(final float[] weights, final int nEpochs) {
     final float[] result = new float[weights.length];
     Arrays.fill(result, -1.0F);
     final float[] nSamples = MathUtils.multiply(MathUtils.divide(weights, MathUtils.max(weights)), nEpochs);
@@ -474,108 +455,52 @@ public class Umap {
     return result;
   }
 
-
-  // Standard clamping of a value into a fixed range (in this case -4.0 to
-  // 4.0)
-
-  // Parameters
-  // ----------
-  // val: float
-  //     The value to be clamped.
-
-  // Returns
-  // -------
-  // The clamped value, now fixed to be in the range -4.0 to 4.0.
-  private static double clip(final double val) {
-    if (val > 4.0) {
-      return 4.0;
-    } else if (val < -4.0) {
-      return -4.0;
-    } else {
-      return val;
-    }
+  /**
+   * Standard clamping of a value into a fixed range (in this case -4.0 to 4.0)
+   * @param val The value to be clamped.
+   * @return clamped value
+   */
+  static float clip(final float val) {
+    return val > 4 ? 4 : val < -4 ? -4 : val;
   }
 
-
-  // Reduced Euclidean distance.
-  // Parameters
-  // ----------
-  // x: array of shape (embedding_dim,)
-  // y: array of shape (embedding_dim,)
-
-  // Returns
-  // -------
-  // The squared euclidean distance between x and y
-  private static double rdist(float[] x, float[] y) {
-    return ReducedEuclideanMetric.SINGLETON.distance(x, y);
-  }
-
-
-  // Improve an embedding using stochastic gradient descent to minimize the
-  // fuzzy set cross entropy between the 1-skeletons of the high dimensional
-  // and low dimensional fuzzy simplicial sets. In practice this is done by
-  // sampling edges based on their membership strength (with the (1-p) terms
-  // coming from negative sampling similar to word2vec).
-
-  // Parameters
-  // ----------
-  // head_embedding: array of shape (n_samples, n_components)
-  //     The initial embedding to be improved by SGD.
-
-  // tail_embedding: array of shape (source_samples, n_components)
-  //     The reference embedding of embedded points. If not embedding new
-  //     previously unseen points with respect to an existing embedding this
-  //     is simply the head_embedding (again); otherwise it provides the
-  //     existing embedding to embed with respect to.
-
-  // head: array of shape (n_1_simplices)
-  //     The indices of the heads of 1-simplices with non-zero membership.
-
-  // tail: array of shape (n_1_simplices)
-  //     The indices of the tails of 1-simplices with non-zero membership.
-
-  // n_epochs: int
-  //     The number of training epochs to use in optimization.
-
-  // n_vertices: int
-  //     The number of vertices (0-simplices) in the dataset.
-
-  // epochs_per_samples: array of shape (n_1_simplices)
-  //     A float value of the number of epochs per 1-simplex. 1-simplices with
-  //     weaker membership strength will have more epochs between being sampled.
-
-  // a: float
-  //     Parameter of differentiable approximation of right adjoint functor
-
-  // b: float
-  //     Parameter of differentiable approximation of right adjoint functor
-
-  // random: array of int64, shape (3,)
-  //     The internal state of the rng
-
-  // gamma: float (optional, default 1.0)
-  //     Weight to apply to negative samples.
-
-  // initial_alpha: float (optional, default 1.0)
-  //     Initial learning rate for the SGD.
-
-  // negative_sample_rate: int (optional, default 5)
-  //     Number of negative samples to use per positive sample.
-
-  // verbose: bool (optional, default false)
-  //     Whether to report information on the current progress of the algorithm.
-
-  // Returns
-  // -------
-  // embedding: array of shape (n_samples, n_components)
-  //     The optimized embedding.
+  /**
+   * Improve an embedding using stochastic gradient descent to minimize the
+   * fuzzy set cross entropy between the 1-skeletons of the high dimensional
+   * and low dimensional fuzzy simplicial sets. In practice this is done by
+   * sampling edges based on their membership strength (with the (1-p) terms
+   * coming from negative sampling similar to word2vec).
+   * @param headEmbedding array of shape <code>(n_samples, n_components)</code>
+   * The initial embedding to be improved by SGD.
+   * @param tailEmbedding array of shape <code>(source_samples, n_components)</code>
+   * The reference embedding of embedded points. If not embedding new
+   * previously unseen points with respect to an existing embedding this
+   * is simply the head_embedding (again); otherwise it provides the
+   * existing embedding to embed with respect to.
+   * @param head array of shape (n_1_simplices)
+   * The indices of the heads of 1-simplices with non-zero membership.
+   * @param tail array of shape (n_1_simplices)
+   * The indices of the tails of 1-simplices with non-zero membership.
+   * @param nEpochs The number of training epochs to use in optimization.
+   * @param nVertices The number of vertices (0-simplices) in the dataset.
+   * @param epochsPerSample A float value of the number of epochs per 1-simplex. 1-simplices with
+   * weaker membership strength will have more epochs between being sampled.
+   * @param a Parameter of differentiable approximation of right adjoint functor
+   * @param b Parameter of differentiable approximation of right adjoint functor
+   * @param random Random source
+   * @param gamma Weight to apply to negative samples.
+   * @param initialAlpha Initial learning rate for the SGD.
+   * @param negativeSampleRate Number of negative samples to use per positive sample.
+   * @param verbose Whether to report information on the current progress of the algorithm.
+   * @return array of shape <code>(n_samples, n_components)</code> The optimized embedding.
+   */
   private static Matrix optimizeLayout(final Matrix headEmbedding, final Matrix tailEmbedding, final int[] head, final int[] tail, final int nEpochs, final int nVertices, final float[] epochsPerSample, final float a, final float b, final Random random, final float gamma, final float initialAlpha, final float negativeSampleRate, final boolean verbose) {
 
-    assert headEmbedding instanceof DefaultMatrix;
+    assert headEmbedding instanceof DefaultMatrix; // because this routine directly modifies contents of rows in the matrix
 
     final int dim = headEmbedding.cols();
-    final boolean moveOther = (headEmbedding.rows() == tailEmbedding.rows());
-    double alpha = initialAlpha;
+    final boolean moveOther = headEmbedding.rows() == tailEmbedding.rows();
+    float alpha = initialAlpha;
 
     final float[] epochsPerNegativeSample = MathUtils.divide(epochsPerSample, negativeSampleRate);
     final float[] epochOfNextNegativeSample = Arrays.copyOf(epochsPerNegativeSample, epochsPerNegativeSample.length);
@@ -585,26 +510,25 @@ public class Umap {
       for (int i = 0; i < epochsPerSample.length; ++i) {
         if (epochOfNextSample[i] <= n) {
           final int j = head[i];
-          int k = tail[i];
-          // todo this assumes that current is a pointer to the internal matrix data
+          final int k = tail[i];
+          // todo this assumes that "current" is a pointer to the internal matrix data
           final float[] current = headEmbedding.row(j);
           float[] other = tailEmbedding.row(k);
 
-          double distSquared = rdist(current, other);
+          double distSquared = ReducedEuclideanMetric.SINGLETON.distance(current, other);
 
-          double gradCoeff;
+          float gradCoeff;
           if (distSquared > 0.0) {
-            gradCoeff = (-2.0 * a * b * Math.pow(distSquared, b - 1.0));
-            gradCoeff /= (a * Math.pow(distSquared, b) + 1.0);
+            gradCoeff = (float) ((-2.0 * a * b * Math.pow(distSquared, b - 1.0)) / (a * Math.pow(distSquared, b) + 1.0));
           } else {
-            gradCoeff = 0.0;
+            gradCoeff = 0;
           }
 
           for (int d = 0; d < dim; ++d) {
-            final double grad_d = clip(gradCoeff * (current[d] - other[d]));
-            current[d] += grad_d * alpha;
+            final float gradD = clip(gradCoeff * (current[d] - other[d]));
+            current[d] += gradD * alpha;
             if (moveOther) {
-              other[d] += -grad_d * alpha;
+              other[d] += -gradD * alpha;
             }
           }
 
@@ -613,29 +537,21 @@ public class Umap {
           final int nNegSamples = (int) ((n - epochOfNextNegativeSample[i]) / epochsPerNegativeSample[i]);
 
           for (int p = 0; p < nNegSamples; ++p) {
-            k = random.nextInt(nVertices);
-
-            other = tailEmbedding.row(k);
-
-            distSquared = rdist(current, other);
+            final int kr = random.nextInt(nVertices);
+            other = tailEmbedding.row(kr);
+            distSquared = ReducedEuclideanMetric.SINGLETON.distance(current, other);
 
             if (distSquared > 0.0) {
-              gradCoeff = 2.0 * gamma * b;
-              gradCoeff /= (0.001 + distSquared) * (a * Math.pow(distSquared, b) + 1);
-            } else if (j == k) {
+              gradCoeff = 2.0F * gamma * b / (float) ((0.001 + distSquared) * (a * Math.pow(distSquared, b) + 1));
+            } else if (j == kr) {
               continue;
             } else {
-              gradCoeff = 0.0;
+              gradCoeff = 0;
             }
 
             for (int d = 0; d < dim; ++d) {
-              final double grad_d;
-              if (gradCoeff > 0.0) {
-                grad_d = clip(gradCoeff * (current[d] - other[d]));
-              } else {
-                grad_d = 4.0;
-              }
-              current[d] += grad_d * alpha;
+              final float gradD = gradCoeff > 0.0 ? clip(gradCoeff * (current[d] - other[d])) : 4;
+              current[d] += gradD * alpha;
             }
           }
 
@@ -643,7 +559,7 @@ public class Umap {
         }
       }
 
-      alpha = initialAlpha * (1.0 - (float) n / (float) (nEpochs));
+      alpha = initialAlpha * (1.0F - (float) n / (float) (nEpochs));
 
       if (verbose && n % (nEpochs / 10) == 0) {
         Utils.message("\tcompleted " + n + "/" + nEpochs + " epochs");
@@ -652,77 +568,44 @@ public class Umap {
     return headEmbedding;
   }
 
+  /**
+   * Perform a fuzzy simplicial set embedding, using a specified
+   * initialisation method and then minimizing the fuzzy set cross entropy
+   * between the 1-skeletons of the high and low dimensional fuzzy simplicial
+   *  sets.
+   * @param data array of shape (n_samples, n_features)
+   * The source data to be embedded by UMAP.
+   * @param graphIn The 1-skeleton of the high dimensional fuzzy simplicial set as
+   * represented by a graph for which we require a sparse matrix for the
+   * (weighted) adjacency matrix.
+   * @param nComponents The dimensionality of the euclidean space into which to embed the data.
+   * @param initialAlpha Initial learning rate for the SGD.
+   * @param a Parameter of differentiable approximation of right adjoint functor.
+   * @param b Parameter of differentiable approximation of right adjoint functor.
+   * @param gamma Weight to apply to negative samples.
+   * @param negativeSampleRate The number of negative samples to select per positive sample
+   * in the optimization process. Increasing this value will result
+   * in greater repulsive force being applied, greater optimization
+   * cost, but slightly more accuracy.
+   * @param nEpochs The number of training epochs to be used in optimizing the
+   * low dimensional embedding. Larger values result in more accurate
+   * embeddings. If 0 is specified a value will be selected based on
+   * the size of the input dataset (200 for large datasets, 500 for small).
+   * @param init How to initialize the low dimensional embedding. Options are:
+   * * 'spectral': use a spectral embedding of the fuzzy 1-skeleton
+   * * 'random': assign initial embedding positions at random.
+   * * A numpy array of initial embedding positions.
+   * @param random random source
+   * @param metric The metric used to measure distance in high dimensional space; used if
+   * multiple connected components need to be layed out.
+   * @param verbose Whether to report information on the current progress of the algorithm.
+   * @return array of shape <code>(nSamples, nComponents)</code>
+   * The optimized of <code>graph</code> into an <code>nComponents</code> dimensional
+   * Euclidean space.
+   */
+  private static Matrix simplicialSetEmbedding(Matrix data, Matrix graphIn, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, Random random, Metric metric, boolean verbose) {
 
-  // Perform a fuzzy simplicial set embedding, using a specified
-  // initialisation method and then minimizing the fuzzy set cross entropy
-  // between the 1-skeletons of the high and low dimensional fuzzy simplicial
-  // sets.
-
-  // Parameters
-  // ----------
-  // data: array of shape (n_samples, n_features)
-  //     The source data to be embedded by UMAP.
-
-  // graph: sparse matrix
-  //     The 1-skeleton of the high dimensional fuzzy simplicial set as
-  //     represented by a graph for which we require a sparse matrix for the
-  //     (weighted) adjacency matrix.
-
-  // n_components: int
-  //     The dimensionality of the euclidean space into which to embed the data.
-
-  // initial_alpha: float
-  //     Initial learning rate for the SGD.
-
-  // a: float
-  //     Parameter of differentiable approximation of right adjoint functor
-
-  // b: float
-  //     Parameter of differentiable approximation of right adjoint functor
-
-  // gamma: float
-  //     Weight to apply to negative samples.
-
-  // negative_sample_rate: int (optional, default 5)
-  //     The number of negative samples to select per positive sample
-  //     in the optimization process. Increasing this value will result
-  //     in greater repulsive force being applied, greater optimization
-  //     cost, but slightly more accuracy.
-
-  // n_epochs: int (optional, default 0)
-  //     The number of training epochs to be used in optimizing the
-  //     low dimensional embedding. Larger values result in more accurate
-  //     embeddings. If 0 is specified a value will be selected based on
-  //     the size of the input dataset (200 for large datasets, 500 for small).
-
-  // init: string
-  //     How to initialize the low dimensional embedding. Options are:
-  //         * 'spectral': use a spectral embedding of the fuzzy 1-skeleton
-  //         * 'random': assign initial embedding positions at random.
-  //         * A numpy array of initial embedding positions.
-
-  // random: numpy RandomState || equivalent
-  //     A state capable being used as a numpy random state.
-
-  // metric: string
-  //     The metric used to measure distance in high dimensional space; used if
-  //     multiple connected components need to be layed out.
-
-  // metric_kwds: dict
-  //     Key word arguments to be passed to the metric function; used if
-  //     multiple connected components need to be layed out.
-
-  // verbose: bool (optional, default false)
-  //     Whether to report information on the current progress of the algorithm.
-
-  // Returns
-  // -------
-  // embedding: array of shape (n_samples, nComponents)
-  //     The optimized of ``graph`` into an ``nComponents`` dimensional
-  //     euclidean space.
-  private static Matrix simplicialSetEmbedding(Matrix data, Matrix graph_in, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, Random random, Metric metric, boolean verbose) {
-
-    CooMatrix graph = graph_in.toCoo();
+    CooMatrix graph = graphIn.toCoo();
     //graph.sum_duplicates();
     int nVertices = graph.cols();
 
@@ -773,28 +656,21 @@ public class Umap {
     return optimizeLayout(embedding, embedding, head, tail, nEpochs, nVertices, epochsPerSample, a, b, random, gamma, initialAlpha, negativeSampleRate, verbose);
   }
 
-
-  // Given indices and weights and an original embeddings
-  // initialize the positions of new points relative to the
-  // indices and weights (of their neighbors in the source data).
-
-  // Parameters
-  // ----------
-  // indices: array of shape (n_new_samples, n_neighbors)
-  //     The indices of the neighbors of each new sample
-
-  // weights: array of shape (n_new_samples, n_neighbors)
-  //     The membership strengths of associated 1-simplices
-  //     for each of the new samples.
-
-  // embedding: array of shape (n_samples, dim)
-  //     The original embedding of the source data.
-
-  // Returns
-  // -------
-  // new_embedding: array of shape (n_new_samples, dim)
-  //     An initial embedding of the new sample points.
-  private static Matrix init_transform(final int[][] indices, final float[][] weights, final Matrix embedding) {
+  /**
+   * Given indices and weights and an original embeddings
+   * initialize the positions of new points relative to the
+   * indices and weights (of their neighbors in the source data).
+   * @param indices array of shape <code>(n_new_samples, n_neighbors)</code>
+   * The indices of the neighbors of each new sample
+   * @param weights array of shape <code>(n_new_samples, n_neighbors)</code>
+   * The membership strengths of associated 1-simplices
+   * for each of the new samples.
+   * @param embedding array of shape <code>(n_samples, dim)</code>
+   * The original embedding of the source data.
+   * @return array of shape <code>(n_new_samples, dim)</code>
+   * An initial embedding of the new sample points.
+   */
+  private static Matrix initTransform(final int[][] indices, final float[][] weights, final Matrix embedding) {
     final float[][] result = new float[indices.length][embedding.cols()];
     for (int i = 0; i < indices.length; ++i) {
       for (int j = 0; j < indices[i].length; ++j) {
@@ -803,7 +679,6 @@ public class Umap {
         }
       }
     }
-
     return new DefaultMatrix(result);
   }
 
@@ -927,15 +802,15 @@ public class Umap {
   private float mTargetWeight = 0.5F;
   private int mTransformSeed = 42;
   private boolean mVerbose = false;
-  private Float a = null;
-  private Float b = null;
+  private Float mA = null;
+  private Float mB = null;
   private Random mRandom = new Random(42); // todo seed
 
   private float mInitialAlpha;
-  private int _n_neighbors;
+  private int mRunNNeighbors;
   private boolean mSparseData;
-  private float _a;
-  private float _b;
+  private float mRunA;
+  private float mRunB;
   private Matrix mRawData;
   private CsrMatrix mSearchGraph;
   private int[][] _knn_indices;
@@ -945,7 +820,7 @@ public class Umap {
   private Metric _distance_func;
   private Matrix graph_;
   private Matrix mEmbedding;
-  private NearestNeighborSearch _search;
+  private NearestNeighborSearch mSearch;
   private NearestNeighborRandomInit _random_init;
   private NearestNeighborTreeInit _tree_init;
 
@@ -1190,11 +1065,11 @@ public class Umap {
   }
 
   public void setTargetNNeighbors(final int target_n_neighbors) {
-    this.mTargetNNeighbors = target_n_neighbors;
+    mTargetNNeighbors = target_n_neighbors;
   }
 
   public void setTargetWeight(final float target_weight) {
-    this.mTargetWeight = target_weight;
+    mTargetWeight = target_weight;
   }
 
   public void setTransformSeed(final int transformSeed) {
@@ -1219,36 +1094,31 @@ public class Umap {
     }
   }
 
-  // Fit instances into an embedded space.
-
-  // Optionally use y for supervised dimension reduction.
-
-  // Parameters
-  // ----------
-  // X : array, shape (n_samples, n_features) || (n_samples, n_samples)
-  //     If the metric is 'precomputed' X must be a square distance
-  //     matrix. Otherwise it contains a sample per row. If the method
-  //     is 'exact', X may be a sparse matrix of type 'csr', 'csc'
-  //     || 'coo'.
-
-  // y : array, shape (n_samples)
-  //     A target array for supervised dimension reduction. How this is
-  //     handled is determined by parameters UMAP was instantiated with.
-  //     The relevant attributes are ``target_metric`` and
-  //     ``target_metric_kwds``.
+  /**
+   * Fit instances into an embedded space.
+   * Optionally use y for supervised dimension reduction.
+   * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
+   * If the metric is 'precomputed' instances must be a square distance
+   * matrix. Otherwise it contains a sample per row. If the method
+   * is 'exact', Instances may be a sparse matrix of type 'csr', 'csc'
+   * or 'coo'.
+   * @param y array of shape <code>(nSamples)</code>
+   * A target array for supervised dimension reduction. How this is
+   * handled is determined by parameters UMAP was instantiated with.
+   * The relevant metric is <code>mTargetMetric</code>.
+   */
   private void fit(Matrix instances, float[] y) {
 
-    //X = check_array(X, dtype = np.float32, accept_sparse = "csr");
-    this.mRawData = instances;
+    mRawData = instances;
 
     // Handle all the optional arguments, setting default
-    if (this.a == null || this.b == null) {
+    if (mA == null || mB == null) {
       final float[] ab = find_ab_params(mSpread, mMinDist);
-      _a = ab[0];
-      _b = ab[1];
+      mRunA = ab[0];
+      mRunB = ab[1];
     } else {
-      _a = this.a;
-      _b = this.b;
+      mRunA = mA;
+      mRunB = mB;
     }
 
 //      if (isinstance(this.init, np.ndarray)) {
@@ -1258,21 +1128,21 @@ public class Umap {
 //      }
     String init = this.init;
 
-    this.mInitialAlpha = this.mLearningRate;
+    mInitialAlpha = mLearningRate;
 
-    this.validateParameters();
+    validateParameters();
 
     // Error check n_neighbors based on data size
-    if (instances.rows() <= this.mNNeighbors) {
+    if (instances.rows() <= mNNeighbors) {
       if (instances.rows() == 1) {
-        mEmbedding = new DefaultMatrix(new float[1][this.mNComponents]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
+        mEmbedding = new DefaultMatrix(new float[1][mNComponents]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
         return;
       }
 
       Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
-      _n_neighbors = instances.rows() - 1;
+      mRunNNeighbors = instances.rows() - 1;
     } else {
-      _n_neighbors = this.mNNeighbors;
+      mRunNNeighbors = mNNeighbors;
     }
 
     if (instances instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
@@ -1285,8 +1155,6 @@ public class Umap {
       mSparseData = false;
     }
 
-    final Random random = this.mRandom;
-
     if (mVerbose) {
       Utils.message("Construct fuzzy simplicial set: " + instances.rows());
     }
@@ -1295,17 +1163,17 @@ public class Umap {
     if (instances.rows() < SMALL_PROBLEM_THRESHOLD) {
       mSmallData = true;
       final Matrix dmat = PairwiseDistances.pairwiseDistances(instances, mMetric);
-      graph_ = fuzzySimplicialSet(dmat, _n_neighbors, random, PrecomputedMetric.SINGLETON, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      graph_ = fuzzySimplicialSet(dmat, mRunNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
       // System.out.println("graph: " + ((CooMatrix) graph_).sparseToString());
     } else {
       mSmallData = false;
       // Standard case
-      final IndexedDistances nn = nearestNeighbors(instances, _n_neighbors, mMetric, mAngularRpForest, random, mVerbose);
+      final IndexedDistances nn = nearestNeighbors(instances, mRunNNeighbors, mMetric, mAngularRpForest, mRandom, mVerbose);
       _knn_indices = nn.getIndices();
       _knn_dists = nn.getDistances();
       mRpForest = nn.getForest();
 
-      graph_ = fuzzySimplicialSet(instances, mNNeighbors, random, mMetric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      graph_ = fuzzySimplicialSet(instances, mNNeighbors, mRandom, mMetric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
       // todo this starts as LilMatrix type but ends up as a CsrMatrix
       // todo this java implementation is not sparse
@@ -1332,7 +1200,7 @@ public class Umap {
       } else {
         _random_init = new NearestNeighborRandomInit(_distance_func);
         _tree_init = new NearestNeighborTreeInit(_distance_func);
-        _search = new NearestNeighborSearch(_distance_func);
+        mSearch = new NearestNeighborSearch(_distance_func);
       }
     }
 
@@ -1344,29 +1212,29 @@ public class Umap {
         final float farDist = mTargetWeight < 1.0 ? 2.5F * (1.0F / (1.0F - mTargetWeight)) : 1.0e12F;
         graph_ = categoricalSimplicialSetIntersection((CooMatrix) graph_, y, farDist);
       } else {
-        final int targetNNeighbors = this.mTargetNNeighbors == -1 ? _n_neighbors : this.mTargetNNeighbors;
+        final int targetNNeighbors = mTargetNNeighbors == -1 ? mRunNNeighbors : mTargetNNeighbors;
 
         Matrix targetGraph;
         // Handle the small case as precomputed as before
         if (y.length < SMALL_PROBLEM_THRESHOLD) {
           final Matrix ydmat = PairwiseDistances.pairwiseDistances(MathUtils.promoteTranspose(y), mTargetMetric);
-          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, random, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1, false);
+          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1, false);
         } else {
           // Standard case
-          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, random, mTargetMetric, null, null, false, 1.0F, 1, false);
+          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, mRandom, mTargetMetric, null, null, false, 1.0F, 1, false);
         }
         graph_ = generalSimplicialSetIntersection(graph_, targetGraph, mTargetWeight);
         graph_ = resetLocalConnectivity(graph_);
       }
     }
 
-    final int nEpochs = this.mNEpochs == null ? 0 : this.mNEpochs;
+    final int nEpochs = mNEpochs == null ? 0 : mNEpochs;
 
     if (mVerbose) {
       Utils.message("Construct embedding");
     }
 
-    mEmbedding = simplicialSetEmbedding(mRawData, graph_, mNComponents, mInitialAlpha, _a, _b, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, random, mMetric, mVerbose);
+    mEmbedding = simplicialSetEmbedding(mRawData, graph_, mNComponents, mInitialAlpha, mRunA, mRunB, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, mRandom, mMetric, mVerbose);
 
     if (mVerbose) {
       Utils.message("Finished embedding");
@@ -1375,28 +1243,21 @@ public class Umap {
     //this._input_hash = joblib.hash(this._raw_data);
   }
 
-  // Fit instances into an embedded space and return that transformed
-  // output.
-
-  // Parameters
-  // ----------
-  // instances : array, shape (n_samples, n_features) || (n_samples, n_samples)
-  //     If the metric is 'precomputed' X must be a square distance
-  //     matrix. Otherwise it contains a sample per row.
-
-  // y : array, shape (n_samples)
-  //     A target array for supervised dimension reduction. How this is
-  //     handled is determined by parameters UMAP was instantiated with.
-  //     The relevant attributes are ``target_metric`` and
-  //     ``target_metric_kwds``.
-
-  // Returns
-  // -------
-  // X_new : array, shape (n_samples, n_components)
-  //     Embedding of the training data in low-dimensional space.
+  /**
+   * Fit instances into an embedded space and return that transformed output.
+   * @param instances array of shape <code>(n_samples, n_features)</code> or <code>(nSamples, nSamples)</code>
+   * If the metric is 'precomputed' instances must be a square distance
+   * matrix. Otherwise it contains a sample per row.
+   * @param y array of shape <code>(n_samples)</code>
+   * A target array for supervised dimension reduction. How this is
+   * handled is determined by parameters UMAP was instantiated with.
+   * The relevant metric is <code>mTargetMetric</code>.
+   * @return array of shape <code>(n_samples, n_components)</code>
+   * Embedding of the training data in low-dimensional space.
+   */
   Matrix fitTransform(final Matrix instances, final float[] y) {
     fit(instances, y);
-    return this.mEmbedding;
+    return mEmbedding;
   }
 
   Matrix fitTransform(final Matrix instances) {
@@ -1407,21 +1268,17 @@ public class Umap {
     return fitTransform(new DefaultMatrix(instances), null);
   }
 
-  // Transform X into the existing embedded space and return that
-  // transformed output.
-
-  // Parameters
-  // ----------
-  // X : array, shape (n_samples, n_features)
-  //     New data to be transformed.
-
-  // Returns
-  // -------
-  // X_new : array, shape (n_samples, n_components)
-  //     Embedding of the new data in low-dimensional space.
-  // If we fit just a single instance then error
-  private Matrix transform(Matrix X) {
-    if (this.mEmbedding.rows() == 1) {
+  /**
+   * Transform instances into the existing embedded space and return that
+   * transformed output.
+   * @param instances array, shape <code>(n_samples, n_features)</code>
+   * New data to be transformed.
+   * @return array, shape <code>(n_samples, n_components)</code>
+   * Embedding of the new data in low-dimensional space.
+   * @throws IllegalArgumentException If we fit just a single instance then error.
+   */
+  private Matrix transform(Matrix instances) {
+    if (mEmbedding.rows() == 1) {
       throw new IllegalArgumentException("Transform unavailable when model was fit with only a single data sample.");
     }
     // If we just have the original input then short circuit things
@@ -1432,36 +1289,35 @@ public class Umap {
 //      return this.embedding_;
 //    }
 
-    if (this.mSparseData) {
+    if (mSparseData) {
       throw new IllegalArgumentException("Transform not available for sparse input.");
-    } else if (mMetric.equals("precomputed")) {
+    } else if (mMetric instanceof PrecomputedMetric) {
       throw new IllegalArgumentException("Transform  of new data not available for precomputed metric.");
     }
 
     int[][] indices;
     float[][] dists;
-    if (this.mSmallData) {
-      Matrix dmat = PairwiseDistances.pairwiseDistances(X, mRawData, mMetric);
-      indices = MathUtils.subarray(MathUtils.argpartition(dmat, _n_neighbors), _n_neighbors);
-      float[][] dmatShortened = Utils.submatrix(dmat, indices, _n_neighbors);
-      int[][] indicesSorted = MathUtils.argsort(dmatShortened);
-      indices = Utils.submatrix(indices, indicesSorted, _n_neighbors);
-      dists = Utils.submatrix(dmatShortened, indicesSorted, _n_neighbors);
+    if (mSmallData) {
+      final Matrix dmat = PairwiseDistances.pairwiseDistances(instances, mRawData, mMetric);
+      indices = MathUtils.subarray(MathUtils.argpartition(dmat, mRunNNeighbors), mRunNNeighbors);
+      final float[][] dmatShortened = Utils.submatrix(dmat, indices, mRunNNeighbors);
+      final int[][] indicesSorted = MathUtils.argsort(dmatShortened);
+      indices = Utils.submatrix(indices, indicesSorted, mRunNNeighbors);
+      dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
-      Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, X, (int) (_n_neighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
-      Heap result = _search.initialized_nnd_search(mRawData, mSearchGraph.mIndptr, mSearchGraph.mIndices, init, X);
-      result = Utils.deheapSort(result);
+      final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
+      final Heap result = Utils.deheapSort(mSearch.initialized_nnd_search(mRawData, mSearchGraph.mIndptr, mSearchGraph.mIndices, init, instances));
       indices = result.indices;
       dists = result.weights;
-      indices = MathUtils.subarray(indices, _n_neighbors);
-      dists = MathUtils.subarray(dists, _n_neighbors);
+      indices = MathUtils.subarray(indices, mRunNNeighbors);
+      dists = MathUtils.subarray(dists, mRunNNeighbors);
     }
 
     int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);
-    final float[][] sigmasRhos = smoothKnnDist(dists, _n_neighbors, adjustedLocalConnectivity);
+    final float[][] sigmasRhos = smoothKnnDist(dists, mRunNNeighbors, adjustedLocalConnectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];
-    CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, new int[]{X.rows(), mRawData.rows()});
+    CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, new int[]{instances.rows(), mRawData.rows()});
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
@@ -1472,10 +1328,10 @@ public class Umap {
     // todo following need to be "reshape" as above
     int[][] inds = null;
     float[][] weights = null;
-    Matrix embedding = init_transform(inds, weights, mEmbedding);
+    Matrix embedding = initTransform(inds, weights, mEmbedding);
 
     final int nEpochs;
-    if (this.mNEpochs == null) {
+    if (mNEpochs == null) {
       // For smaller datasets we can use more epochs
       if (graph.rows() <= 10000) {
         nEpochs = 100;
@@ -1483,7 +1339,7 @@ public class Umap {
         nEpochs = 30;
       }
     } else {
-      nEpochs = this.mNEpochs; // 3.0
+      nEpochs = mNEpochs; // 3.0
     }
 
     MathUtils.zeroEntriesBelowLimit(graph.mData, MathUtils.max(graph.mData) / (float) nEpochs);
@@ -1494,6 +1350,6 @@ public class Umap {
     int[] head = graph.mRow;
     int[] tail = graph.mCol;
 
-    return optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, this._a, this._b, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
+    return optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, mRunA, mRunB, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
   }
 }

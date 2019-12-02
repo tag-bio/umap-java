@@ -101,24 +101,40 @@ public class UmapTest extends TestCase {
 //    }
   }
 
-//  public void testGenes() throws IOException {
-//    final GeneData data = new GeneData();
-//    data.setSampleNamesFromInfo("noncancer_cell_type");
-//    System.out.println("Done reading");
+//  public void testMammoth() throws IOException {
+//    final Data data = new MammothData();
 //    final Umap umap = new Umap();
 //    umap.setInit("random");
 //    umap.setVerbose(true);
-//    umap.setNumberComponents(3);
-//    System.out.println("Starting transform");
+//    umap.setNumberComponents(2);
+//    umap.setNumberNearestNeighbours(100);
 //    final Matrix matrix = umap.fitTransform(data.getData());
 //    //System.out.println(matrix);
-//    assertEquals(5902, matrix.rows());
-//    assertEquals(3, matrix.shape()[1]);
+//    assertEquals(10000, matrix.rows());
+//    assertEquals(2, matrix.cols());
 //    final String[] names = data.getSampleNames();
 //    for (int r = 0; r < matrix.rows(); ++r) {
 //      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
 //    }
 //  }
+
+  public void testGenes() throws IOException {
+    final Data data = new GeneData();
+    System.out.println("Done reading");
+    final Umap umap = new Umap();
+    umap.setInit("random");
+    umap.setVerbose(true);
+    umap.setNumberComponents(2);
+    System.out.println("Starting transform");
+    final Matrix matrix = umap.fitTransform(data.getData());
+    //System.out.println(matrix);
+    assertEquals(5902, matrix.rows());
+    assertEquals(2, matrix.shape()[1]);
+    final String[] names = data.getSampleNames();
+    for (int r = 0; r < matrix.rows(); ++r) {
+      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+    }
+  }
 
   public void testFindABParams() throws IOException {
     final Data data = new IrisData();
@@ -1240,4 +1256,18 @@ public class UmapTest extends TestCase {
     }, distances.toArray());
   }
 
+  public void testMakeEpochsPerSample() {
+    assertEquals("[84.0, 42.0, 10.5, 1.0]", Arrays.toString(Umap.makeEpochsPerSample(new float[] {0.5F, 1, 4, 42}, 10)));
+  }
+
+  public void testClip() {
+    assertEquals(0.0F, Umap.clip(0F));
+    assertEquals(1.5F, Umap.clip(1.5F));
+    assertEquals(4.0F, Umap.clip(4));
+    assertEquals(4.0F, Umap.clip(4.01F));
+    assertEquals(4.0F, Umap.clip(Float.POSITIVE_INFINITY));
+    assertEquals(-4.0F, Umap.clip(-4));
+    assertEquals(-4.0F, Umap.clip(-4.01F));
+    assertEquals(-4.0F, Umap.clip(Float.NEGATIVE_INFINITY));
+  }
 }
