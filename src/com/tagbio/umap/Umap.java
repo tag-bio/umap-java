@@ -219,7 +219,7 @@ public class Umap {
         throw new UnsupportedOperationException();
 //        metric_nn_descent = Sparse.make_sparse_nn_descent(distanceFunc, tuple(metricKwds.values()));
 //
-//        int n_trees = 5 + (int) (Math.round(Math.pow(Y.rows(), 0.5 / 20.0)));
+//        int n_trees = 5 + (int) (Math.round(Math.pow(Y.rows(), 0.5) / 20.0));
 //        int n_iters = Math.max(5, (int) (Math.round(MathUtils.log2(Y.rows()))));
 //        if (verbose) {
 //          Utils.message("Building RP forest with " + n_trees + " trees");
@@ -236,7 +236,7 @@ public class Umap {
 //        knnDists = (float[][]) nn[1];
       } else {
         final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(distanceFunc);
-        int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5 / 20.0)));
+        int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5) / 20.0));
         int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
 
         if (verbose) {

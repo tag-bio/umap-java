@@ -16,14 +16,14 @@ class Hyperplane {
   final int[] mShape;
 
   Hyperplane(final int[] inds, final float[] data) {
-    this.mInds = inds;
-    this.mData = data;
+    mInds = inds;
+    mData = data;
     mShape = new int[] {inds.length, 2};
   }
 
   Hyperplane(final float[] data) {
-    this.mInds = null;
-    this.mData = data;
+    mInds = null;
+    mData = data;
     mShape = new int[] {data.length};
   }
 }

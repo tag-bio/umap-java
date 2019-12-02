@@ -527,7 +527,7 @@ class RandomProjectionTree {
   }
 
 
-  private static int[] recursiveFlatten(final RandomProjectionTreeNode tree, final float[][][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, int nodeNum, int leafNum) {
+  private static int[] recursiveFlatten(final RandomProjectionTreeNode tree, final Object hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, int nodeNum, int leafNum) {
     if (tree.isLeaf()) {
       children[nodeNum][0] = -leafNum;
       //indices[leafNum, :tree.getIndices().shape[0]] =tree.getIndices();
@@ -536,11 +536,11 @@ class RandomProjectionTree {
     } else {
       if (tree.getHyperplane().mShape.length > 1) {
         // sparse case
-        hyperplanes[nodeNum] = new float[][] {tree.getHyperplane().mData}; // todo dubious
+        ((float[][][]) hyperplanes)[nodeNum] = new float[][] {tree.getHyperplane().mData}; // todo dubious
         //hyperplanes[nodeNum][:, :tree.getHyperplane().shape[1]] =tree.getHyperplane();
         throw new UnsupportedOperationException();
       } else {
-        hyperplanes[nodeNum] = new float[][] {tree.getHyperplane().mData}; // todo dubious
+        ((float[][]) hyperplanes)[nodeNum] = tree.getHyperplane().mData;
       }
       offsets[nodeNum] = tree.getOffset();
       children[nodeNum][0] = nodeNum + 1;
@@ -565,13 +565,13 @@ class RandomProjectionTree {
     final int nNodes = tree.numNodes();
     final int numLeaves = tree.numLeaves();
 
-    final float[][][] hyperplanes;
+    final Object hyperplanes;
     if (tree.getHyperplane().mShape.length > 1) {
       // sparse case
       final int maxHyperplaneNnz = maxSparseHyperplaneSize(tree);
       hyperplanes = new float[nNodes][tree.getHyperplane().mShape[0]][maxHyperplaneNnz];
     } else {
-      hyperplanes = new float[nNodes][tree.getHyperplane().mShape[0]][1]; // todo ???
+      hyperplanes = new float[nNodes][tree.getHyperplane().mShape[0]];
     }
     final float[] offsets = new float[nNodes];
     final int[][] children = negOnes(nNodes, 2);

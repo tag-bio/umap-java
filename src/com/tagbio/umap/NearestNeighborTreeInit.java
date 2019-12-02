@@ -22,7 +22,7 @@ class NearestNeighborTreeInit {
 
   void init(final FlatTree tree, final Matrix data, final Matrix queryPoints, final Heap heap, final Random rng_state) {
     for (int i = 0; i < queryPoints.rows(); ++i) {
-      final int[] indices = RandomProjectionTree.searchFlatTree(queryPoints.row(i), tree.getHyperplanes()[0], tree.getOffsets(), tree.getChildren(), tree.getIndices(), rng_state); // todo !!! xxx hyperplanes[0]
+      final int[] indices = RandomProjectionTree.searchFlatTree(queryPoints.row(i), (float[][]) tree.getHyperplanes(), tree.getOffsets(), tree.getChildren(), tree.getIndices(), rng_state);
       for (int j = 0; j < indices.length; ++j) {
         if (indices[j] < 0) {
           continue;
