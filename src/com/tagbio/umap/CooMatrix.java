@@ -16,11 +16,9 @@ import java.util.Arrays;
  * @author Richard Littin
  */
 class CooMatrix extends Matrix {
-
-  // todo  currently some direct external access
-  final int[] mRow;
-  final int[] mCol;
-  final float[] mData;
+  private final int[] mRow;
+  private final int[] mCol;
+  private final float[] mData;
 
   CooMatrix(final float[] vals, final int[] rows, final int[] cols, final int[] lengths) {
     super(lengths);
@@ -164,6 +162,17 @@ class CooMatrix extends Matrix {
       : (bc > 0 ? b : ac > 0 ? c : a);
   }
 
+  float[] data() {
+    return Arrays.copyOf(mData, mData.length);
+  }
+
+  int[] row() {
+    return Arrays.copyOf(mRow, mRow.length);
+  }
+
+  int[] col() {
+    return Arrays.copyOf(mCol, mCol.length);
+  }
 
 //  CooMatrix sum_duplicates() {
 //    // todo add identical entries -- this would be fairly easy if we knew arrays we sorted by (row,col)
@@ -213,7 +222,7 @@ class CooMatrix extends Matrix {
 
   @Override
   Matrix copy() {
-    return new CooMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), Arrays.copyOf(mShape, mShape.length));
+    return new CooMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), Arrays.copyOf(shape(), shape().length));
   }
 
   @Override
@@ -288,8 +297,8 @@ class CooMatrix extends Matrix {
       }
     }
     return j == mRow.length
-      ? new CooMatrix(d, r, c, mShape)
-      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), mShape);
+      ? new CooMatrix(d, r, c, shape())
+      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), shape());
   }
 
   @Override
@@ -319,8 +328,8 @@ class CooMatrix extends Matrix {
       }
     }
     return j == maxNonZero
-      ? new CooMatrix(d, r, c, mShape)
-      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), mShape);
+      ? new CooMatrix(d, r, c, shape())
+      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), shape());
   }
 
   @Override
@@ -355,7 +364,7 @@ class CooMatrix extends Matrix {
     for (int i = 0; i < newData.length; ++i) {
       newData[i] *= x;
     }
-    return new CooMatrix(newData, mRow, mCol, mShape);
+    return new CooMatrix(newData, mRow, mCol, shape());
   }
 
   String sparseToString() {
@@ -385,7 +394,27 @@ class CooMatrix extends Matrix {
       }
       ++k;
     }
-    return new CooMatrix(d, Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), mShape);
+    return new CooMatrix(d, Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), shape());
+  }
+
+
+  /**
+   * Under the assumption of categorical distance for the intersecting
+   * simplicial set perform a fast intersection.
+   * @param target (array of shape <code>nSamples</code>) The categorical labels to use in the intersection.
+   * @param unknownDist The distance an unknown label (-1) is assumed to be from any point.
+   * @param farDist The distance between unmatched labels.
+   */
+  void fastIntersection(final float[] target, final float unknownDist, final float farDist) {
+    for (int nz = 0; nz < mRow.length; ++nz) {
+      final int i = mRow[nz];
+      final int j = mCol[nz];
+      if (target[i] == -1 || target[j] == -1) {
+        mData[nz] *= Math.exp(-unknownDist);
+      } else if (target[i] != target[j]) {
+        mData[nz] *= Math.exp(-farDist);
+      }
+    }
   }
 
 }

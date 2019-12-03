@@ -118,23 +118,23 @@ public class UmapTest extends TestCase {
 //    }
 //  }
 
-  public void testGenes() throws IOException {
-    final Data data = new GeneData();
-    System.out.println("Done reading");
-    final Umap umap = new Umap();
-    umap.setInit("random");
-    umap.setVerbose(true);
-    umap.setNumberComponents(2);
-    System.out.println("Starting transform");
-    final Matrix matrix = umap.fitTransform(data.getData());
-    //System.out.println(matrix);
-    assertEquals(5902, matrix.rows());
-    assertEquals(2, matrix.shape()[1]);
-    final String[] names = data.getSampleNames();
-    for (int r = 0; r < matrix.rows(); ++r) {
-      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
-    }
-  }
+//  public void testGenes() throws IOException {
+//    final Data data = new GeneData();
+//    System.out.println("Done reading");
+//    final Umap umap = new Umap();
+//    umap.setInit("random");
+//    umap.setVerbose(true);
+//    umap.setNumberComponents(2);
+//    System.out.println("Starting transform");
+//    final Matrix matrix = umap.fitTransform(data.getData());
+//    //System.out.println(matrix);
+//    assertEquals(5902, matrix.rows());
+//    assertEquals(2, matrix.shape()[1]);
+//    final String[] names = data.getSampleNames();
+//    for (int r = 0; r < matrix.rows(); ++r) {
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+//    }
+//  }
 
   public void testFindABParams() throws IOException {
     final Data data = new IrisData();
@@ -1184,7 +1184,7 @@ public class UmapTest extends TestCase {
     final Matrix distances = new IrisData(true).getDistances();
     final float[][] sigmaRhos = Umap.smoothKnnDist(distances.toArray(), 2, 1);
     final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, false);
-    final CooMatrix m = Umap.computeMembershipStrengths(id.getIndices(), id.getDistances(), sigmaRhos[0], sigmaRhos[1], distances.mShape);
+    final CooMatrix m = Umap.computeMembershipStrengths(id.getIndices(), id.getDistances(), sigmaRhos[0], sigmaRhos[1], distances.shape());
     // Comparison values from Python
     // The next three lines are order dependent in the CooMatrix, so not ideal for comparison
 //    assertTrue(Arrays.equals(new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9}, m.mRow));
@@ -1240,7 +1240,7 @@ public class UmapTest extends TestCase {
     for (int k = 0; k < target.length; ++k) {
       target[k] = k % 3;
     }
-    Umap.fastIntersection(distances.mRow, distances.mCol, distances.mData, target, 1.0F, 1.0e8F);
+    distances.fastIntersection(target, 1.0F, 1.0e8F);
     // Comparison values from Python
     assertArrayEquals(new double[][]{
       {0, 0, 0, 4.003748, 0, 0, 4.853864, 0, 0, 6.3450766},

@@ -16,15 +16,27 @@ import java.util.Arrays;
 class CsrMatrix extends Matrix {
 
   // todo I think this is internal rep of data for this form of matrix -- currently some direct external access
-  int[] mIndptr;  // indptr[row] to indptr[row + 1] locations of cols in indices
-  int[] mIndices; // positions of actual data
-  float[] mData;
+  private int[] mIndptr;  // indptr[row] to indptr[row + 1] locations of cols in indices
+  private int[] mIndices; // positions of actual data
+  private float[] mData;
 
   CsrMatrix(final float[] data, final int[] indptr, final int[] indices, final int[] lengths) {
     super(lengths);
     mIndptr = indptr;
     mIndices = indices;
     mData = data;
+  }
+
+  int[] indptr() {
+    return Arrays.copyOf(mIndptr, mIndptr.length);
+  }
+
+  int[] indicies() {
+    return Arrays.copyOf(mIndices, mIndices.length);
+  }
+
+  float[] data() {
+    return Arrays.copyOf(mData, mData.length);
   }
 
   @Override
@@ -46,7 +58,7 @@ class CsrMatrix extends Matrix {
 
   @Override
   Matrix copy() {
-    return new CsrMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mIndptr, mIndptr.length), Arrays.copyOf(mIndices, mIndices.length), Arrays.copyOf(mShape, mShape.length));
+    return new CsrMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mIndptr, mIndptr.length), Arrays.copyOf(mIndices, mIndices.length), Arrays.copyOf(shape(), shape().length));
   }
 
   @Override
@@ -84,7 +96,7 @@ class CsrMatrix extends Matrix {
     for (int i = 0; i < newData.length; ++i) {
       newData[i] *= x;
     }
-    return new CsrMatrix(newData, mIndptr, mIndices, mShape);
+    return new CsrMatrix(newData, mIndptr, mIndices, shape());
   }
 
   @Override
@@ -100,7 +112,7 @@ class CsrMatrix extends Matrix {
       }
     }
     // Note would be safer to cop mIndptr and mIndices arrays
-    return new CsrMatrix(d, mIndptr, mIndices, mShape);
+    return new CsrMatrix(d, mIndptr, mIndices, shape());
   }
 
   boolean has_sorted_indices() {

@@ -370,28 +370,6 @@ public class Umap {
   }
 
   /**
-   * Under the assumption of categorical distance for the intersecting
-   * simplicial set perform a fast intersection.
-   * @param rows An array of the row of each non-zero in the sparse matrix representation.
-   * @param cols An array of the column of each non-zero in the sparse matrix representation.
-   * @param values An array of the value of each non-zero in the sparse matrix representation.
-   * @param target (array of shape <code>nSamples</code>) The categorical labels to use in the intersection.
-   * @param unknownDist The distance an unknown label (-1) is assumed to be from any point.
-   * @param farDist The distance between unmatched labels.
-   */
-  static void fastIntersection(final int[] rows, final int[] cols, final float[] values, final float[] target, final float unknownDist, final float farDist) {
-    for (int nz = 0; nz < rows.length; ++nz) {
-      final int i = rows[nz];
-      final int j = cols[nz];
-      if (target[i] == -1 || target[j] == -1) {
-        values[nz] *= Math.exp(-unknownDist);
-      } else if (target[i] != target[j]) {
-        values[nz] *= Math.exp(-farDist);
-      }
-    }
-  }
-
-  /**
    * Reset the local connectivity requirement -- each data sample should
    * have complete confidence in at least one 1-simplex in the simplicial set.
    * We can enforce this by locally rescaling confidences, and then remerging the
@@ -417,7 +395,7 @@ public class Umap {
    * @return The resulting intersected fuzzy simplicial set.
    */
   private static Matrix categoricalSimplicialSetIntersection(final CooMatrix simplicialSet, final float[] target, final float unknownDist, final float farDist) {
-    fastIntersection(simplicialSet.mRow, simplicialSet.mCol, simplicialSet.mData, target, unknownDist, farDist);
+    simplicialSet.fastIntersection(target, unknownDist, farDist);
     return resetLocalConnectivity(simplicialSet.eliminateZeros());
   }
 
@@ -431,7 +409,7 @@ public class Umap {
     final CsrMatrix left = simplicialSet1.toCsr();
     final CsrMatrix right = simplicialSet2.toCsr();
 
-    Sparse.generalSsetIntersection(left.mIndptr, left.mIndices, left.mData, right.mIndptr, right.mIndices, right.mData, result.mRow, result.mCol, result.mData, weight);
+    Sparse.generalSsetIntersection(left.indptr(), left.indicies(), left.data(), right.indptr(), right.indicies(), right.data(), result.row(), result.col(), result.data(), weight);
 
     return result;
   }
@@ -618,7 +596,8 @@ public class Umap {
       }
     }
 
-    MathUtils.zeroEntriesBelowLimit(graph.mData, MathUtils.max(graph.mData) / (float) nEpochs);
+    final float[] graphData = graph.data();
+    MathUtils.zeroEntriesBelowLimit(graphData, MathUtils.max(graphData) / (float) nEpochs);
     graph = (CooMatrix) graph.eliminateZeros();
 
     Matrix embedding;
@@ -647,9 +626,9 @@ public class Umap {
 //      }
     }
 
-    final float[] epochsPerSample = makeEpochsPerSample(graph.mData, nEpochs);
-    final int[] head = graph.mRow;
-    final int[] tail = graph.mCol;
+    final float[] epochsPerSample = makeEpochsPerSample(graph.data(), nEpochs);
+    final int[] head = graph.row();
+    final int[] tail = graph.col();
 
     // so (head, tail, epochsPerSample) is like a CooMatrix
 
@@ -1306,7 +1285,7 @@ public class Umap {
       dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
       final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
-      final Heap result = Utils.deheapSort(mSearch.initialized_nnd_search(mRawData, mSearchGraph.mIndptr, mSearchGraph.mIndices, init, instances));
+      final Heap result = Utils.deheapSort(mSearch.initialized_nnd_search(mRawData, mSearchGraph.indptr(), mSearchGraph.indicies(), init, instances));
       indices = result.indices;
       dists = result.weights;
       indices = MathUtils.subarray(indices, mRunNNeighbors);
@@ -1342,13 +1321,13 @@ public class Umap {
       nEpochs = mNEpochs; // 3.0
     }
 
-    MathUtils.zeroEntriesBelowLimit(graph.mData, MathUtils.max(graph.mData) / (float) nEpochs);
+    MathUtils.zeroEntriesBelowLimit(graph.data(), MathUtils.max(graph.data()) / (float) nEpochs);
     graph = (CooMatrix) graph.eliminateZeros();
 
-    final float[] epochsPerSample = makeEpochsPerSample(graph.mData, nEpochs);
+    final float[] epochsPerSample = makeEpochsPerSample(graph.data(), nEpochs);
 
-    int[] head = graph.mRow;
-    int[] tail = graph.mCol;
+    int[] head = graph.row();
+    int[] tail = graph.col();
 
     return optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, mRunA, mRunB, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
   }

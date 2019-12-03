@@ -15,7 +15,7 @@ import java.util.Arrays;
 abstract class Matrix {
 
   /** Array containing the dimensions of the matrix <code>(rows, columns)</code>. */
-  protected int[] mShape;
+  private int[] mShape;
 
   Matrix(final int... shape) {
     this.mShape = shape;
@@ -97,7 +97,7 @@ abstract class Matrix {
   }
 
   int[] shape() {
-    return mShape;
+    return Arrays.copyOf(mShape, mShape.length);
   }
 
   long length() {

@@ -22,7 +22,7 @@ class NearestNeighborRandomInit {
 
   void init(final int nNeighbors, final Matrix data, final Matrix queryPoints, final Heap heap, final Random rng_state) {
     for (int i = 0; i < queryPoints.rows(); ++i) {
-      final int[] indices = Utils.rejectionSample(nNeighbors, data.mShape[0], rng_state);
+      final int[] indices = Utils.rejectionSample(nNeighbors, data.rows(), rng_state);
       for (int j = 0; j < indices.length; ++j) {
         if (indices[j] < 0) {
           continue;
