@@ -475,6 +475,9 @@ public class Umap {
   private static Matrix optimizeLayout(final Matrix headEmbedding, final Matrix tailEmbedding, final int[] head, final int[] tail, final int nEpochs, final int nVertices, final float[] epochsPerSample, final float a, final float b, final Random random, final float gamma, final float initialAlpha, final float negativeSampleRate, final boolean verbose) {
 
     assert headEmbedding instanceof DefaultMatrix; // because this routine directly modifies contents of rows in the matrix
+    if (verbose) {
+      Utils.message("Opt sizes: " + Arrays.toString(headEmbedding.shape()) + " " + Arrays.toString(tailEmbedding.shape()) + " " + epochsPerSample.length);
+    }
 
     final int dim = headEmbedding.cols();
     final boolean moveOther = headEmbedding.rows() == tailEmbedding.rows();
@@ -540,7 +543,7 @@ public class Umap {
       alpha = initialAlpha * (1.0F - (float) n / (float) (nEpochs));
 
       if (verbose && n % (nEpochs / 10) == 0) {
-        Utils.message("\tcompleted " + n + "/" + nEpochs + " epochs");
+        Utils.message("Completed " + n + "/" + nEpochs + " epochs");
       }
     }
     return headEmbedding;
