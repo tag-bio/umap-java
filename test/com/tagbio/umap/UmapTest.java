@@ -158,7 +158,7 @@ public class UmapTest extends TestCase {
       }
     }
     umap.setSpread(1.0F);
-    for (float dist : new float[]{-1.234F, 0.0F, 1.0F, 1.51F}) {
+    for (float dist : new float[]{-1.234F, -0.01F, 1.01F, 1.51F}) {
       try {
         umap.setMinDist(dist);
         umap.fitTransform(data.getData());
