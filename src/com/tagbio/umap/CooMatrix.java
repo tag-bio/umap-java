@@ -295,7 +295,11 @@ class CooMatrix extends Matrix {
     if (rows() != cols()) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
-    final int maxNonZero = Math.min(rows() * cols(), 2 * mRow.length);
+    final long mnz = Math.min(rows() * (long) cols(), 2L * mRow.length);
+    if (mnz > Integer.MAX_VALUE) {
+      throw new UnsupportedOperationException("Implementation limits exceeded");
+    }
+    final int maxNonZero = (int) mnz;
     final int[] r = new int[maxNonZero];
     final int[] c = new int[maxNonZero];
     final float[] d = new float[maxNonZero];
