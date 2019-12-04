@@ -137,10 +137,10 @@ public class UmapTest extends TestCase {
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(5902, matrix.rows());
 //    assertEquals(2, matrix.cols());
-//    final String[] names = data.getSampleNames();
-//    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
-//    }
+////    final String[] names = data.getSampleNames();
+////    for (int r = 0; r < matrix.rows(); ++r) {
+////      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+////    }
 //  }
 
   public void testFindABParams() throws IOException {
