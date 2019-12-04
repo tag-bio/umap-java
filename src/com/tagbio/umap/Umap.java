@@ -718,7 +718,7 @@ public class Umap {
     if (spread < 0.5F || spread > 1.5F) {
       throw new IllegalArgumentException("Spread must be in the range 0.5 < spread <= 1.5, got : " + spread);
     }
-    if (min_dist <= 0 || min_dist >= spread) {
+    if (min_dist < 0 || min_dist > spread) {
       throw new IllegalArgumentException("Expecting 0 < min_dist < " + spread + ", got : " + min_dist);
     }
     int spreadIndex = (int) (10 * spread);
@@ -783,7 +783,7 @@ public class Umap {
   private boolean mVerbose = false;
   private Float mA = null;
   private Float mB = null;
-  private Random mRandom = new Random(42); // todo seed
+  private Random mRandom = new Random(42);
 
   private float mInitialAlpha;
   private int mRunNNeighbors;
@@ -925,7 +925,7 @@ public class Umap {
    * @param minDist minimum distance
    */
   public void setMinDist(final float minDist) {
-    if (minDist <= 0.0) {
+    if (minDist < 0.0) {
       throw new IllegalArgumentException("Minimum distance must be greater than 0.0.");
     }
     mMinDist = minDist;
