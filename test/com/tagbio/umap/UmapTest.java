@@ -79,7 +79,10 @@ public class UmapTest extends TestCase {
     final Umap umap = new Umap();
     umap.setInit("random");
     umap.setVerbose(true);
-    final Matrix matrix = umap.fitTransform(data.getData());
+    final float[][] d = data.getData();
+    final long start = System.currentTimeMillis();
+    final Matrix matrix = umap.fitTransform(d);
+    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
     //System.out.println(matrix);
     assertEquals(150, matrix.rows());
     assertEquals(2, matrix.cols());
@@ -91,8 +94,10 @@ public class UmapTest extends TestCase {
     umap.setInit("random");
     umap.setVerbose(true);
     umap.setNumberComponents(3);
-    final Matrix matrix = umap.fitTransform(data.getData());
-    //System.out.println(matrix);
+    final float[][] d = data.getData();
+    final long start = System.currentTimeMillis();
+    final Matrix matrix = umap.fitTransform(d);
+    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
     assertEquals(1797, matrix.rows());
     assertEquals(3, matrix.cols());
 //    final int[] classIndexes = data.getClassIndexes();
@@ -103,13 +108,15 @@ public class UmapTest extends TestCase {
 
 //  public void testMammoth() throws IOException {
 //    final Data data = new MammothData();
+//    final float[][] d = data.getData();
+//    final long start = System.currentTimeMillis();
 //    final Umap umap = new Umap();
 //    umap.setInit("random");
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
 //    umap.setNumberNearestNeighbours(100);
-//    final Matrix matrix = umap.fitTransform(data.getData());
-//    //System.out.println(matrix);
+//    final Matrix matrix = umap.fitTransform(d);
+//    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(10000, matrix.rows());
 //    assertEquals(2, matrix.cols());
 //    final int[] classIndexes = data.getClassIndexes();
@@ -120,14 +127,14 @@ public class UmapTest extends TestCase {
 
 //  public void testGenes() throws IOException {
 //    final Data data = new GeneData();
-//    System.out.println("Done reading");
 //    final Umap umap = new Umap();
 //    umap.setInit("random");
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
-//    System.out.println("Starting transform");
-//    final Matrix matrix = umap.fitTransform(data.getData());
-//    //System.out.println(matrix);
+//    final float[][] d = data.getData();
+//    final long start = System.currentTimeMillis();
+//    final Matrix matrix = umap.fitTransform(d);
+//    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(5902, matrix.rows());
 //    assertEquals(2, matrix.shape()[1]);
 //    final int[] classIndexes = data.getClassIndexes();

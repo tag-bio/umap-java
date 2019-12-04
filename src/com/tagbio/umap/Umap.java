@@ -427,7 +427,7 @@ public class Umap {
     final float[] nSamples = MathUtils.multiply(MathUtils.divide(weights, MathUtils.max(weights)), nEpochs);
     for (int k = 0; k < nSamples.length; ++k) {
       if (nSamples[k] > 0) {
-        result[k] = nEpochs / nSamples[k];
+        result[k] = (float) nEpochs / nSamples[k];
       }
     }
     return result;
@@ -540,7 +540,7 @@ public class Umap {
       alpha = initialAlpha * (1.0F - (float) n / (float) (nEpochs));
 
       if (verbose && n % (nEpochs / 10) == 0) {
-        Utils.message("\tcompleted " + n + "/" + nEpochs + " epochs");
+        Utils.message("Completed " + n + "/" + nEpochs);
       }
     }
     return headEmbedding;

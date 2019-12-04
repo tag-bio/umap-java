@@ -353,11 +353,11 @@ class Utils {
   }
 
 
-//     Restore the heap property for a heap with an out of place element
+  //     Restore the heap property for a heap with an out of place element
 //     at position ``elt``. This works with a heap pair where heap1 carries
 //     the weights and heap2 holds the corresponding elements.
-  private static void siftdown(final float[] heap1, final int[] heap2, int elt) {
-    while (elt * 2 + 1 < heap1.length) {
+  private static void siftdown(final float[] heap1, final int[] heap2, int length, int elt) {
+    while (elt * 2 + 1 < length) {
       final int leftChild = elt * 2 + 1;
       final int rightChild = leftChild + 1;
       int swap = elt;
@@ -366,7 +366,7 @@ class Utils {
         swap = leftChild;
       }
 
-      if (rightChild < heap1.length && heap1[swap] < heap1[rightChild]) {
+      if (rightChild < length && heap1[swap] < heap1[rightChild]) {
         swap = rightChild;
       }
 
@@ -385,7 +385,7 @@ class Utils {
   }
 
 
-//     Given an array of heaps (of indices and weights), unpack the heap
+  //     Given an array of heaps (of indices and weights), unpack the heap
 //     out to give and array of sorted lists of indices and weights by increasing
 //     weight. This is effectively just the second half of heap sort (the first
 //     half not being required since we already have the data in a heap).
@@ -399,7 +399,6 @@ class Utils {
 //     -------
 //     indices, weights: arrays of shape (n_samples, n_neighbors)
 //         The indices and weights sorted by increasing weight.
-//     """
   static Heap deheapSort(Heap heap) {
     int[][] indices = heap.indices;
     float[][] weights = heap.weights;
@@ -410,17 +409,15 @@ class Utils {
       float[] distHeap = weights[i];
 
       for (int j = 0; j < indHeap.length - 1; ++j) {
-        //indHeap[0], indHeap[ indHeap.shape[0] - j - 1 ] = ( indHeap[indHeap.shape[0] - j - 1],   indHeap[0]       );
         int s = indHeap[0];
         indHeap[0] = indHeap[indHeap.length - j - 1];
         indHeap[indHeap.length - j - 1] = s;
-        // distHeap[0], distHeap[   distHeap.shape[0] - j - 1  ] = (  distHeap[distHeap.shape[0] - j - 1], distHeap[0]     );
         final float t = distHeap[0];
         distHeap[0] = distHeap[distHeap.length - j - 1];
         distHeap[distHeap.length - j - 1] = t;
 
         //siftdown(distHeap[:distHeap.shape[0] - j - 1], indHeap[:indHeap.shape[0] - j - 1],  0    );
-        siftdown(MathUtils.subarray(distHeap, 0, distHeap.length - j - 1), MathUtils.subarray(indHeap, 0, indHeap.length - j - 1), 0);
+        siftdown(distHeap, indHeap, distHeap.length - j - 1, 0);
       }
     }
 
