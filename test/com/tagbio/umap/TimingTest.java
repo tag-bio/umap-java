@@ -40,7 +40,7 @@ public class TimingTest {
               long end = System.nanoTime();
               final String title = String.format("%s_md%1.2f_nn%03d_s%d", data.getName(), minDist, neighbours, seed);
               save(embedding, data.getSampleClassIndex(), title);
-              System.out.print(String.format("\t%.3f", (end - start) / 1000000000.0F));
+              System.out.println(String.format("\t%.3f", (end - start) / 1000000000.0F));
             }
           }
         }
