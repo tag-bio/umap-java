@@ -28,7 +28,7 @@ class NearestNeighborTreeInit {
           continue;
         }
         final float d = (float) mDist.distance(data.row(indices[j]), queryPoints.row(i));
-        Utils.heapPush(heap, i, d, indices[j], true);
+        heap.push(i, d, indices[j], true);
       }
     }
   }

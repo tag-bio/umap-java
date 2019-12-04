@@ -26,14 +26,14 @@ class NearestNeighborSearch {
     for (int i = 0; i < queryPoints.rows(); ++i) {
 
       final Set<Integer> tried = new TreeSet<>();
-      for (final int t : initialization.indices[i]) {
+      for (final int t : initialization.mIndices[i]) {
         tried.add(t);
       }
 
       while (true) {
 
         // Find smallest flagged vertex
-        final int vertex = Utils.smallestFlagged(initialization, i);
+        final int vertex = initialization.smallestFlagged(i);
 
         if (vertex == -1) {
           break;
@@ -45,7 +45,7 @@ class NearestNeighborSearch {
             continue;
           }
           float d = (float) mDist.distance(data.row(candidates[j]), queryPoints.row(i));
-          Utils.uncheckedHeapPush(initialization, i, d, candidates[j], true);
+          initialization.uncheckedHeapPush(i, d, candidates[j], true);
           tried.add(candidates[j]);
         }
       }

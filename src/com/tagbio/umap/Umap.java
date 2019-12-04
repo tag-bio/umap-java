@@ -248,8 +248,8 @@ public class Umap {
           Utils.message("NN descent for " + nIters + " iterations");
         }
         final Heap nn = metricNearestNeighborsDescent.descent(instances, nNeighbors, random, 60, true, nIters, leafArray, verbose);
-        knnIndices = nn.indices;
-        knnDists = nn.weights;
+        knnIndices = nn.mIndices;
+        knnDists = nn.mWeights;
       }
 
       if (MathUtils.containsNegative(knnIndices)) {
@@ -1285,11 +1285,9 @@ public class Umap {
       dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
       final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
-      final Heap result = Utils.deheapSort(mSearch.initialized_nnd_search(mRawData, mSearchGraph.indptr(), mSearchGraph.indicies(), init, instances));
-      indices = result.indices;
-      dists = result.weights;
-      indices = MathUtils.subarray(indices, mRunNNeighbors);
-      dists = MathUtils.subarray(dists, mRunNNeighbors);
+      final Heap result = mSearch.initialized_nnd_search(mRawData, mSearchGraph.indptr(), mSearchGraph.indicies(), init, instances).deheapSort();
+      indices = MathUtils.subarray(result.mIndices, mRunNNeighbors);
+      dists = MathUtils.subarray(result.mWeights, mRunNNeighbors);
     }
 
     int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);

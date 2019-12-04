@@ -174,17 +174,6 @@ class CooMatrix extends Matrix {
     return Arrays.copyOf(mCol, mCol.length);
   }
 
-//  CooMatrix sum_duplicates() {
-//    // todo add identical entries -- this would be fairly easy if we knew arrays we sorted by (row,col)
-//    // todo for now ugliness ...
-//
-//    final DefaultMatrix res = new DefaultMatrix(shape);
-//    for (int k = 0; k < data.length; ++k) {
-//      res.set(row[k], col[k], res.get(row[k], col[k]) + data[k]);
-//    }
-//    return res.tocoo();
-//  }
-
   @Override
   float get(final int r, final int c) {
     int left = 0;

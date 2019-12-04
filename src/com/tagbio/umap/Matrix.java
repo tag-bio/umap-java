@@ -18,7 +18,7 @@ abstract class Matrix {
   private int[] mShape;
 
   Matrix(final int... shape) {
-    this.mShape = shape;
+    mShape = shape;
     for (int s : shape) {
       if (s < 0) {
         throw new IllegalArgumentException("Illegal dimension specification: " + s);
@@ -271,7 +271,6 @@ abstract class Matrix {
   }
 
   Matrix copy() {
-    // todo this should be a copy of the matrix of same type -- generics on params?
     throw new UnsupportedOperationException();
   }
 
@@ -332,56 +331,4 @@ abstract class Matrix {
     }
     return new DefaultMatrix(d);
   }
-
-  Matrix take(int[] indicies) {
-    // todo return elements from array along selected axes
-    throw new UnsupportedOperationException();
-  }
-
-  static Matrix eye(int n, int m, int k) {
-    // todo
-    /*
-    Return a 2-D array with ones on the diagonal and zeros elsewhere.
-    N : int
-      Number of rows in the output.
-    M : int, optional
-      Number of columns in the output. If None, defaults to `N`.
-    k : int, optional
-      Index of the diagonal: 0 (the default) refers to the main diagonal,
-      a positive value refers to an upper diagonal, and a negative value
-      to a lower diagonal.
-    */
-    throw new UnsupportedOperationException();
-  }
-
-  Matrix dot(Matrix x) {
-    // todo dot product
-    throw new UnsupportedOperationException();
-  }
-
-  Matrix inv() {
-    // todo invert
-    throw new UnsupportedOperationException();
-  }
-
-  Matrix triu(int k) {
-    // todo Upper triangle of an array.
-    // Return a copy of a matrix with the elements below the `k`-th diagonal zeroed.
-    // may want tri and tril versions as well
-    throw new UnsupportedOperationException();
-  }
-
-  Float max() {
-    // todo maximum value in matrix
-    // this might only be wanted for float[], not matrix...
-    // min as well?
-    throw new UnsupportedOperationException();
-  }
-
-  Float sum() {
-    // todo sum of values in matrix
-    // return double?
-    throw new UnsupportedOperationException();
-  }
-
 }

@@ -13,7 +13,7 @@ import java.util.Random;
 
 /**
  * Random projection trees.
- * @author Leland McInnes
+ * @author Leland McInnes (Python)
  * @author Sean A. Irvine
  * @author Richard Littin
  */

@@ -35,13 +35,13 @@ class NearestNeighborDescent {
   Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
 
     final int nVertices = data.rows();
-    final Heap currentGraph = Utils.makeHeap(data.rows(), nNeighbors);
+    final Heap currentGraph = new Heap(data.rows(), nNeighbors);
     for (int i = 0; i < data.rows(); ++i) {
       final float[] iRow = data.row(i);
       for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
         final float d = (float) mMetric.distance(iRow, data.row(index));
-        Utils.heapPush(currentGraph, i, d, index, true);
-        Utils.heapPush(currentGraph, index, d, i, true);
+        currentGraph.push(i, d, index, true);
+        currentGraph.push(index, d, i, true);
       }
     }
 
@@ -57,8 +57,8 @@ class NearestNeighborDescent {
               break;
             }
             final float d = (float) mMetric.distance(iRow, data.row(leaf[j]));
-            Utils.heapPush(currentGraph, leaf[i], d, leaf[j], true);
-            Utils.heapPush(currentGraph, leaf[j], d, leaf[i], true);
+            currentGraph.push(leaf[i], d, leaf[j], true);
+            currentGraph.push(leaf[j], d, leaf[i], true);
           }
         }
       }
@@ -69,24 +69,28 @@ class NearestNeighborDescent {
         Utils.message("NearestNeighborDescent: " + n + " / " + nIters);
       }
 
-      final Heap candidateNeighbors = Utils.buildCandidates(currentGraph, nVertices, nNeighbors, maxCandidates, random);
+      final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
 
       int c = 0;
       for (int i = 0; i < nVertices; ++i) {
         for (int j = 0; j < maxCandidates; ++j) {
-          final int p = candidateNeighbors.indices[i][j];
+          final int p = candidateNeighbors.mIndices[i][j];
           if (p < 0 || random.nextFloat() < rho) {
             continue;
           }
           for (int k = 0; k < maxCandidates; ++k) {
-            final int q = candidateNeighbors.indices[i][k];
-            if (q < 0 || !candidateNeighbors.isNew[i][j] && !candidateNeighbors.isNew[i][k]) {
+            final int q = candidateNeighbors.mIndices[i][k];
+            if (q < 0 || !candidateNeighbors.mIsNew[i][j] && !candidateNeighbors.mIsNew[i][k]) {
               continue;
             }
 
             final float d = (float) mMetric.distance(data.row(p), data.row(q));
-            c += Utils.heapPush(currentGraph, p, d, q, true);
-            c += Utils.heapPush(currentGraph, q, d, p, true);
+            if (currentGraph.push(p, d, q, true)) {
+              ++c;
+            }
+            if (currentGraph.push(q, d, p, true)) {
+              ++c;
+            }
           }
         }
       }
@@ -96,12 +100,12 @@ class NearestNeighborDescent {
       }
     }
 
-    return Utils.deheapSort(currentGraph);
+    return currentGraph.deheapSort();
   }
 
 
   static Heap initialiseSearch(final List<FlatTree> forest, final Matrix data, final Matrix queryPoints, final int nNeighbors, final NearestNeighborRandomInit initFromRandom, NearestNeighborTreeInit initFromTree, final Random random) {
-    final Heap results = Utils.makeHeap(queryPoints.rows(), nNeighbors);
+    final Heap results = new Heap(queryPoints.rows(), nNeighbors);
     initFromRandom.init(nNeighbors, data, queryPoints, results, random);
     if (forest != null) {
       for (final FlatTree tree : forest) {
