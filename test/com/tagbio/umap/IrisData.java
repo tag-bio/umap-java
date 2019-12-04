@@ -16,6 +16,11 @@ public class IrisData extends Data {
     super(small ? "com/tagbio/umap/iris-small.tsv" : "com/tagbio/umap/iris.tsv");
   }
 
+  @Override
+  String getName() {
+    return "iris";
+  }
+
   public static void main(String[] args) throws IOException {
     Data id = new IrisData();
 

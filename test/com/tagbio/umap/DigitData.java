@@ -11,4 +11,9 @@ public class DigitData extends Data {
   public DigitData() throws IOException {
     super("com/tagbio/umap/digits.tsv");
   }
+
+  @Override
+  String getName() {
+    return "digit";
+  }
 }

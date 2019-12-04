@@ -11,12 +11,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.zip.GZIPInputStream;
 
 import com.tagbio.umap.metric.EuclideanMetric;
+import com.tagbio.umap.metric.HammingMetric;
 
 abstract class Data {
   private float[][] mData;
@@ -83,12 +86,27 @@ abstract class Data {
 
   public void setSampleNames(String [] name) {
     if (name.length != mSampleNames.size()) {
-      throw new IllegalArgumentException("Incorrect number of name.");
+      throw new IllegalArgumentException("Incorrect number of names.");
     }
     mSampleNames.clear();
     for (String a : name) {
       mSampleNames.add(a);
     }
+  }
+
+  abstract String getName();
+
+  public int[] getSampleClassIndex() {
+    final int[] res = new int[mSampleNames.size()];
+    final Map<String, Integer> classIndex = new HashMap<>();
+    for (int i = 0; i < mSampleNames.size(); i++) {
+      final String name = mSampleNames.get(i).split(":")[0];
+      if (!classIndex.containsKey(name)) {
+        classIndex.put(name, classIndex.size());
+      }
+      res[i] = classIndex.get(name);
+    }
+    return res;
   }
 
   /**

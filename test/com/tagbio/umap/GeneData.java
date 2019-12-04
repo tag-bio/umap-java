@@ -8,17 +8,32 @@ package com.tagbio.umap;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GeneData extends Data {
+
+  private int[] mClassIndexes;
+
   public GeneData() throws IOException {
     super("com/tagbio/umap/gene_exp_data.tsv.gz");
+    setSampleNamesFromInfo("noncancer_cell_type");
+  }
+
+  @Override
+  String getName() {
+    return "gene";
+  }
+
+  @Override
+  public int[] getSampleClassIndex() {
+    return Arrays.copyOf(mClassIndexes, mClassIndexes.length);
   }
 
   public void setSampleNamesFromInfo(String columnName) throws IOException {
-    final Map<String, String> targetIndex = new HashMap<>();
-    final Map<String, String> nameIndex = new HashMap<>();
+    final Map<String, Integer> targetIndex = new HashMap<>();
+    final Map<String, Integer> nameIndex = new HashMap<>();
     try (final LineNumberReader r = new LineNumberReader(new InputStreamReader(getStream("com/tagbio/umap/gene_exp_info.tsv")))) {
       String line = r.readLine();
       if (line == null) {
@@ -42,15 +57,16 @@ public class GeneData extends Data {
         final String[] parts = line.trim().split("\t");
         final String value = parts[columnNumber];
         if (!targetIndex.containsKey(value)) {
-          targetIndex.put(value, Integer.toString(targetIndex.size()));
+          targetIndex.put(value, targetIndex.size());
         }
         nameIndex.put(parts[0], targetIndex.get(value));
       }
     }
 
     final String[] names = getSampleNames();
+    mClassIndexes = new int[names.length];
     for (int i = 0; i < names.length; ++i) {
-      names[i] = nameIndex.getOrDefault(names[i], "0");
+      mClassIndexes[i] = nameIndex.getOrDefault(names[i], 0);
     }
     setSampleNames(names);
   }

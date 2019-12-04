@@ -95,9 +95,9 @@ public class UmapTest extends TestCase {
     //System.out.println(matrix);
     assertEquals(1797, matrix.rows());
     assertEquals(3, matrix.cols());
-//    final String[] names = data.getSampleNames();
+//    final int[] classIndexes = data.getClassIndexes();
 //    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + classIndexes[r]);
 //    }
   }
 
@@ -112,9 +112,9 @@ public class UmapTest extends TestCase {
 //    //System.out.println(matrix);
 //    assertEquals(10000, matrix.rows());
 //    assertEquals(2, matrix.cols());
-//    final String[] names = data.getSampleNames();
+//    final int[] classIndexes = data.getClassIndexes();
 //    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + names[r].split(":")[0]);
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + classIndexes[r]);
 //    }
 //  }
 
@@ -130,9 +130,9 @@ public class UmapTest extends TestCase {
 //    //System.out.println(matrix);
 //    assertEquals(5902, matrix.rows());
 //    assertEquals(2, matrix.shape()[1]);
-//    final String[] names = data.getSampleNames();
+//    final int[] classIndexes = data.getClassIndexes();
 //    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + names[r].split(":")[0]);
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + classIndexes[r]);
 //    }
 //  }
 

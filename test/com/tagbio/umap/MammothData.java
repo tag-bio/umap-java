@@ -11,4 +11,9 @@ public class MammothData extends Data {
   public MammothData() throws IOException {
     super("com/tagbio/umap/mammoth.tsv");
   }
+
+  @Override
+  String getName() {
+    return "mammoth";
+  }
 }
