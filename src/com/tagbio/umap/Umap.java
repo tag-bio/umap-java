@@ -540,7 +540,7 @@ public class Umap {
       alpha = initialAlpha * (1.0F - (float) n / (float) (nEpochs));
 
       if (verbose && n % (nEpochs / 10) == 0) {
-        Utils.message("Completed " + n + "/" + nEpochs + " epochs " + ec);
+        Utils.message("Completed " + n + "/" + nEpochs);
       }
     }
     return headEmbedding;
