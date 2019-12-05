@@ -116,7 +116,7 @@ public class UmapTest extends TestCase {
 //    umap.setInit("random");
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
-//    umap.setNumberNearestNeighbours(10);
+//    umap.setNumberNearestNeighbours(100);
 //    final Matrix matrix = umap.fitTransform(d);
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(10000, matrix.rows());
@@ -184,6 +184,8 @@ public class UmapTest extends TestCase {
   }
 
   public void testPrimes() {
+//    final int[] omega = new int[50000];
+//    final float[][] d = factorizations(omega, 5000);
     final int[] omega = new int[1000];
     final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
