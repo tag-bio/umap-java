@@ -184,10 +184,10 @@ public class UmapTest extends TestCase {
   }
 
   public void testPrimes() {
-    final int[] omega = new int[50000];
-    final float[][] d = factorizations(omega, 5000);
-//    final int[] omega = new int[1000];
-//    final float[][] d = factorizations(omega, 100);
+//    final int[] omega = new int[50000];
+//    final float[][] d = factorizations(omega, 5000);
+    final int[] omega = new int[1000];
+    final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
     final Umap umap = new Umap();
     umap.setInit("random");
