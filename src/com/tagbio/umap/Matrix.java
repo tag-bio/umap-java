@@ -80,7 +80,7 @@ abstract class Matrix {
     return sb.toString();
   }
 
-  private boolean isShapeSame(Matrix m) {
+  protected boolean isShapeSame(Matrix m) {
     return mRowCount == m.mRowCount && mColCount == m.mColCount;
   }
 
