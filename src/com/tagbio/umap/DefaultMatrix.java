@@ -35,14 +35,6 @@ class DefaultMatrix extends Matrix {
     this(new float[rows][cols]);
   }
 
-  /**
-   * Construct a new zero matrix of specified dimensions.
-   * @param shape shape specification (only first two values of shape are used)
-   */
-//  DefaultMatrix(final int[] shape) {
-//    this(shape[0], shape[1]);
-//  }
-
   @Override
   float get(final int row, final int col) {
     return mData[row][col];
