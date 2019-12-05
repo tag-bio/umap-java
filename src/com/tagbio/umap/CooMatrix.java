@@ -266,7 +266,7 @@ class CooMatrix extends Matrix {
   @Override
   Matrix add(final Matrix matrix) {
     if (!(matrix instanceof CooMatrix)) {
-      return super.subtract(matrix).toCoo();
+      return super.add(matrix).toCoo();
     }
     final CooMatrix m = (CooMatrix) matrix;
     if (!isShapeSame(m)) {
@@ -392,9 +392,48 @@ class CooMatrix extends Matrix {
   }
 
   @Override
-  Matrix hadamardMultiply(final Matrix m) {
-    // todo this could do this without using super
-    return super.hadamardMultiply(m).toCoo();
+  Matrix hadamardMultiply(final Matrix matrix) {
+    if (!(matrix instanceof CooMatrix)) {
+      return super.hadamardMultiply(matrix).toCoo();
+    }
+    final CooMatrix m = (CooMatrix) matrix;
+    if (!isShapeSame(m)) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final int maxNonZero = Math.max(mRow.length, m.mRow.length);
+    final int[] r = new int[maxNonZero];
+    final int[] c = new int[maxNonZero];
+    final float[] d = new float[maxNonZero];
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i < mData.length && j < m.mData.length) {
+      final int ri = mRow[i];
+      final int rj = m.mRow[j];
+      if (ri < rj) {
+        ++i;
+      } else if (rj < ri) {
+        ++j;
+      } else {
+        assert ri == rj;
+        final int ci = mCol[i];
+        final int cj = m.mCol[j];
+        if (ci < cj) {
+          ++i;
+        } else if (cj < ci) {
+          ++j;
+        } else {
+          assert ci == cj;
+          final float s = mData[i++] * m.mData[j++];
+          if (s != 0) {
+            r[k] = rj;
+            c[k] = cj;
+            d[k++] = s;
+          }
+        }
+      }
+    }
+    return createWithTruncate(d, r, c, rows(), cols(), k);
   }
 
   @Override
