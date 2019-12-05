@@ -523,7 +523,7 @@ class RandomProjectionTree {
     if (tree.isLeaf()) {
       return 0;
     } else {
-      return Math.max(tree.getHyperplane().mShape[1], Math.max(maxSparseHyperplaneSize(tree.getLeftChild()), maxSparseHyperplaneSize(tree.getRightChild())));
+      return Math.max(tree.getHyperplane().shape()[1], Math.max(maxSparseHyperplaneSize(tree.getLeftChild()), maxSparseHyperplaneSize(tree.getRightChild())));
     }
   }
 
@@ -535,13 +535,13 @@ class RandomProjectionTree {
       indices[leafNum] = tree.getIndices();
       return new int[]{nodeNum, ++leafNum};
     } else {
-      if (tree.getHyperplane().mShape.length > 1) {
+      if (tree.getHyperplane().shape().length > 1) {
         // sparse case
-        ((float[][][]) hyperplanes)[nodeNum] = new float[][] {tree.getHyperplane().mData}; // todo dubious
+        ((float[][][]) hyperplanes)[nodeNum] = new float[][] {tree.getHyperplane().data()}; // todo dubious
         //hyperplanes[nodeNum][:, :tree.getHyperplane().shape[1]] =tree.getHyperplane();
         throw new UnsupportedOperationException();
       } else {
-        ((float[][]) hyperplanes)[nodeNum] = tree.getHyperplane().mData;
+        ((float[][]) hyperplanes)[nodeNum] = tree.getHyperplane().data();
       }
       offsets[nodeNum] = tree.getOffset();
       children[nodeNum][0] = nodeNum + 1;
@@ -567,12 +567,12 @@ class RandomProjectionTree {
     final int numLeaves = tree.numLeaves();
 
     final Object hyperplanes;
-    if (tree.getHyperplane().mShape.length > 1) {
+    if (tree.getHyperplane().shape().length > 1) {
       // sparse case
       final int maxHyperplaneNnz = maxSparseHyperplaneSize(tree);
-      hyperplanes = new float[nNodes][tree.getHyperplane().mShape[0]][maxHyperplaneNnz];
+      hyperplanes = new float[nNodes][tree.getHyperplane().shape()[0]][maxHyperplaneNnz];
     } else {
-      hyperplanes = new float[nNodes][tree.getHyperplane().mShape[0]];
+      hyperplanes = new float[nNodes][tree.getHyperplane().shape()[0]];
     }
     final float[] offsets = new float[nNodes];
     final int[][] children = negOnes(nNodes, 2);
