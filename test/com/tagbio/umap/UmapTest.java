@@ -102,7 +102,7 @@ public class UmapTest extends TestCase {
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
     assertEquals(1797, matrix.rows());
     assertEquals(3, matrix.cols());
-//    final int[] classIndexes = data.getClassIndexes();
+//    final int[] classIndexes = data.getSampleClassIndex();
 //    for (int r = 0; r < matrix.rows(); ++r) {
 //      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + classIndexes[r]);
 //    }
@@ -116,14 +116,14 @@ public class UmapTest extends TestCase {
 //    umap.setInit("random");
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
-//    umap.setNumberNearestNeighbours(100);
+//    umap.setNumberNearestNeighbours(10);
 //    final Matrix matrix = umap.fitTransform(d);
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(10000, matrix.rows());
 //    assertEquals(2, matrix.cols());
-//    final int[] classIndexes = data.getClassIndexes();
+//    final int[] classIndexes = data.getSampleClassIndex();
 //    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + classIndexes[r]);
+//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + classIndexes[r]);
 //    }
 //  }
 
@@ -138,8 +138,8 @@ public class UmapTest extends TestCase {
 //    final Matrix matrix = umap.fitTransform(d);
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(5902, matrix.rows());
-//    assertEquals(2, matrix.shape()[1]);
-//    final int[] classIndexes = data.getClassIndexes();
+//    assertEquals(2, matrix.cols());
+//    final int[] classIndexes = data.getSampleClassIndex();
 //    for (int r = 0; r < matrix.rows(); ++r) {
 //      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + classIndexes[r]);
 //    }
@@ -184,7 +184,7 @@ public class UmapTest extends TestCase {
   }
 
   public void testPrimes() {
-    final int[] omega = new int[10000];
+    final int[] omega = new int[1000];
     final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
     final Umap umap = new Umap();

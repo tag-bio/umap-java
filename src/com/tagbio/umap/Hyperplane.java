@@ -11,19 +11,25 @@ package com.tagbio.umap;
  */
 class Hyperplane {
 
-  final int[] mInds;
-  final float[] mData;
-  final int[] mShape;
+  //private final int[] mInds;
+  private final float[] mData;
+  private final int[] mShape;
 
   Hyperplane(final int[] inds, final float[] data) {
-    mInds = inds;
+    //mInds = inds;
     mData = data;
-    mShape = new int[] {inds.length, 2};
+    mShape = inds == null ? new int[] {data.length} : new int[] {inds.length, 2};
   }
 
   Hyperplane(final float[] data) {
-    mInds = null;
-    mData = data;
-    mShape = new int[] {data.length};
+    this(null, data);
+  }
+
+  public float[] data() {
+    return mData;
+  }
+
+  public int[] shape() {
+    return mShape;
   }
 }
