@@ -192,8 +192,8 @@ class Heap {
   // Restore the heap property for a heap with an out of place element
   // at position ``elt``. This works with a heap pair where heap1 carries
   // the weights and heap2 holds the corresponding elements.
-  private static void siftdown(final float[] heap1, final int[] heap2, int elt) {
-    while (elt * 2 + 1 < heap1.length) {
+  private static void siftdown(final float[] heap1, final int[] heap2, final int length, int elt) {
+    while (elt * 2 + 1 < length) {
       final int leftChild = elt * 2 + 1;
       final int rightChild = leftChild + 1;
       int swap = elt;
@@ -202,7 +202,7 @@ class Heap {
         swap = leftChild;
       }
 
-      if (rightChild < heap1.length && heap1[swap] < heap1[rightChild]) {
+      if (rightChild < length && heap1[swap] < heap1[rightChild]) {
         swap = rightChild;
       }
 
@@ -233,20 +233,17 @@ class Heap {
        final float[] distHeap = mWeights[i];
 
        for (int j = 0; j < indHeap.length - 1; ++j) {
-         //indHeap[0], indHeap[ indHeap.shape[0] - j - 1 ] = ( indHeap[indHeap.shape[0] - j - 1],   indHeap[0]       );
          int s = indHeap[0];
          indHeap[0] = indHeap[indHeap.length - j - 1];
          indHeap[indHeap.length - j - 1] = s;
-         // distHeap[0], distHeap[   distHeap.shape[0] - j - 1  ] = (  distHeap[distHeap.shape[0] - j - 1], distHeap[0]     );
          final float t = distHeap[0];
          distHeap[0] = distHeap[distHeap.length - j - 1];
          distHeap[distHeap.length - j - 1] = t;
 
          //siftdown(distHeap[:distHeap.shape[0] - j - 1], indHeap[:indHeap.shape[0] - j - 1],  0    );
-         siftdown(MathUtils.subarray(distHeap, 0, distHeap.length - j - 1), MathUtils.subarray(indHeap, 0, indHeap.length - j - 1), 0);
+         siftdown(distHeap, indHeap, distHeap.length - j - 1, 0);
        }
      }
-
      return new Heap(mIndices, mWeights);
    }
 
