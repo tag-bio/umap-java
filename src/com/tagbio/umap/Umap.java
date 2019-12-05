@@ -248,8 +248,8 @@ public class Umap {
           Utils.message("NN descent for " + nIters + " iterations");
         }
         final Heap nn = metricNearestNeighborsDescent.descent(instances, nNeighbors, random, 60, true, nIters, leafArray, verbose);
-        knnIndices = nn.mIndices;
-        knnDists = nn.mWeights;
+        knnIndices = nn.indices();
+        knnDists = nn.weights();
       }
 
       if (MathUtils.containsNegative(knnIndices)) {
@@ -275,7 +275,8 @@ public class Umap {
    * The normalization factor derived from the metric tensor approximation.
    * @param rhos array of shape <code>(nSamples)</code>
    * The local connectivity adjustment.
-   * @param shape shape of the result
+   * @param rowCount number or rows in the result
+   * @param colCount number or columns in the result
    * @return sparse matrix of shape <code>(nSamples, nNeighbors)</code>
    */
   static CooMatrix computeMembershipStrengths(final int[][] knnIndices, final float[][] knnDists, final float[] sigmas, final float[] rhos, final int rowCount, final int colCount) {
@@ -1286,8 +1287,8 @@ public class Umap {
     } else {
       final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
       final Heap result = mSearch.initialized_nnd_search(mRawData, mSearchGraph.indptr(), mSearchGraph.indicies(), init, instances).deheapSort();
-      indices = MathUtils.subarray(result.mIndices, mRunNNeighbors);
-      dists = MathUtils.subarray(result.mWeights, mRunNNeighbors);
+      indices = MathUtils.subarray(result.indices(), mRunNNeighbors);
+      dists = MathUtils.subarray(result.weights(), mRunNNeighbors);
     }
 
     int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);

@@ -26,7 +26,7 @@ class NearestNeighborSearch {
     for (int i = 0; i < queryPoints.rows(); ++i) {
 
       final Set<Integer> tried = new TreeSet<>();
-      for (final int t : initialization.mIndices[i]) {
+      for (final int t : initialization.indices()[i]) {
         tried.add(t);
       }
 

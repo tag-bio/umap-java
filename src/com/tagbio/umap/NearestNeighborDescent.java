@@ -74,13 +74,13 @@ class NearestNeighborDescent {
       int c = 0;
       for (int i = 0; i < nVertices; ++i) {
         for (int j = 0; j < maxCandidates; ++j) {
-          final int p = candidateNeighbors.mIndices[i][j];
+          final int p = candidateNeighbors.index(i, j);
           if (p < 0 || random.nextFloat() < rho) {
             continue;
           }
           for (int k = 0; k < maxCandidates; ++k) {
-            final int q = candidateNeighbors.mIndices[i][k];
-            if (q < 0 || !candidateNeighbors.mIsNew[i][j] && !candidateNeighbors.mIsNew[i][k]) {
+            final int q = candidateNeighbors.index(i, k);
+            if (q < 0 || !candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k)) {
               continue;
             }
 

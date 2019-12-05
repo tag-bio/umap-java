@@ -116,7 +116,7 @@ public class UmapTest extends TestCase {
 //    umap.setInit("random");
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
-//    umap.setNumberNearestNeighbours(10);
+//    umap.setNumberNearestNeighbours(100);
 //    final Matrix matrix = umap.fitTransform(d);
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(10000, matrix.rows());

@@ -16,9 +16,9 @@ import java.util.Random;
  */
 class Heap {
 
-  int[][] mIndices;
-  float[][] mWeights;
-  boolean[][] mIsNew;
+  private int[][] mIndices;
+  private float[][] mWeights;
+  private boolean[][] mIsNew;
 
   private Heap(final int[][] indices, final float[][] weights) {
     mIndices = indices;
@@ -44,6 +44,22 @@ class Heap {
     for (final float[] a : mWeights) {
       Arrays.fill(a, Float.POSITIVE_INFINITY);
     }
+  }
+
+  int index(int row, int col) {
+    return mIndices[row][col];
+  }
+
+  int[][] indices() {
+    return mIndices;
+  }
+
+  float[][] weights() {
+    return mWeights;
+  }
+
+  boolean isNew(int row, int col) {
+    return mIsNew[row][col];
   }
 
   /**
