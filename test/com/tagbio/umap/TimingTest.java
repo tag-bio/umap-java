@@ -7,12 +7,12 @@ import java.io.PrintWriter;
 
 public class TimingTest {
 
-  private static void save(Matrix embedding, int[] indexes, String title) throws FileNotFoundException {
+  private static void save(float[][] embedding, int[] indexes, String title) throws FileNotFoundException {
     final File csvOutputFile = new File("/home/richard/tmp/umap/"+ title +".tsv");
     try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
-      for (int r = 0; r < embedding.rows(); r++) {
-        for (int c = 0; c < embedding.cols(); c++) {
-          pw.print(embedding.get(r, c));
+      for (int r = 0; r < embedding.length; r++) {
+        for (int c = 0; c < embedding[0].length; c++) {
+          pw.print(embedding[r][c]);
           pw.print("\t");
         }
         pw.println(indexes[r]);
@@ -36,7 +36,7 @@ public class TimingTest {
               umap.setMinDist(minDist);
               umap.setNumberNearestNeighbours(neighbours);
               long start = System.nanoTime();
-              final Matrix embedding = umap.fitTransform(data.getData());
+              final float[][] embedding = umap.fitTransform(data.getData());
               long end = System.nanoTime();
               final String title = String.format("%s_md%1.2f_nn%03d_s%d", data.getName(), minDist, neighbours, seed);
               save(embedding, data.getSampleClassIndex(), title);
