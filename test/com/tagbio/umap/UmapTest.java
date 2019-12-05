@@ -62,7 +62,9 @@ package com.tagbio.umap;
 //warnings.filterwarnings("ignore", category=UserWarning)
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import com.tagbio.umap.metric.PrecomputedMetric;
@@ -142,6 +144,59 @@ public class UmapTest extends TestCase {
 //      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + classIndexes[r]);
 //    }
 //  }
+
+  private int[] primes(final int m) {
+    final List<Integer> primes = new ArrayList<>();
+    final boolean[] state = new boolean[m];
+    Arrays.fill(state, true);
+    state[0] = false;
+    state[1] = false;
+    for (int k = 2; k < m; ++k) {
+      if (state[k]) {
+        primes.add(k);
+      }
+      for (int j = k; j < m; j += k) {
+        state[k] = false;
+      }
+    }
+    final int[] res = new int[primes.size()];
+    for (int k = 0; k < res.length; ++k) {
+      res[k] = primes.get(k);
+    }
+    return res;
+  }
+
+  private float[][] factorizations(final int[] omega, final int m) {
+    final int[] primes = primes(m);
+    final float[][] data = new float[omega.length][primes.length];
+    for (int k = 0; k < omega.length; ++k) {
+      int s = k;
+      for (int j = 0; j < primes.length && s > 1; ++j) {
+        final int p = primes[j];
+        while (s % p == 0) {
+          ++data[k][j];
+          ++omega[k];
+          s /= p;
+        }
+      }
+    }
+    return data;
+  }
+
+  public void testPrimes() {
+    final int[] omega = new int[10000];
+    final float[][] d = factorizations(omega, 100);
+    final long start = System.currentTimeMillis();
+    final Umap umap = new Umap();
+    umap.setInit("random");
+    umap.setVerbose(true);
+    umap.setNumberComponents(2);
+    final Matrix matrix = umap.fitTransform(d);
+    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
+    for (int r = 0; r < matrix.rows(); ++r) {
+      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + omega[r]);
+    }
+  }
 
   public void testFindABParams() throws IOException {
     final Data data = new IrisData();

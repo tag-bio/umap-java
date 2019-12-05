@@ -20,18 +20,6 @@ class Heap {
   float[][] mWeights;
   boolean[][] mIsNew;
 
-  private static void fill(final float[][] a, final float val) {
-    for (final float[] b : a) {
-      Arrays.fill(b, val);
-    }
-  }
-
-  private static void fill(final int[][] a, final int val) {
-    for (final int[] b : a) {
-      Arrays.fill(b, val);
-    }
-  }
-
   private Heap(final int[][] indices, final float[][] weights) {
     mIndices = indices;
     mWeights = weights;
@@ -50,8 +38,12 @@ class Heap {
     mIndices = new int[points][size];
     mWeights = new float[points][size];
     mIsNew = new boolean[points][size];
-    fill(mIndices, -1);
-    fill(mWeights, Float.POSITIVE_INFINITY);
+    for (final int[] a : mIndices) {
+      Arrays.fill(a, -1);
+    }
+    for (final float[] a : mWeights) {
+      Arrays.fill(a, Float.POSITIVE_INFINITY);
+    }
   }
 
   /**
@@ -236,29 +228,27 @@ class Heap {
    * @return sorted result
    */
    Heap deheapSort() {
-
      for (int i = 0; i < mIndices.length; ++i) {
+       final int[] indHeap = mIndices[i];
+       final float[] distHeap = mWeights[i];
 
-      int[] indHeap = mIndices[i];
-      float[] distHeap = mWeights[i];
+       for (int j = 0; j < indHeap.length - 1; ++j) {
+         //indHeap[0], indHeap[ indHeap.shape[0] - j - 1 ] = ( indHeap[indHeap.shape[0] - j - 1],   indHeap[0]       );
+         int s = indHeap[0];
+         indHeap[0] = indHeap[indHeap.length - j - 1];
+         indHeap[indHeap.length - j - 1] = s;
+         // distHeap[0], distHeap[   distHeap.shape[0] - j - 1  ] = (  distHeap[distHeap.shape[0] - j - 1], distHeap[0]     );
+         final float t = distHeap[0];
+         distHeap[0] = distHeap[distHeap.length - j - 1];
+         distHeap[distHeap.length - j - 1] = t;
 
-      for (int j = 0; j < indHeap.length - 1; ++j) {
-        //indHeap[0], indHeap[ indHeap.shape[0] - j - 1 ] = ( indHeap[indHeap.shape[0] - j - 1],   indHeap[0]       );
-        int s = indHeap[0];
-        indHeap[0] = indHeap[indHeap.length - j - 1];
-        indHeap[indHeap.length - j - 1] = s;
-        // distHeap[0], distHeap[   distHeap.shape[0] - j - 1  ] = (  distHeap[distHeap.shape[0] - j - 1], distHeap[0]     );
-        final float t = distHeap[0];
-        distHeap[0] = distHeap[distHeap.length - j - 1];
-        distHeap[distHeap.length - j - 1] = t;
+         //siftdown(distHeap[:distHeap.shape[0] - j - 1], indHeap[:indHeap.shape[0] - j - 1],  0    );
+         siftdown(MathUtils.subarray(distHeap, 0, distHeap.length - j - 1), MathUtils.subarray(indHeap, 0, indHeap.length - j - 1), 0);
+       }
+     }
 
-        //siftdown(distHeap[:distHeap.shape[0] - j - 1], indHeap[:indHeap.shape[0] - j - 1],  0    );
-        siftdown(MathUtils.subarray(distHeap, 0, distHeap.length - j - 1), MathUtils.subarray(indHeap, 0, indHeap.length - j - 1), 0);
-      }
-    }
-
-    return new Heap(mIndices, mWeights);
-  }
+     return new Heap(mIndices, mWeights);
+   }
 
   /**
    * Search the heap for the smallest element that is still flagged.
@@ -318,6 +308,5 @@ class Heap {
     }
     return candidateNeighbors;
   }
-
 
 }
