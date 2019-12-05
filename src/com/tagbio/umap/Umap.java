@@ -275,8 +275,11 @@ public class Umap {
    * The normalization factor derived from the metric tensor approximation.
    * @param rhos array of shape <code>(nSamples)</code>
    * The local connectivity adjustment.
+<<<<<<< HEAD
    * @param rowCount number or rows in the result
    * @param colCount number or columns in the result
+=======
+>>>>>>> f1828bf652085b6430b4fbd69ff4be8e95e441c0
    * @return sparse matrix of shape <code>(nSamples, nNeighbors)</code>
    */
   static CooMatrix computeMembershipStrengths(final int[][] knnIndices, final float[][] knnDists, final float[] sigmas, final float[] rhos, final int rowCount, final int colCount) {
@@ -792,7 +795,7 @@ public class Umap {
   private float mRunA;
   private float mRunB;
   private Matrix mRawData;
-  private CsrMatrix mSearchGraph;
+  private SearchGraph mSearchGraph = null;
   private int[][] _knn_indices;
   private float[][] _knn_dists;
   private List<FlatTree> mRpForest;
@@ -1155,25 +1158,6 @@ public class Umap {
 
       graph_ = fuzzySimplicialSet(instances, mNNeighbors, mRandom, mMetric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
-      // todo this starts as LilMatrix type but ends up as a CsrMatrix
-      // todo this java implementation is not sparse
-      // todo according to scipy an efficiency thing -- but bytes (yes because it is actually only storing True/False)
-      // todo overall seems to make (0,1)-matrix with a 1 at (x,y) whenever dists(x,y)!=0 or dists(y,x)!=0
-//        Matrix tmp_search_graph = //scipy.sparse.lil_matrix((X.rows(), X.rows()), dtype = np.int8      );
-//        tmp_search_graph.rows = this._knn_indices;
-//        tmp_search_graph.data = (this._knn_dists != 0).astype(np.int8);  // todo what does this do? -- tests each element to be 0, returns True or False for each element
-      //Utils.message("knn_indices: " + _knn_indices.length + " " + _knn_indices[0].length + " " + Arrays.toString(_knn_indices[0]));
-      //Utils.message("knn_dists: " + _knn_dists.length + " " + _knn_dists[0].length);
-      final float[][] tmp_data = new float[instances.rows()][instances.rows()];
-      for (int k = 0; k < _knn_indices.length; ++k) {
-        for (int j = 0; j < _knn_indices[k].length; ++j) {
-          final int i = _knn_indices[k][j];
-          tmp_data[k][i] = _knn_dists[k][j] != 0 ? 1.0F : 0.0F;
-        }
-      }
-      final Matrix tmp_matrix = new DefaultMatrix(tmp_data);
-      mSearchGraph = tmp_matrix.max(tmp_matrix.transpose()).toCsr();
-
       _distance_func = mMetric;
       if (mMetric == PrecomputedMetric.SINGLETON) {
         Utils.message("Using precomputed metric; transform will be unavailable for new data");
@@ -1244,8 +1228,8 @@ public class Umap {
     return fitTransform(instances, null);
   }
 
-  Matrix fitTransform(final float[][] instances) {
-    return fitTransform(new DefaultMatrix(instances), null);
+  float[][] fitTransform(final float[][] instances) {
+    return fitTransform(new DefaultMatrix(instances), null).toArray();
   }
 
   /**
@@ -1286,7 +1270,17 @@ public class Umap {
       dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
       final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
-      final Heap result = mSearch.initialized_nnd_search(mRawData, mSearchGraph.indptr(), mSearchGraph.indicies(), init, instances).deheapSort();
+      if (mSearchGraph == null) {
+        mSearchGraph = new SearchGraph(mRawData.rows());
+        for (int k = 0; k < _knn_indices.length; ++k) {
+          for (int j = 0; j < _knn_indices[k].length; ++j) {
+            if (_knn_dists[k][j] != 0) {
+              mSearchGraph.set(k, _knn_indices[k][j]);
+            }
+          }
+        }
+      }
+      final Heap result = mSearch.initializedNndSearch(mRawData, mSearchGraph, init, instances).deheapSort();
       indices = MathUtils.subarray(result.indices(), mRunNNeighbors);
       dists = MathUtils.subarray(result.weights(), mRunNNeighbors);
     }

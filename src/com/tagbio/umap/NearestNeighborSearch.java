@@ -21,7 +21,8 @@ class NearestNeighborSearch {
     mDist = dist;
   }
 
-  Heap initialized_nnd_search(final Matrix data, final int[] indptr, final int[] indices, Heap initialization, final Matrix queryPoints) {
+  Heap initializedNndSearch(final Matrix data, final SearchGraph searchGraph, Heap initialization, final Matrix queryPoints) {
+    //Heap initializedNndSearch(final Matrix data, final int[] indptr, final int[] indices, Heap initialization, final Matrix queryPoints) {
 
     for (int i = 0; i < queryPoints.rows(); ++i) {
 
@@ -38,15 +39,15 @@ class NearestNeighborSearch {
         if (vertex == -1) {
           break;
         }
-        final int[] candidates = new int[indptr[vertex + 1] - indptr[vertex]];
-        System.arraycopy(indices, indptr[vertex], candidates, 0, candidates.length);
-        for (int j = 0; j < candidates.length; ++j) {
-          if (candidates[j] == vertex || candidates[j] == -1 || tried.contains(candidates[j])) {
+        //final int[] candidates = new int[indptr[vertex + 1] - indptr[vertex]];
+        //System.arraycopy(indices, indptr[vertex], candidates, 0, candidates.length);
+        for (int candidate : searchGraph.row(vertex)) {
+          if (candidate == vertex || candidate == -1 || tried.contains(candidate)) { // todo is this -1 needed
             continue;
           }
-          float d = (float) mDist.distance(data.row(candidates[j]), queryPoints.row(i));
-          initialization.uncheckedHeapPush(i, d, candidates[j], true);
-          tried.add(candidates[j]);
+          float d = (float) mDist.distance(data.row(candidate), queryPoints.row(i));
+          initialization.uncheckedHeapPush(i, d, candidate, true);
+          tried.add(candidate);
         }
       }
     }
