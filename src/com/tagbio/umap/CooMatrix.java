@@ -20,8 +20,8 @@ class CooMatrix extends Matrix {
   private final int[] mCol;
   private final float[] mData;
 
-  CooMatrix(final float[] vals, final int[] rows, final int[] cols, final int[] lengths) {
-    super(lengths);
+  CooMatrix(final float[] vals, final int[] rows, final int[] cols, final int rowCount, final int colCount) {
+    super(rowCount, colCount);
     if (rows.length != cols.length || rows.length != vals.length) {
       throw new IllegalArgumentException();
     }
@@ -211,12 +211,12 @@ class CooMatrix extends Matrix {
 
   @Override
   Matrix copy() {
-    return new CooMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), Arrays.copyOf(shape(), shape().length));
+    return new CooMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), rows(), cols());
   }
 
   @Override
   Matrix transpose() {
-    return new CooMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mCol, mCol.length), Arrays.copyOf(mRow, mRow.length), new int[] {cols(), rows()});
+    return new CooMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mCol, mCol.length), Arrays.copyOf(mRow, mRow.length), cols(), rows());
   }
 
   @Override
@@ -243,7 +243,7 @@ class CooMatrix extends Matrix {
           d[j++] = mData[k];
         }
       }
-      return new CooMatrix(d, r, c, shape());
+      return new CooMatrix(d, r, c, rows(), cols());
     } else {
       return this;
     }
@@ -286,8 +286,8 @@ class CooMatrix extends Matrix {
       }
     }
     return j == mRow.length
-      ? new CooMatrix(d, r, c, shape())
-      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), shape());
+      ? new CooMatrix(d, r, c, rows(), cols())
+      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), rows(), cols());
   }
 
   @Override
@@ -317,8 +317,8 @@ class CooMatrix extends Matrix {
       }
     }
     return j == maxNonZero
-      ? new CooMatrix(d, r, c, shape())
-      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), shape());
+      ? new CooMatrix(d, r, c, rows(), cols())
+      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), rows(), cols());
   }
 
   @Override
@@ -353,7 +353,7 @@ class CooMatrix extends Matrix {
     for (int i = 0; i < newData.length; ++i) {
       newData[i] *= x;
     }
-    return new CooMatrix(newData, mRow, mCol, shape());
+    return new CooMatrix(newData, mRow, mCol, rows(), cols());
   }
 
   String sparseToString() {
@@ -383,7 +383,7 @@ class CooMatrix extends Matrix {
       }
       ++k;
     }
-    return new CooMatrix(d, Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), shape());
+    return new CooMatrix(d, Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), rows(), cols());
   }
 
 

@@ -20,8 +20,8 @@ class CsrMatrix extends Matrix {
   private int[] mIndices; // positions of actual data
   private float[] mData;
 
-  CsrMatrix(final float[] data, final int[] indptr, final int[] indices, final int[] lengths) {
-    super(lengths);
+  CsrMatrix(final float[] data, final int[] indptr, final int[] indices, final int rowCount, final int colCount) {
+    super(rowCount, colCount);
     mIndptr = indptr;
     mIndices = indices;
     mData = data;
@@ -58,7 +58,7 @@ class CsrMatrix extends Matrix {
 
   @Override
   Matrix copy() {
-    return new CsrMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mIndptr, mIndptr.length), Arrays.copyOf(mIndices, mIndices.length), Arrays.copyOf(shape(), shape().length));
+    return new CsrMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mIndptr, mIndptr.length), Arrays.copyOf(mIndices, mIndices.length), rows(), cols());
   }
 
   @Override
@@ -96,7 +96,7 @@ class CsrMatrix extends Matrix {
     for (int i = 0; i < newData.length; ++i) {
       newData[i] *= x;
     }
-    return new CsrMatrix(newData, mIndptr, mIndices, shape());
+    return new CsrMatrix(newData, mIndptr, mIndices, rows(), cols());
   }
 
   @Override
@@ -112,7 +112,7 @@ class CsrMatrix extends Matrix {
       }
     }
     // Note would be safer to cop mIndptr and mIndices arrays
-    return new CsrMatrix(d, mIndptr, mIndices, shape());
+    return new CsrMatrix(d, mIndptr, mIndices, rows(), cols());
   }
 
   boolean has_sorted_indices() {

@@ -246,7 +246,6 @@ class Utils {
   static float[][] submatrix(float[][] dmat, int[][] indicesCol, int nNeighbors) {
     // todo parallel possible here
     final int nSamplesTransform = dmat.length;
-    final int nSamplesFit = dmat[0].length;
     float[][] submat = new float[nSamplesTransform][nNeighbors];
     for (int i = 0; i < nSamplesTransform; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {
@@ -259,8 +258,7 @@ class Utils {
   static float[][] submatrix(Matrix dmat, int[][] indicesCol, int nNeighbors) {
     // todo parallel possible here
     // todo speed up for sparse input?
-    final int nSamplesTransform = dmat.shape()[0];
-    final int nSamplesFit = dmat.shape()[1];
+    final int nSamplesTransform = dmat.rows();
     float[][] submat = new float[nSamplesTransform][nNeighbors];
     for (int i = 0; i < nSamplesTransform; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {
@@ -273,7 +271,6 @@ class Utils {
   static int[][] submatrix(int[][] dmat, int[][] indicesCol, int nNeighbors) {
     // todo parallel possible here
     final int nSamplesTransform = dmat.length;
-    final int nSamplesFit = dmat[0].length;
     int[][] submat = new int[nSamplesTransform][nNeighbors];
     for (int i = 0; i < nSamplesTransform; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {

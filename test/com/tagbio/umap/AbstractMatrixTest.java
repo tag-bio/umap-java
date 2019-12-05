@@ -20,9 +20,9 @@ public abstract class AbstractMatrixTest extends TestCase {
 
   public void testShape() {
     final Matrix m = getMatrixA();
-    assertEquals(2, m.shape().length);
-    assertEquals(4, m.shape()[0]);
-    assertEquals(2, m.shape()[1]);
+    //assertEquals(2, m.shape().length);
+    assertEquals(4, m.rows());
+    assertEquals(2, m.cols());
     assertEquals(8, m.length());
   }
 
@@ -100,7 +100,8 @@ public abstract class AbstractMatrixTest extends TestCase {
   public void testHadamardMultiply() {
     final Matrix m = getMatrixA();
     final Matrix res = m.hadamardMultiply(m);
-    assertTrue(Arrays.equals(m.shape(), res.shape()));
+    assertEquals(m.rows(), res.rows());
+    assertEquals(m.cols(), res.cols());
     for (int r = 0; r < res.rows(); ++r) {
       for (int c = 0; c < res.cols(); ++c) {
         assertEquals(m.get(r, c) * m.get(r, c), res.get(r, c));

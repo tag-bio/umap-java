@@ -92,7 +92,8 @@ public class MathUtilsTest extends TestCase {
   public void testPromoteTranspose() {
     float[] data = {9, 2, 3, 5, 1, 12, 34, 26, 0, -43};
     final Matrix matrix = MathUtils.promoteTranspose(data);
-    assertTrue(Arrays.equals(new int[]{10, 1}, matrix.shape()));
+    assertEquals(10, matrix.rows());
+    assertEquals(1, matrix.cols());
     assertTrue(Arrays.equals(data, matrix.transpose().row(0)));
   }
 

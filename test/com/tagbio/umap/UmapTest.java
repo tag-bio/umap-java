@@ -1191,7 +1191,7 @@ public class UmapTest extends TestCase {
     final Matrix distances = new IrisData(true).getDistances();
     final float[][] sigmaRhos = Umap.smoothKnnDist(distances.toArray(), 2, 1);
     final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, false);
-    final CooMatrix m = Umap.computeMembershipStrengths(id.getIndices(), id.getDistances(), sigmaRhos[0], sigmaRhos[1], distances.shape());
+    final CooMatrix m = Umap.computeMembershipStrengths(id.getIndices(), id.getDistances(), sigmaRhos[0], sigmaRhos[1], distances.rows(), distances.cols());
     // Comparison values from Python
     // The next three lines are order dependent in the CooMatrix, so not ideal for comparison
 //    assertTrue(Arrays.equals(new int[]{0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9}, m.mRow));

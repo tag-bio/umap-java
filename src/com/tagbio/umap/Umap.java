@@ -278,7 +278,7 @@ public class Umap {
    * @param shape shape of the result
    * @return sparse matrix of shape <code>(nSamples, nNeighbors)</code>
    */
-  static CooMatrix computeMembershipStrengths(final int[][] knnIndices, final float[][] knnDists, final float[] sigmas, final float[] rhos, final int[] shape) {
+  static CooMatrix computeMembershipStrengths(final int[][] knnIndices, final float[][] knnDists, final float[] sigmas, final float[] rhos, final int rowCount, final int colCount) {
     final int nSamples = knnIndices.length;
     final int nNeighbors = knnIndices[0].length;
     final int size = nSamples * nNeighbors;
@@ -305,7 +305,7 @@ public class Umap {
         vals[i * nNeighbors + j] = val;
       }
     }
-    return new CooMatrix(vals, rows, cols, shape);
+    return new CooMatrix(vals, rows, cols, rowCount, colCount);
   }
 
   /**
@@ -363,7 +363,7 @@ public class Umap {
     final float[] sigmas = sigmasRhos[0];
     final float[] rhos = sigmasRhos[1];
 
-    final Matrix result = computeMembershipStrengths(knnIndices, knnDists, sigmas, rhos, new int[]{instances.rows(), instances.rows()}).eliminateZeros();
+    final Matrix result = computeMembershipStrengths(knnIndices, knnDists, sigmas, rhos, instances.rows(), instances.rows()).eliminateZeros();
     final Matrix prodMatrix = result.hadamardMultiplyTranspose();
 
     return result.addTranspose().subtract(prodMatrix).multiply(setOpMixRatio).add(prodMatrix.multiply(1.0F - setOpMixRatio)).eliminateZeros();
@@ -1294,7 +1294,7 @@ public class Umap {
     final float[][] sigmasRhos = smoothKnnDist(dists, mRunNNeighbors, adjustedLocalConnectivity);
     float[] sigmas = sigmasRhos[0];
     float[] rhos = sigmasRhos[1];
-    CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, new int[]{instances.rows(), mRawData.rows()});
+    CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, instances.rows(), mRawData.rows());
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
