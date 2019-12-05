@@ -20,6 +20,12 @@ class CooMatrix extends Matrix {
   private final int[] mCol;
   private final float[] mData;
 
+  private static CooMatrix createWithTruncate(final float[] d, final int[] r, final int[] c, final int rows, final int cols, final int len) {
+    return len == r.length
+      ? new CooMatrix(d, r, c, rows, cols)
+      : new CooMatrix(Arrays.copyOf(d, len), Arrays.copyOf(r, len), Arrays.copyOf(c, len), rows, cols);
+  }
+
   CooMatrix(final float[] vals, final int[] rows, final int[] cols, final int rowCount, final int colCount) {
     super(rowCount, colCount);
     if (rows.length != cols.length || rows.length != vals.length) {
@@ -249,16 +255,140 @@ class CooMatrix extends Matrix {
     }
   }
 
-  @Override
-  Matrix add(final Matrix m) {
-    // todo this could do this without using super
-    return super.add(m).toCoo();
+  private int getMaxNonZeroSize() {
+    final long mnz = Math.min(rows() * (long) cols(), 2L * mRow.length);
+    if (mnz > Integer.MAX_VALUE) {
+      throw new UnsupportedOperationException("Implementation limits exceeded");
+    }
+    return (int) mnz;
   }
 
   @Override
-  Matrix subtract(final Matrix m) {
-    // todo this could do this without using super
-    return super.subtract(m).toCoo();
+  Matrix add(final Matrix matrix) {
+    if (!(matrix instanceof CooMatrix)) {
+      return super.subtract(matrix).toCoo();
+    }
+    final CooMatrix m = (CooMatrix) matrix;
+    if (!isShapeSame(m)) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final int maxNonZero = getMaxNonZeroSize();
+    final int[] r = new int[maxNonZero];
+    final int[] c = new int[maxNonZero];
+    final float[] d = new float[maxNonZero];
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i < mData.length && j < m.mData.length) {
+      final int ri = mRow[i];
+      final int rj = m.mRow[j];
+      if (ri < rj) {
+        r[k] = ri;
+        c[k] = mCol[i];
+        d[k++] = mData[i++];
+      } else if (rj < ri) {
+        r[k] = rj;
+        c[k] = m.mCol[j];
+        d[k++] = -m.mData[j++];
+      } else {
+        assert ri == rj;
+        final int ci = mCol[i];
+        final int cj = m.mCol[j];
+        if (ci < cj) {
+          r[k] = ri;
+          c[k] = ci;
+          d[k++] = mData[i++];
+        } else if (cj < ci) {
+          r[k] = rj;
+          c[k] = cj;
+          d[k++] = m.mData[j++];
+        } else {
+          assert ci == cj;
+          final float s = mData[i++] + m.mData[j++];
+          if (s != 0) {
+            r[k] = rj;
+            c[k] = cj;
+            d[k++] = s;
+          }
+        }
+      }
+    }
+    // Handle any remaining entries
+    while (i < mData.length) {
+      r[k] = mRow[i];
+      c[k] = mCol[i];
+      d[k++] = mData[i++];
+    }
+    while (j < m.mData.length) {
+      r[k] = m.mRow[j];
+      c[k] = m.mCol[j];
+      d[k++] = m.mData[j++];
+    }
+    return createWithTruncate(d, r, c, rows(), cols(), k);
+  }
+
+  @Override
+  Matrix subtract(final Matrix matrix) {
+    if (!(matrix instanceof CooMatrix)) {
+      return super.subtract(matrix).toCoo();
+    }
+    final CooMatrix m = (CooMatrix) matrix;
+    if (!isShapeSame(m)) {
+      throw new IllegalArgumentException("Incompatible matrix sizes");
+    }
+    final int maxNonZero = getMaxNonZeroSize();
+    final int[] r = new int[maxNonZero];
+    final int[] c = new int[maxNonZero];
+    final float[] d = new float[maxNonZero];
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i < mData.length && j < m.mData.length) {
+      final int ri = mRow[i];
+      final int rj = m.mRow[j];
+      if (ri < rj) {
+        r[k] = ri;
+        c[k] = mCol[i];
+        d[k++] = mData[i++];
+      } else if (rj < ri) {
+        r[k] = rj;
+        c[k] = m.mCol[j];
+        d[k++] = -m.mData[j++];
+      } else {
+        assert ri == rj;
+        final int ci = mCol[i];
+        final int cj = m.mCol[j];
+        if (ci < cj) {
+          r[k] = ri;
+          c[k] = ci;
+          d[k++] = mData[i++];
+        } else if (cj < ci) {
+          r[k] = rj;
+          c[k] = cj;
+          d[k++] = -m.mData[j++];
+        } else {
+          assert ci == cj;
+          final float s = mData[i++] - m.mData[j++];
+          if (s != 0) {
+            r[k] = rj;
+            c[k] = cj;
+            d[k++] = s;
+          }
+        }
+      }
+    }
+    // Handle any remaining entries
+    while (i < mData.length) {
+      r[k] = mRow[i];
+      c[k] = mCol[i];
+      d[k++] = mData[i++];
+    }
+    while (j < m.mData.length) {
+      r[k] = m.mRow[j];
+      c[k] = m.mCol[j];
+      d[k++] = -m.mData[j++];
+    }
+    return createWithTruncate(d, r, c, rows(), cols(), k);
   }
 
   @Override
@@ -285,9 +415,7 @@ class CooMatrix extends Matrix {
         d[j++] = v;
       }
     }
-    return j == mRow.length
-      ? new CooMatrix(d, r, c, rows(), cols())
-      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), rows(), cols());
+    return createWithTruncate(d, r, c, rows(), cols(), j);
   }
 
   @Override
@@ -295,11 +423,7 @@ class CooMatrix extends Matrix {
     if (rows() != cols()) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
     }
-    final long mnz = Math.min(rows() * (long) cols(), 2L * mRow.length);
-    if (mnz > Integer.MAX_VALUE) {
-      throw new UnsupportedOperationException("Implementation limits exceeded");
-    }
-    final int maxNonZero = (int) mnz;
+    final int maxNonZero = getMaxNonZeroSize();
     final int[] r = new int[maxNonZero];
     final int[] c = new int[maxNonZero];
     final float[] d = new float[maxNonZero];
@@ -320,9 +444,7 @@ class CooMatrix extends Matrix {
         }
       }
     }
-    return j == maxNonZero
-      ? new CooMatrix(d, r, c, rows(), cols())
-      : new CooMatrix(Arrays.copyOf(d, j), Arrays.copyOf(r, j), Arrays.copyOf(c, j), rows(), cols());
+    return createWithTruncate(d, r, c, rows(), cols(), j);
   }
 
   @Override
