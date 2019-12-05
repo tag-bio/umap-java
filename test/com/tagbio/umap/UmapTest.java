@@ -83,11 +83,11 @@ public class UmapTest extends TestCase {
     umap.setVerbose(true);
     final float[][] d = data.getData();
     final long start = System.currentTimeMillis();
-    final Matrix matrix = umap.fitTransform(d);
+    final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
     //System.out.println(matrix);
-    assertEquals(150, matrix.rows());
-    assertEquals(2, matrix.cols());
+    assertEquals(150, matrix.length);
+    assertEquals(2, matrix[0].length);
   }
 
   public void testDigits() throws IOException {
@@ -98,10 +98,10 @@ public class UmapTest extends TestCase {
     umap.setNumberComponents(3);
     final float[][] d = data.getData();
     final long start = System.currentTimeMillis();
-    final Matrix matrix = umap.fitTransform(d);
+    final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
-    assertEquals(1797, matrix.rows());
-    assertEquals(3, matrix.cols());
+    assertEquals(1797, matrix.length);
+    assertEquals(3, matrix[0].length);
 //    final int[] classIndexes = data.getSampleClassIndex();
 //    for (int r = 0; r < matrix.rows(); ++r) {
 //      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + classIndexes[r]);
@@ -117,13 +117,13 @@ public class UmapTest extends TestCase {
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
 //    umap.setNumberNearestNeighbours(100);
-//    final Matrix matrix = umap.fitTransform(d);
+//    final float[][] matrix = umap.fitTransform(d);
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
-//    assertEquals(10000, matrix.rows());
-//    assertEquals(2, matrix.cols());
+//    assertEquals(10000, matrix.length);
+//    assertEquals(2, matrix[0].length);
 //    final int[] classIndexes = data.getSampleClassIndex();
-//    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + classIndexes[r]);
+//    for (int r = 0; r < matrix.length; ++r) {
+//      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + classIndexes[r]);
 //    }
 //  }
 
@@ -135,13 +135,13 @@ public class UmapTest extends TestCase {
 //    umap.setNumberComponents(2);
 //    final float[][] d = data.getData();
 //    final long start = System.currentTimeMillis();
-//    final Matrix matrix = umap.fitTransform(d);
+//    final float[][] matrix = umap.fitTransform(d);
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
-//    assertEquals(5902, matrix.rows());
-//    assertEquals(2, matrix.cols());
+//    assertEquals(5902, matrix.length);
+//    assertEquals(2, matrix[0].length);
 //    final int[] classIndexes = data.getSampleClassIndex();
-//    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + classIndexes[r]);
+//    for (int r = 0; r < matrix.length; ++r) {
+//      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + classIndexes[r]);
 //    }
 //  }
 
@@ -184,19 +184,19 @@ public class UmapTest extends TestCase {
   }
 
   public void testPrimes() {
-//    final int[] omega = new int[50000];
-//    final float[][] d = factorizations(omega, 5000);
-    final int[] omega = new int[1000];
-    final float[][] d = factorizations(omega, 100);
+    final int[] omega = new int[50000];
+    final float[][] d = factorizations(omega, 5000);
+//    final int[] omega = new int[1000];
+//    final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
     final Umap umap = new Umap();
     umap.setInit("random");
     umap.setVerbose(true);
     umap.setNumberComponents(2);
-    final Matrix matrix = umap.fitTransform(d);
+    final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
-    for (int r = 0; r < matrix.rows(); ++r) {
-      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + omega[r]);
+    for (int r = 0; r < matrix.length; ++r) {
+      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + omega[r]);
     }
   }
 

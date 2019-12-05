@@ -1223,8 +1223,8 @@ public class Umap {
     return fitTransform(instances, null);
   }
 
-  Matrix fitTransform(final float[][] instances) {
-    return fitTransform(new DefaultMatrix(instances), null);
+  float[][] fitTransform(final float[][] instances) {
+    return fitTransform(new DefaultMatrix(instances), null).toArray();
   }
 
   /**
