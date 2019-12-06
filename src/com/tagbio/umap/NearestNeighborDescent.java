@@ -80,7 +80,7 @@ class NearestNeighborDescent {
           }
           for (int k = 0; k < maxCandidates; ++k) {
             final int q = candidateNeighbors.index(i, k);
-            if (q < 0 || !candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k)) {
+            if (q < 0 || (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k))) {
               continue;
             }
 

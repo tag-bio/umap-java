@@ -83,16 +83,11 @@ class Utils {
   }
 
 
-//     """Compute the (standard l2) norm of a vector.
-
-//     Parameters
-//     ----------
-//     vec: array of shape (dim,)
-
-//     Returns
-//     -------
-//     The l2 norm of vec.
-//     """
+  /**
+   * L2 norm of a vector.
+   * @param vec vector
+   * @return L2 norm
+   */
   static float norm(final float[] vec) {
     float result = 0;
     for (final float v : vec) {
@@ -102,7 +97,7 @@ class Utils {
   }
 
   /**
-   * Generate n_samples many integers from 0 to pool_size such that no
+   * Generate <code>nSamples</code> many integers from 0 to <code>poolSize</code> such that no
    * integer is selected twice. The duplication constraint is achieved via
    * rejection sampling.
    * @param nSamples The number of random samples to select from the pool
@@ -116,21 +111,18 @@ class Utils {
     }
     final int[] result = new int[nSamples];
     for (int i = 0; i < result.length; ++i) {
-      boolean rejectSample = true;
-      int j = -1;
-      while (rejectSample) {
+      int j;
+      boolean ok;
+      do {
         j = random.nextInt(poolSize);
-        boolean ok = true;
+        ok = true;
         for (int k = 0; k < i; ++k) {
           if (j == result[k]) {
             ok = false;
             break;
           }
         }
-        if (ok) {
-          rejectSample = false;
-        }
-      }
+      } while (!ok);
       result[i] = j;
     }
     return result;

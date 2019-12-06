@@ -491,8 +491,6 @@ class CooMatrix extends Matrix {
     if (!(m instanceof CooMatrix)) {
       return super.multiply(m).toCoo();
     }
-    // We are multiplying two CooMatrices together
-    // todo can this be made faster?
     final CooMatrix a = (CooMatrix) m;
     if (cols() != m.rows()) {
       throw new IllegalArgumentException("Incompatible matrix sizes");
@@ -514,9 +512,9 @@ class CooMatrix extends Matrix {
 
   @Override
   Matrix multiply(final float x) {
-    final float[] newData = Arrays.copyOf(mData, mData.length);
+    final float[] newData = new float[mData.length];
     for (int i = 0; i < newData.length; ++i) {
-      newData[i] *= x;
+      newData[i] = mData[i] * x;
     }
     return new CooMatrix(newData, mRow, mCol, rows(), cols());
   }

@@ -1092,6 +1092,10 @@ public class Umap {
    */
   private void fit(Matrix instances, float[] y) {
 
+    if (mVerbose) {
+      Utils.message("Starting fitting for " + instances.rows() + " instances with " + instances.cols() + " attributes");
+    }
+
     mRawData = instances;
 
     // Handle all the optional arguments, setting default
