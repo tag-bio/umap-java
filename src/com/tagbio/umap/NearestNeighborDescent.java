@@ -33,6 +33,7 @@ class NearestNeighborDescent {
   }
 
   Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
+    UmapProgress.incTotal(nIters);
 
     final int nVertices = data.rows();
     final Heap currentGraph = new Heap(data.rows(), nNeighbors);
@@ -96,8 +97,10 @@ class NearestNeighborDescent {
       }
 
       if (c <= delta * nNeighbors * data.rows()) {
+        UmapProgress.update(nIters - n);
         break;
       }
+      UmapProgress.update();
     }
 
     return currentGraph.deheapSort();
