@@ -444,7 +444,7 @@ public class Umap {
    * @param verbose Whether to report information on the current progress of the algorithm.
    * @return array of shape <code>(nSamples, nComponents)</code> The optimized embedding.
    */
-  private static Matrix optimizeLayout(final Matrix headEmbedding, final Matrix tailEmbedding, final int[] head, final int[] tail, final int nEpochs, final int nVertices, final float[] epochsPerSample, final float a, final float b, final Random random, final float gamma, final float initialAlpha, final float negativeSampleRate, final boolean verbose) {
+  private Matrix optimizeLayout(final Matrix headEmbedding, final Matrix tailEmbedding, final int[] head, final int[] tail, final int nEpochs, final int nVertices, final float[] epochsPerSample, final float a, final float b, final Random random, final float gamma, final float initialAlpha, final float negativeSampleRate, final boolean verbose) {
 
     assert headEmbedding instanceof DefaultMatrix; // because this routine directly modifies contents of rows in the matrix
 
@@ -514,6 +514,7 @@ public class Umap {
       if (verbose && n % (nEpochs / 10) == 0) {
         Utils.message("Completed " + n + "/" + nEpochs);
       }
+      UmapProgress.update();
     }
     return headEmbedding;
   }
@@ -553,7 +554,7 @@ public class Umap {
    * The optimized of <code>graph</code> into an <code>nComponents</code> dimensional
    * Euclidean space.
    */
-  private static Matrix simplicialSetEmbedding(Matrix data, Matrix graphIn, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, Random random, Metric metric, boolean verbose) {
+  private Matrix simplicialSetEmbedding(Matrix data, Matrix graphIn, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, Random random, Metric metric, boolean verbose) {
 
     CooMatrix graph = graphIn.toCoo();
     int nVertices = graph.cols();
@@ -632,75 +633,6 @@ public class Umap {
     return new DefaultMatrix(result);
   }
 
-//  private static double curve(final float x, final float a, final float b) {
-//    return 1.0 / (1.0 + a * Math.pow(x, 2 * b));
-//
-
-  private static float[][] mSpreadDistAs = {
-    {},
-    {},
-    {},
-    {},
-    {},
-    {0.00000F, 5.45377F, 5.06931F, 4.63694F, 4.17619F, 3.70629F, 3.24352F, 2.80060F, 2.38675F, 2.00802F, 1.66772F, 1.36696F},
-    {0.00000F, 4.00306F, 3.65757F, 3.30358F, 2.95032F, 2.60637F, 2.27854F, 1.97183F, 1.68955F, 1.43356F, 1.20450F, 1.00209F, 0.82529F, 0.67254F},
-    {0.00000F, 3.10329F, 2.81124F, 2.52444F, 2.24750F, 1.98435F, 1.73792F, 1.51015F, 1.30214F, 1.11425F, 0.94625F, 0.79748F, 0.66690F, 0.55330F, 0.45530F, 0.37144F},
-    {0.00000F, 2.49880F, 2.25458F, 2.02012F, 1.79779F, 1.58943F, 1.39624F, 1.21887F, 1.05750F, 0.91192F, 0.78165F, 0.66593F, 0.56388F, 0.47451F, 0.39679F, 0.32963F, 0.27198F, 0.22280F},
-    {0.00000F, 2.06902F, 1.86409F, 1.66991F, 1.48771F, 1.31831F, 1.16212F, 1.01922F, 0.88942F, 0.77230F, 0.66732F, 0.57375F, 0.49090F, 0.41788F, 0.35395F, 0.29823F, 0.24996F, 0.20833F, 0.17265F, 0.14221F},
-    {0.00000F, 1.75022F, 1.57694F, 1.41400F, 1.26206F, 1.12144F, 0.99218F, 0.87410F, 0.76687F, 0.67003F, 0.58303F, 0.50526F, 0.43607F, 0.37481F, 0.32082F, 0.27345F, 0.23206F, 0.19607F, 0.16490F, 0.13804F, 0.11498F, 0.09527F},
-    {0.00000F, 1.50587F, 1.35804F, 1.21967F, 1.09109F, 0.97240F, 0.86343F, 0.76395F, 0.67354F, 0.59177F, 0.51814F, 0.45211F, 0.39314F, 0.34068F, 0.29420F, 0.25316F, 0.21708F, 0.18544F, 0.15784F, 0.13382F, 0.11302F, 0.09505F, 0.07960F, 0.06635F},
-    {0.00000F, 1.31360F, 1.18637F, 1.06759F, 0.95743F, 0.85584F, 0.76262F, 0.67747F, 0.60002F, 0.52985F, 0.46650F, 0.40952F, 0.35843F, 0.31280F, 0.27218F, 0.23613F, 0.20424F, 0.17611F, 0.15137F, 0.12970F, 0.11076F, 0.09428F, 0.07997F, 0.06758F, 0.05690F, 0.04771F},
-    {0.00000F, 1.15902F, 1.04861F, 0.94567F, 0.85027F, 0.76232F, 0.68159F, 0.60780F, 0.54058F, 0.47955F, 0.42432F, 0.37449F, 0.32967F, 0.28950F, 0.25358F, 0.22154F, 0.19304F, 0.16777F, 0.14542F, 0.12571F, 0.10837F, 0.09316F, 0.07985F, 0.06824F, 0.05813F, 0.04936F, 0.04178F, 0.03524F},
-    {0.00000F, 1.03253F, 0.93595F, 0.84598F, 0.76261F, 0.68572F, 0.61510F, 0.55045F, 0.49148F, 0.43780F, 0.38915F, 0.34512F, 0.30540F, 0.26965F, 0.23756F, 0.20883F, 0.18315F, 0.16028F, 0.13992F, 0.12189F, 0.10591F, 0.09182F, 0.07940F, 0.06848F, 0.05892F, 0.05055F, 0.04325F, 0.03690F, 0.03139F, 0.02662F},
-    {0.00000F, 0.92742F, 0.84237F, 0.76312F, 0.68968F, 0.62189F, 0.55955F, 0.50242F, 0.45021F, 0.40260F, 0.35933F, 0.32008F, 0.28455F, 0.25248F, 0.22359F, 0.19762F, 0.17432F, 0.15347F, 0.13483F, 0.11822F, 0.10345F, 0.09033F, 0.07870F, 0.06843F, 0.05936F, 0.05137F, 0.04437F, 0.03821F, 0.03283F, 0.02814F, 0.02405F, 0.02050F},
-    {0.00000F, 0.83896F, 0.76357F, 0.69330F, 0.62813F, 0.56793F, 0.51250F, 0.46161F, 0.41501F, 0.37246F, 0.33368F, 0.29843F, 0.26643F, 0.23745F, 0.21126F, 0.18763F, 0.16635F, 0.14723F, 0.13008F, 0.11472F, 0.10100F, 0.08875F, 0.07784F, 0.06815F, 0.05954F, 0.05192F, 0.04518F, 0.03924F, 0.03401F, 0.02941F, 0.02537F, 0.02184F, 0.01875F, 0.01606F},
-  };
-  private static float[][] mSpreadDistBs = {
-    {},
-    {},
-    {},
-    {},
-    {},
-    {0.00000F, 0.89506F, 1.00301F, 1.11225F, 1.22256F, 1.33417F, 1.44746F, 1.56295F, 1.68123F, 1.80304F, 1.92924F, 2.06090F},
-    {0.00000F, 0.87728F, 0.96682F, 1.05750F, 1.14889F, 1.24105F, 1.33417F, 1.42845F, 1.52416F, 1.62170F, 1.72144F, 1.82373F, 1.92923F, 2.03858F},
-    {0.00000F, 0.86464F, 0.94109F, 1.01853F, 1.09656F, 1.17513F, 1.25429F, 1.33417F, 1.41491F, 1.49668F, 1.57967F, 1.66414F, 1.75035F, 1.83859F, 1.92923F, 2.02267F},
-    {0.00000F, 0.85520F, 0.92186F, 0.98941F, 1.05750F, 1.12598F, 1.19486F, 1.26423F, 1.33417F, 1.40477F, 1.47610F, 1.54836F, 1.62170F, 1.69629F, 1.77222F, 1.84979F, 1.92924F, 2.01085F},
-    {0.00000F, 0.84788F, 0.90695F, 0.96682F, 1.02719F, 1.08787F, 1.14889F, 1.21024F, 1.27197F, 1.33417F, 1.39686F, 1.46019F, 1.52416F, 1.58901F, 1.65466F, 1.72144F, 1.78930F, 1.85855F, 1.92924F, 2.00165F},
-    {0.00000F, 0.84206F, 0.89506F, 0.94882F, 1.00301F, 1.05750F, 1.11225F, 1.16727F, 1.22256F, 1.27818F, 1.33417F, 1.39057F, 1.44746F, 1.50490F, 1.56295F, 1.62170F, 1.68123F, 1.74165F, 1.80304F, 1.86553F, 1.92924F, 1.99431F},
-    {0.00000F, 0.83729F, 0.88535F, 0.93409F, 0.98326F, 1.03268F, 1.08235F, 1.13221F, 1.18231F, 1.23264F, 1.28324F, 1.33417F, 1.38541F, 1.43709F, 1.48916F, 1.54179F, 1.59489F, 1.64870F, 1.70309F, 1.75832F, 1.81431F, 1.87129F, 1.92923F, 1.98835F},
-    {0.00000F, 0.83333F, 0.87728F, 0.92186F, 0.96682F, 1.01206F, 1.05750F, 1.10311F, 1.14889F, 1.19486F, 1.24105F, 1.28747F, 1.33417F, 1.38116F, 1.42845F, 1.47610F, 1.52416F, 1.57268F, 1.62170F, 1.67128F, 1.72144F, 1.77222F, 1.82373F, 1.87604F, 1.92923F, 1.98338F},
-    {0.00000F, 0.82999F, 0.87046F, 0.91153F, 0.95296F, 0.99464F, 1.03652F, 1.07852F, 1.12068F, 1.16301F, 1.20550F, 1.24819F, 1.29109F, 1.33417F, 1.37750F, 1.42113F, 1.46506F, 1.50934F, 1.55401F, 1.59903F, 1.64450F, 1.69046F, 1.73696F, 1.78405F, 1.83178F, 1.88014F, 1.92924F, 1.97915F},
-    {0.00000F, 0.82713F, 0.86464F, 0.90269F, 0.94109F, 0.97973F, 1.01853F, 1.05750F, 1.09656F, 1.13581F, 1.17513F, 1.21464F, 1.25429F, 1.29413F, 1.33417F, 1.37440F, 1.41491F, 1.45562F, 1.49668F, 1.53798F, 1.57967F, 1.62170F, 1.66414F, 1.70703F, 1.75035F, 1.79425F, 1.83859F, 1.88363F, 1.92924F, 1.97558F},
-    {0.00000F, 0.82465F, 0.85960F, 0.89506F, 0.93083F, 0.96682F, 1.00301F, 1.03929F, 1.07570F, 1.11225F, 1.14889F, 1.18565F, 1.22256F, 1.25960F, 1.29678F, 1.33417F, 1.37172F, 1.40946F, 1.44746F, 1.48570F, 1.52416F, 1.56295F, 1.60206F, 1.64145F, 1.68124F, 1.72144F, 1.76198F, 1.80304F, 1.84462F, 1.88662F, 1.92923F, 1.97251F},
-    {0.00000F, 0.82249F, 0.85520F, 0.88837F, 0.92186F, 0.95555F, 0.98941F, 1.02340F, 1.05750F, 1.09170F, 1.12598F, 1.16036F, 1.19486F, 1.22948F, 1.26423F, 1.29912F, 1.33417F, 1.36938F, 1.40477F, 1.44033F, 1.47610F, 1.51211F, 1.54836F, 1.58489F, 1.62170F, 1.65883F, 1.69629F, 1.73407F, 1.77222F, 1.81079F, 1.84979F, 1.88926F, 1.92923F, 1.96975F},
-  };
-
-  private static float findValue(float[][] spreadDist, int spreadIndex, int distIndex, float spreadDelta, float distDelta) {
-    float start = spreadDist[spreadIndex][distIndex] + distDelta * (spreadDist[spreadIndex][distIndex+1] - spreadDist[spreadIndex][distIndex]);
-    float end = spreadDist[spreadIndex+1][distIndex] + distDelta * (spreadDist[spreadIndex+1][distIndex+1] - spreadDist[spreadIndex+1][distIndex]);
-    float val = start + spreadDelta * (end - start);
-    //System.out.println(spreadDelta + " : " + distDelta + " : " + start + " : " + end + " : " + val);
-    return val;
-  }
-
-  // look up table base curve fitting
-  // averages values for locations between known spread/minDist pairs
-  private static float[] curveFit(final float spread, final float minDist) {
-    if (spread < 0.5F || spread > 1.5F) {
-      throw new IllegalArgumentException("Spread must be in the range 0.5 < spread <= 1.5, got : " + spread);
-    }
-    if (minDist < 0 || minDist > spread) {
-      throw new IllegalArgumentException("Expecting 0 < minDist < " + spread + ", got : " + minDist);
-    }
-    int spreadIndex = (int) (10 * spread);
-    float spreadDelta = (10 * spread - spreadIndex) / 10.0F;
-    int distIndex = (int) (20 * minDist);
-    float distDelta = (20 * minDist - distIndex) / 20.0F;
-    float a = findValue(mSpreadDistAs, spreadIndex, distIndex, spreadDelta, distDelta);
-    float b = findValue(mSpreadDistBs, spreadIndex, distIndex, spreadDelta, distDelta);
-    return new float[] {a, b};
-  }
-
   // Fit a, b params for the differentiable curve used in lower
   // dimensional fuzzy simplicial complex construction. We want the
   // smooth curve (from a pre-defined family with simple gradient) that
@@ -723,14 +655,8 @@ public class Umap {
     final float[] params = Curve.curve_fit(xv, yv); // todo curve_fit in scipy
     return new float[]{params[0], params[1]};
     */
-    return curveFit(spread, minDist);
-/*)
-    if (spread == 1.0F && minDist == 0.1F) {
-      return new float[]{1.57694346F, 0.89506088F};
-    }
-    throw new UnsupportedOperationException();
 
- */
+    return Curve.curve_fit(spread, minDist);
   }
 
   private boolean mAngularRpForest = false;
@@ -1090,6 +1016,7 @@ public class Umap {
    * The relevant metric is <code>mTargetMetric</code>.
    */
   private void fit(Matrix instances, float[] y) {
+    UmapProgress.reset(5);
 
     if (mVerbose) {
       Utils.message("Starting fitting for " + instances.rows() + " instances with " + instances.cols() + " attributes");
@@ -1118,7 +1045,9 @@ public class Umap {
 
     validateParameters();
 
-    // Error check nNeighbors based on data size
+    UmapProgress.update();
+
+    // Error check n_neighbors based on data size
     if (instances.rows() <= mNNeighbors) {
       if (instances.rows() == 1) {
         mEmbedding = new DefaultMatrix(new float[1][mNComponents]);
@@ -1144,6 +1073,7 @@ public class Umap {
     if (mVerbose) {
       Utils.message("Construct fuzzy simplicial set: " + instances.rows());
     }
+    UmapProgress.update();
 
     // Handle small cases efficiently by computing all distances
     if (instances.rows() < SMALL_PROBLEM_THRESHOLD) {
@@ -1169,7 +1099,7 @@ public class Umap {
         mSearch = new NearestNeighborSearch(mDistanceFunc);
       }
     }
-
+    UmapProgress.update();
     if (y != null) {
       if (instances.length() != y.length) {
         throw new IllegalArgumentException("Length of x =  " + instances.length() + ", length of y = " + y.length + ", while it must be equal.");
@@ -1193,6 +1123,8 @@ public class Umap {
         mGraph = resetLocalConnectivity(mGraph);
       }
     }
+    UmapProgress.update();
+    UmapProgress.incTotal(mNEpochs == null ? (mGraph.rows() <= 10000 ? 500 : 200) : mNEpochs);
 
     final int nEpochs = mNEpochs == null ? 0 : mNEpochs;
 
@@ -1205,6 +1137,8 @@ public class Umap {
     if (mVerbose) {
       Utils.message("Finished embedding");
     }
+    UmapProgress.finished();
+    //this._input_hash = joblib.hash(this._raw_data);
   }
 
   /**

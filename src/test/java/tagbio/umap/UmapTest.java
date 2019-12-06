@@ -103,8 +103,8 @@ public class UmapTest extends TestCase {
     assertEquals(1797, matrix.length);
     assertEquals(3, matrix[0].length);
 //    final int[] classIndexes = data.getSampleClassIndex();
-//    for (int r = 0; r < matrix.rows(); ++r) {
-//      System.out.println(matrix.get(r, 0) + " " + matrix.get(r, 1) + " " + matrix.get(r, 2) + " " + classIndexes[r]);
+//    for (int r = 0; r < matrix.length; ++r) {
+//      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + matrix[r][2] + " " + classIndexes[r]);
 //    }
   }
 
