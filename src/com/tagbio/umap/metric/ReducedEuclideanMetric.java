@@ -20,7 +20,7 @@ public class ReducedEuclideanMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     //  D(x, y) = \sum_i (x_i - y_i)^2
     float result = 0;
     for (int i = 0; i < x.length; ++i) {

@@ -576,7 +576,7 @@ class RandomProjectionTree {
     }
     final float[] offsets = new float[nNodes];
     final int[][] children = negOnes(nNodes, 2);
-    final int[][] indices = negOnes(numLeaves, leafSize);
+    final int[][] indices = new int[numLeaves][];
     recursiveFlatten(tree, hyperplanes, offsets, children, indices, 0, 0);
     return new FlatTree(hyperplanes, offsets, children, indices);
   }
@@ -650,7 +650,7 @@ class RandomProjectionTree {
       }
       return leafArray.toArray(new int[0][]);
     } else {
-      return new int[][] {{-1}};
+      return new int[0][];
     }
   }
 }

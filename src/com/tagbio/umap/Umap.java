@@ -497,7 +497,7 @@ public class Umap {
           final float[] current = headEmbedding.row(j);
           float[] other = tailEmbedding.row(k);
 
-          double distSquared = ReducedEuclideanMetric.SINGLETON.distance(current, other);
+          float distSquared = ReducedEuclideanMetric.SINGLETON.distance(current, other);
 
           float gradCoeff;
           if (distSquared > 0.0) {

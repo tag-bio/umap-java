@@ -27,7 +27,7 @@ public class RussellRaoMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     int numTrueTrue = 0;
     for (int i = 0; i < x.length; ++i) {
       final boolean xTrue = x[i] != 0;
@@ -37,7 +37,7 @@ public class RussellRaoMetric extends Metric {
       }
     }
     if (numTrueTrue == countNonZero(x) && numTrueTrue == countNonZero(y)) {
-      return 0.0;
+      return 0;
     } else {
       return (x.length - numTrueTrue) / (float) x.length;
     }

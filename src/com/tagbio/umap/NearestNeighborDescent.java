@@ -36,27 +36,23 @@ class NearestNeighborDescent {
 
     final int nVertices = data.rows();
     final Heap currentGraph = new Heap(data.rows(), nNeighbors);
+    // todo parallel -- note use of random, care needed to maintain determinism -- i.e. how to split generator, sync on .push in heap
     for (int i = 0; i < data.rows(); ++i) {
       final float[] iRow = data.row(i);
       for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
-        final float d = (float) mMetric.distance(iRow, data.row(index));
+        final float d = mMetric.distance(iRow, data.row(index));
         currentGraph.push(i, d, index, true);
         currentGraph.push(index, d, i, true);
       }
     }
 
     if (rpTreeInit) {
+      // todo parallel
       for (final int[] leaf : leafArray) {
         for (int i = 0; i < leaf.length; ++i) {
-          if (leaf[i] < 0) {
-            break;
-          }
           final float[] iRow = data.row(leaf[i]);
           for (int j = i + 1; j < leaf.length; ++j) {
-            if (leaf[j] < 0) {
-              break;
-            }
-            final float d = (float) mMetric.distance(iRow, data.row(leaf[j]));
+            final float d = mMetric.distance(iRow, data.row(leaf[j]));
             currentGraph.push(leaf[i], d, leaf[j], true);
             currentGraph.push(leaf[j], d, leaf[i], true);
           }
@@ -71,6 +67,7 @@ class NearestNeighborDescent {
 
       final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
 
+      // todo are this < 0 conditions needed?  Seems to be holdover from Python
       int c = 0;
       for (int i = 0; i < nVertices; ++i) {
         for (int j = 0; j < maxCandidates; ++j) {
@@ -84,7 +81,7 @@ class NearestNeighborDescent {
               continue;
             }
 
-            final float d = (float) mMetric.distance(data.row(p), data.row(q));
+            final float d = mMetric.distance(data.row(p), data.row(q));
             if (currentGraph.push(p, d, q, true)) {
               ++c;
             }

@@ -17,7 +17,7 @@ public class YuleMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     int numTrueTrue = 0;
     int numTrueFalse = 0;
     int numFalseTrue = 0;
@@ -36,6 +36,6 @@ public class YuleMetric extends Metric {
     }
     int numFalseFalse = x.length - numTrueTrue - numTrueFalse - numFalseTrue;
 
-    return numTrueFalse == 0 || numFalseTrue == 0 ? 0.0 : (2.0 * numTrueFalse * numFalseTrue) / (float) (numTrueTrue * numFalseFalse + numTrueFalse * numFalseTrue);
+    return numTrueFalse == 0 || numFalseTrue == 0 ? 0 : (2 * numTrueFalse * numFalseTrue) / (float) (numTrueTrue * numFalseFalse + numTrueFalse * numFalseTrue);
   }
 }

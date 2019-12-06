@@ -139,9 +139,9 @@ class Heap {
 
   /**
    * Push a new element onto the heap. The heap stores potential neighbors
-   * for each data point. The ``row`` parameter determines which data point we
-   * are addressing, the ``weight`` determines the distance (for heap sorting),
-   * the ``index`` is the element to add, and the flag determines whether this
+   * for each data point. The <code>row</code> parameter determines which data point we
+   * are addressing, the <code>weight</code> determines the distance (for heap sorting),
+   * the <code>index</code> is the element to add, and the flag determines whether this
    * is to be considered a new addition.
    * @param row Which actual heap within the heap object to push to
    * @param weight The priority value of the element to push onto the heap
@@ -206,8 +206,8 @@ class Heap {
   }
 
   // Restore the heap property for a heap with an out of place element
-  // at position ``elt``. This works with a heap pair where heap1 carries
-  // the weights and heap2 holds the corresponding elements.
+  // at position <code>elt</code>. This works with a heap pair where <code>heap1</code> carries
+  // the weights and <code>heap2</code> holds the corresponding elements.
   private static void siftdown(final float[] heap1, final int[] heap2, final int length, int elt) {
     while (elt * 2 + 1 < length) {
       final int leftChild = elt * 2 + 1;

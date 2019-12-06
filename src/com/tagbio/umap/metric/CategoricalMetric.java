@@ -18,7 +18,7 @@ public class CategoricalMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     throw new IllegalStateException();
   }
 }

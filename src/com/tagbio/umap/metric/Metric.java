@@ -29,7 +29,7 @@ public abstract class Metric {
    * @param y second point
    * @return distance between the points
    */
-  public abstract double distance(final float[] x, final float[] y);
+  public abstract float distance(final float[] x, final float[] y);
 
   /**
    * Is this an angular metric.

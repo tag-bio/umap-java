@@ -18,7 +18,7 @@ public class CosineMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     double result = 0.0;
     double norm_x = 0.0;
     double norm_y = 0.0;
@@ -28,11 +28,11 @@ public class CosineMetric extends Metric {
       norm_y += y[i] * y[i];
     }
     if (norm_x == 0.0 && norm_y == 0.0) {
-      return 0.0;
+      return 0;
     } else if (norm_x == 0.0 || norm_y == 0.0) {
-      return 1.0;
+      return 1;
     } else {
-      return 1.0 - (result / Math.sqrt(norm_x * norm_y));
+      return (float) (1 - (result / Math.sqrt(norm_x * norm_y)));
     }
   }
 }

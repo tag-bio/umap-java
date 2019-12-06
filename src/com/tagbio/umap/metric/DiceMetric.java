@@ -18,7 +18,7 @@ public class DiceMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     int numTrueTrue = 0;
     int numNotEqual = 0;
     for (int i = 0; i < x.length; ++i) {
@@ -29,9 +29,9 @@ public class DiceMetric extends Metric {
     }
 
     if (numNotEqual == 0) {
-      return 0.0;
+      return 0;
     } else {
-      return numNotEqual / (2.0 * numTrueTrue + numNotEqual);
+      return numNotEqual / (float) (2 * numTrueTrue + numNotEqual);
     }
   }
 }

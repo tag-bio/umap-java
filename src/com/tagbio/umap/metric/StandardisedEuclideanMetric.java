@@ -19,13 +19,13 @@ public class StandardisedEuclideanMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     //  D(x, y) = \sqrt{\sum_i \frac{(x_i - y_i)**2}{v_i}}
-    double result = 0.0;
+    float result = 0;
     for (int i = 0; i < x.length; ++i) {
-      final double d = x[i] - y[i];
+      final float d = x[i] - y[i];
       result += d * d / mSigma[i];
     }
-    return Math.sqrt(result);
+    return (float) Math.sqrt(result);
   }
 }

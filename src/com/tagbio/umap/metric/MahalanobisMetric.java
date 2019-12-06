@@ -18,8 +18,8 @@ public class MahalanobisMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
-    double result = 0.0;
+  public float distance(final float[] x, final float[] y) {
+    float result = 0;
     final float[] diff = new float[x.length];
     for (int i = 0; i < x.length; ++i) {
       diff[i] = x[i] - y[i];
@@ -31,7 +31,7 @@ public class MahalanobisMetric extends Metric {
       }
       result += tmp * diff[i];
     }
-    return Math.sqrt(result);
+    return (float) Math.sqrt(result);
   }
 }
 

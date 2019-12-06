@@ -17,7 +17,7 @@ public class RogersTanimotoMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     int numNotEqual = 0;
     for (int i = 0; i < x.length; ++i) {
       final boolean xTrue = x[i] != 0;
@@ -26,6 +26,6 @@ public class RogersTanimotoMetric extends Metric {
         ++numNotEqual;
       }
     }
-    return (2.0 * numNotEqual) / (float) (x.length + numNotEqual);
+    return (2 * numNotEqual) / (float) (x.length + numNotEqual);
   }
 }

@@ -156,7 +156,7 @@ public class UmapTest extends TestCase {
         primes.add(k);
       }
       for (int j = k; j < m; j += k) {
-        state[k] = false;
+        state[j] = false;
       }
     }
     final int[] res = new int[primes.size()];
@@ -168,7 +168,7 @@ public class UmapTest extends TestCase {
 
   private float[][] factorizations(final int[] omega, final int m) {
     final int[] primes = primes(m);
-    final float[][] data = new float[omega.length][primes.length];
+    final float[][] data = new float[omega.length][primes.length + 1];
     for (int k = 0; k < omega.length; ++k) {
       int s = k;
       for (int j = 0; j < primes.length && s > 1; ++j) {
@@ -179,13 +179,14 @@ public class UmapTest extends TestCase {
           s /= p;
         }
       }
+      data[k][primes.length] = s;
     }
     return data;
   }
 
   public void testPrimes() {
-//    final int[] omega = new int[50000];
-//    final float[][] d = factorizations(omega, 5000);
+    //final int[] omega = new int[1000000];
+    //final float[][] d = factorizations(omega, 1000);
     final int[] omega = new int[1000];
     final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
@@ -195,9 +196,9 @@ public class UmapTest extends TestCase {
     umap.setNumberComponents(2);
     final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
-    for (int r = 0; r < matrix.length; ++r) {
-      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + omega[r]);
-    }
+//    for (int r = 0; r < matrix.length; ++r) {
+//      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + omega[r]);
+//    }
   }
 
   public void testFindABParams() throws IOException {

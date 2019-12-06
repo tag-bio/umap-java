@@ -17,7 +17,7 @@ public class KulsinskiMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
     int numTrueTrue = 0;
     int numNotEqual = 0;
     for (int i = 0; i < x.length; ++i) {
@@ -30,6 +30,6 @@ public class KulsinskiMetric extends Metric {
         ++numNotEqual;
       }
     }
-    return numNotEqual == 0 ? 0.0 : (numNotEqual - numTrueTrue + x.length) / (float) (numNotEqual + x.length);
+    return numNotEqual == 0 ? 0 : (numNotEqual - numTrueTrue + x.length) / (float) (numNotEqual + x.length);
   }
 }

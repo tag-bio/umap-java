@@ -17,13 +17,13 @@ public class BrayCurtisMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
-    double numerator = 0.0;
-    double denominator = 0.0;
+  public float distance(final float[] x, final float[] y) {
+    float numerator = 0;
+    float denominator = 0;
     for (int i = 0; i < x.length; ++i) {
       numerator += Math.abs(x[i] - y[i]);
       denominator += Math.abs(x[i] + y[i]);
     }
-    return denominator > 0.0 ? numerator / denominator : 0.0;
+    return denominator > 0 ? numerator / denominator : 0;
   }
 }

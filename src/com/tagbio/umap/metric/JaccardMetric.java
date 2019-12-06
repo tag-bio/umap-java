@@ -18,7 +18,7 @@ public class JaccardMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
      int numNonZero = 0;
      int numEqual = 0;
      for (int i = 0; i < x.length; ++i) {
@@ -31,7 +31,7 @@ public class JaccardMetric extends Metric {
      if (numNonZero == 0) {
        return 0;
      } else {
-       return (numNonZero - numEqual) / (double) numNonZero;
+       return (numNonZero - numEqual) / (float) numNonZero;
      }
   }
 }

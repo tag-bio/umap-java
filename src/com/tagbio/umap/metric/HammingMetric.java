@@ -17,8 +17,8 @@ public class HammingMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
-    double result = 0.0;
+  public float distance(final float[] x, final float[] y) {
+    float result = 0;
     for (int i = 0; i < x.length; ++i) {
       if (x[i] != y[i]) {
         ++result;

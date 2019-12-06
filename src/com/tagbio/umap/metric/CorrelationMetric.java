@@ -18,7 +18,7 @@ public class CorrelationMetric extends Metric {
   }
 
   @Override
-  public double distance(final float[] x, final float[] y) {
+  public float distance(final float[] x, final float[] y) {
      float muX = 0.0F;
      float muY = 0.0F;
      float normX = 0.0F;
@@ -42,11 +42,11 @@ public class CorrelationMetric extends Metric {
     }
 
      if (normX == 0.0 && normY == 0.0) {
-       return 0.0;
+       return 0;
      } else if (dotProduct == 0.0) {
-       return 1.0;
+       return 1;
      } else {
-       return 1.0 - (dotProduct / Math.sqrt(normX * normY));
+       return (float) (1 - (dotProduct / Math.sqrt(normX * normY)));
      }
   }
 }
