@@ -262,7 +262,7 @@ public class Umap {
     for (int i = 0; i < nSamples; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {
         if (knnIndices[i][j] == -1) {
-          continue;  // We didn't get the full knn for i // todo sai -- i don't think this can happen in Java version
+          continue;  // We didn't get the full knn for i
         }
         final float val;
         if (knnIndices[i][j] == i) {

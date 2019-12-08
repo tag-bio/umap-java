@@ -222,7 +222,7 @@ public class UmapTest extends TestCase {
         umap.fitTransform(data.getData());
         fail("Accepted bad dist " + dist);
       } catch (IllegalArgumentException iae) {
-        assertTrue(iae.getMessage().contains("dist"));
+        assertTrue(iae.getMessage(), iae.getMessage().contains("ist"));
       }
     }
   }

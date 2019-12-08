@@ -26,7 +26,7 @@ class NearestNeighborTreeInit {
     for (int i = 0; i < queryPoints.rows(); ++i) {
       final int[] indices = RandomProjectionTree.searchFlatTree(queryPoints.row(i), (float[][]) tree.getHyperplanes(), tree.getOffsets(), tree.getChildren(), tree.getIndices(), random);
       for (int j = 0; j < indices.length; ++j) {
-        if (indices[j] < 0) {
+        if (indices[j] < 0) { // todo is this check necessary?
           continue;
         }
         final float d = mDist.distance(data.row(indices[j]), queryPoints.row(i));

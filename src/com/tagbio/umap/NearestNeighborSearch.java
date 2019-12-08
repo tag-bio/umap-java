@@ -47,7 +47,7 @@ class NearestNeighborSearch {
           if (candidate == vertex || candidate == -1 || tried.contains(candidate)) { // todo is this -1 needed
             continue;
           }
-          float d = (float) mDist.distance(data.row(candidate), queryPoints.row(i));
+          float d = mDist.distance(data.row(candidate), queryPoints.row(i));
           initialization.uncheckedHeapPush(i, d, candidate, true);
           tried.add(candidate);
         }

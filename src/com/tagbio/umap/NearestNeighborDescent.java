@@ -67,7 +67,6 @@ class NearestNeighborDescent {
 
       final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
 
-      // todo are this < 0 conditions needed?  Seems to be holdover from Python
       int c = 0;
       for (int i = 0; i < nVertices; ++i) {
         for (int j = 0; j < maxCandidates; ++j) {

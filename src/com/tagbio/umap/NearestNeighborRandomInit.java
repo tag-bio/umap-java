@@ -26,7 +26,7 @@ class NearestNeighborRandomInit {
     for (int i = 0; i < queryPoints.rows(); ++i) {
       final int[] indices = Utils.rejectionSample(nNeighbors, data.rows(), random);
       for (int j = 0; j < indices.length; ++j) {
-        if (indices[j] < 0) {
+        if (indices[j] < 0) { // todo is this check necessary?
           continue;
         }
         final float d = mDist.distance(data.row(indices[j]), queryPoints.row(i));
