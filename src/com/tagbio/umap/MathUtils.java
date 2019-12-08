@@ -42,16 +42,16 @@ class MathUtils {
     return min;
   }
 
-  static double mean(final float... x) {
-    double s = 0;
+  static float mean(final float... x) {
+    float s = 0;
     for (final float v : x) {
       s += v;
     }
     return s / x.length;
   }
 
-  static double mean(final float[][] x) {
-    double s = 0;
+  static float mean(final float[][] x) {
+    float s = 0;
     long c = 0;
     for (final float[] row : x) {
       for (final float v : row) {

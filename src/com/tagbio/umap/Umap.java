@@ -61,9 +61,8 @@ import com.tagbio.umap.metric.ReducedEuclideanMetric;
 
 public class Umap {
 
-  private static final double SMOOTH_K_TOLERANCE = 1e-5;
-  private static final double MIN_K_DIST_SCALE = 1e-3;
-  private static final double NPY_INFINITY = Double.POSITIVE_INFINITY;
+  private static final float SMOOTH_K_TOLERANCE = 1e-5F;
+  private static final float MIN_K_DIST_SCALE = 1e-3F;
 
   private static final int SMALL_PROBLEM_THRESHOLD = 4096;
 
@@ -92,16 +91,16 @@ public class Umap {
    *         The distance to the 1st nearest neighbor for each point.
    */
   private static float[][] smoothKnnDist(final float[][] distances, final float k, final int nIter, final int localConnectivity, final float bandwidth) {
-    final double target = MathUtils.log2(k) * bandwidth;
+    final float target = (float) (MathUtils.log2(k) * bandwidth);
     final float[] rho = new float[distances.length];
     final float[] result = new float[distances.length];
 
-    final double meanDistances = MathUtils.mean(distances);
+    final float meanDistances = MathUtils.mean(distances);
 
     for (int i = 0; i < distances.length; ++i) {
-      double lo = 0.0;
-      double hi = NPY_INFINITY;
-      double mid = 1.0;
+      float lo = 0;
+      float hi = Float.POSITIVE_INFINITY;
+      float mid = 1;
 
       final float[] ithDistances = distances[i];
       final float[] nonZeroDists = MathUtils.filterPositive(ithDistances);
@@ -133,27 +132,27 @@ public class Umap {
 
         if (pSum > target) {
           hi = mid;
-          mid = (lo + hi) / 2.0;
+          mid = (lo + hi) / 2.0F;
         } else {
           lo = mid;
-          if (hi == NPY_INFINITY) {
+          if (hi == Float.POSITIVE_INFINITY) {
             mid *= 2;
           } else {
-            mid = (lo + hi) / 2.0;
+            mid = (lo + hi) / 2.0F;
           }
         }
       }
 
-      result[i] = (float) mid;
+      result[i] = mid;
 
-      if (rho[i] > 0.0) {
-        double meanIthDistances = MathUtils.mean(ithDistances);
+      if (rho[i] > 0) {
+        final float meanIthDistances = MathUtils.mean(ithDistances);
         if (result[i] < MIN_K_DIST_SCALE * meanIthDistances) {
-          result[i] = (float) (MIN_K_DIST_SCALE * meanIthDistances);
+          result[i] = MIN_K_DIST_SCALE * meanIthDistances;
         }
       } else {
         if (result[i] < MIN_K_DIST_SCALE * meanDistances) {
-          result[i] = (float) (MIN_K_DIST_SCALE * meanDistances);
+          result[i] = MIN_K_DIST_SCALE * meanDistances;
         }
       }
     }
@@ -169,7 +168,7 @@ public class Umap {
    * under <code>metric</code>. This may be exact, but more likely is approximated via
    * nearest neighbor descent.
    * @param instances The input data to compute the k-neighbor graph of.
-   * @param nNeighbors The number of nearest neighbors to compute for each sample in ``instances``.
+   * @param nNeighbors The number of nearest neighbors to compute for each sample in <code>instances</code>.
    * @param metric The metric to use for the computation.
    * @param angular Whether to use angular rp trees in NN approximation.
    * @param random The random state to use for approximate NN computations.
@@ -181,7 +180,7 @@ public class Umap {
    */
   static IndexedDistances nearestNeighbors(final Matrix instances, final int nNeighbors, final Metric metric, boolean angular, final Random random, final boolean verbose) {
     if (verbose) {
-      Utils.message("Finding Nearest Neighbors");
+      Utils.message("Finding nearest neighbors");
     }
 
     final int[][] knnIndices;
@@ -240,7 +239,7 @@ public class Umap {
         int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
 
         if (verbose) {
-          Utils.message("Building RP forest with " + nTrees + " trees");
+          Utils.message("Building random projection forest with " + nTrees + " trees");
         }
         rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, angular);
         final int[][] leafArray = RandomProjectionTree.rptreeLeafArray(rpForest);
@@ -257,7 +256,7 @@ public class Umap {
       }
     }
     if (verbose) {
-      Utils.message("Finished Nearest Neighbor Search");
+      Utils.message("Finished nearest neighbor search");
     }
     return new IndexedDistances(knnIndices, knnDists, rpForest);
   }
@@ -275,11 +274,8 @@ public class Umap {
    * The normalization factor derived from the metric tensor approximation.
    * @param rhos array of shape <code>(nSamples)</code>
    * The local connectivity adjustment.
-<<<<<<< HEAD
    * @param rowCount number or rows in the result
    * @param colCount number or columns in the result
-=======
->>>>>>> f1828bf652085b6430b4fbd69ff4be8e95e441c0
    * @return sparse matrix of shape <code>(nSamples, nNeighbors)</code>
    */
   static CooMatrix computeMembershipStrengths(final int[][] knnIndices, final float[][] knnDists, final float[] sigmas, final float[] rhos, final int rowCount, final int colCount) {
