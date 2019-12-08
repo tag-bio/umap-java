@@ -28,7 +28,7 @@ final class PairwiseDistances {
     for (int k = 0; k < n; ++k) {
       final float[] xk = x.row(k);
       for (int j = 0; j < n; ++j) {
-        distances[k][j] = (float) metric.distance(xk, x.row(j));
+        distances[k][j] = metric.distance(xk, x.row(j));
       }
     }
     return new DefaultMatrix(distances);
@@ -44,7 +44,7 @@ final class PairwiseDistances {
     for (int k = 0; k < xn; ++k) {
       final float[] xk = x.row(k);
       for (int j = 0; j < yn; ++j) {
-        distances[k][j] = (float) metric.distance(xk, y.row(j));
+        distances[k][j] = metric.distance(xk, y.row(j));
       }
     }
     return new DefaultMatrix(distances);

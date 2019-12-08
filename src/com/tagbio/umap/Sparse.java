@@ -628,10 +628,10 @@ class Sparse {
 //         return 1.0 - (dot_product / (norm1 * norm2))
 
 
-  static final Map<String, Metric> sparse_named_distances = new HashMap<>();
+  static final Map<String, Metric> SPARSE_NAMED_DISTANCES = new HashMap<>();
   static {
     // todo
-    sparse_named_distances.put("euclidean", null);
+    SPARSE_NAMED_DISTANCES.put("euclidean", null);
 //     // general minkowski distances
 //     "euclidean": sparse_euclidean,
 //     "manhattan": sparse_manhattan,

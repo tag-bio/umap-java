@@ -6,7 +6,10 @@
 package com.tagbio.umap;
 
 /**
+ * Flattened tree.
+ * @author Leland McInnes (Python)
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class FlatTree {
 

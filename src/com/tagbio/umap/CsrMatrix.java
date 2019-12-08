@@ -15,7 +15,6 @@ import java.util.Arrays;
  */
 class CsrMatrix extends Matrix {
 
-  // todo I think this is internal rep of data for this form of matrix -- currently some direct external access
   private int[] mIndptr;  // indptr[row] to indptr[row + 1] locations of cols in indices
   private int[] mIndices; // positions of actual data
   private float[] mData;
@@ -115,12 +114,12 @@ class CsrMatrix extends Matrix {
     return new CsrMatrix(d, mIndptr, mIndices, rows(), cols());
   }
 
-  boolean has_sorted_indices() {
+  boolean hasSortedIndices() {
     // todo
     throw new UnsupportedOperationException();
   }
 
-  void sort_indices() {
+  void sortIndices() {
     // todo
     throw new UnsupportedOperationException();
   }

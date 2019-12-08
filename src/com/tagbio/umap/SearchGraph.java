@@ -15,9 +15,6 @@ import java.util.TreeSet;
  */
 class SearchGraph {
 
-  // todo: If this proves to be a performance bottleneck, then after all the entries
-  // have been made, could prepack into int[] arrays.
-
   private final TreeSet<Integer>[] mRows;
 
   @SuppressWarnings("unchecked")

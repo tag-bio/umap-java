@@ -64,9 +64,9 @@ class Heap {
 
   /**
    * Push a new element onto the heap. The heap stores potential neighbors
-   * for each data point. The ``row`` parameter determines which data point we
-   * are addressing, the ``weight`` determines the distance (for heap sorting),
-   * the ``index`` is the element to add, and the flag determines whether this
+   * for each data point. The <code>row</code> parameter determines which data point we
+   * are addressing, the <code>weight</code> determines the distance (for heap sorting),
+   * the <code>index</code> is the element to add, and the flag determines whether this
    * is to be considered a new addition.
    * @param row Which actual heap within the heap object to push to
    * @param weight The priority value of the element to push onto the heap
@@ -267,7 +267,7 @@ class Heap {
    * Search the heap for the smallest element that is still flagged.
    * @param row Which of the heaps to search
    * @return The index of the smallest flagged element
-   * of the `<code>row</code>th heap, or -1 if no flagged
+   * of the <code>row</code>th heap, or -1 if no flagged
    * elements remain in the heap.
    */
   int smallestFlagged(final int row) {
@@ -321,5 +321,4 @@ class Heap {
     }
     return candidateNeighbors;
   }
-
 }

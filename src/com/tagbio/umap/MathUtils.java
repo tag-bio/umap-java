@@ -11,6 +11,7 @@ import java.util.Random;
 /**
  * Math utilities equivalent to Python numpy functionality.
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class MathUtils {
 

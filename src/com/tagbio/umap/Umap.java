@@ -16,49 +16,21 @@ import com.tagbio.umap.metric.Metric;
 import com.tagbio.umap.metric.PrecomputedMetric;
 import com.tagbio.umap.metric.ReducedEuclideanMetric;
 
-// Uniform Manifold Approximation and Projection
-
-// Finds a low dimensional embedding of the data that approximates
-// an underlying manifold.
-
-// Parameters
-// ----------
-
 // init: string (optional, default 'spectral')
 //     How to initialize the low dimensional embedding. Options are:
 //         * 'spectral': use a spectral embedding of the fuzzy 1-skeleton
 //         * 'random': assign initial embedding positions at random.
 //         * A numpy array of initial embedding positions.
 
-// a: float (optional, default null)
-//     More specific parameters controlling the embedding. If null these
-//     values are set automatically as determined by ``min_dist`` and
-//     ``spread``.
-// b: float (optional, default null)
-//     More specific parameters controlling the embedding. If null these
-//     values are set automatically as determined by ``min_dist`` and
-//     ``spread``.
-
-// angular_rp_forest: bool (optional, default false)
-//     Whether to use an angular random projection forest to initialise
-//     the approximate nearest neighbor search. This can be faster, but is
-//     mostly on useful for metric that use an angular style distance such
-//     as cosine, correlation etc. In the case of those metrics angular forests
-//     will be chosen automatically.
-
-// target_n_neighbors: int (optional, default -1)
-//     The number of nearest neighbors to use to construct the target simplcial
-//     set. If set to -1 use the ``n_neighbors`` value.
-
-// target_weight: float (optional, default 0.5)
-//     weighting factor between data topology and target topology. A value of
-//     0.0 weights entirely on data, a value of 1.0 weights entirely on target.
-//     The default of 0.5 balances the weighting equally between data and target.
-
-// transform_seed: int (optional, default 42)
-//     Random seed used for the stochastic aspects of the transform operation.
-//     This ensures consistency in transform operations.
-
+/**
+ * Uniform Manifold Approximation and Projection.
+ *
+ * Finds a low dimensional embedding of the data that approximates an underlying manifold.
+ *
+ * @author Leland McInnes (Python)
+ * @author Sean A. Irvine (Java port)
+ * @author Richard Littin (Java port)
+ */
 public class Umap {
 
   private static final float SMOOTH_K_TOLERANCE = 1e-5F;
@@ -72,7 +44,7 @@ public class Umap {
    * k values rather than requiring an integral k. In essence we are simply
    * computing the distance such that the cardinality of fuzzy set we generate
    * is k.
-   * @param distances array of shape (nSamples, nNeighbors)
+   * @param distances array of shape <code>(nSamples, nNeighbors)</code>
    * Distances to nearest neighbors for each samples. Each row should be a
    * sorted list of distances to a given samples nearest neighbors.
    * @param k The number of nearest neighbors to approximate for.
@@ -85,10 +57,10 @@ public class Umap {
    * dimension of the manifold.
    * @param bandwidth The target bandwidth of the kernel, larger values will produce
    * larger return values.
-   * @return two arrays knnDist array of shape (nSamples)
-   *         The distance to kth nearest neighbor, as suitably approximated.
-   *         nnDist: array of shape (nSamples)
-   *         The distance to the 1st nearest neighbor for each point.
+   * @return two arrays knnDist array of shape <code>(nSamples)</code>
+   * The distance to kth nearest neighbor, as suitably approximated.
+   * nnDist: array of shape <code>(nSamples)</code>
+   * The distance to the first nearest neighbor for each point.
    */
   private static float[][] smoothKnnDist(final float[][] distances, final float k, final int nIter, final int localConnectivity, final float bandwidth) {
     final float target = (float) (MathUtils.log2(k) * bandwidth);
@@ -207,8 +179,8 @@ public class Umap {
       if (instances instanceof CsrMatrix) {
         final CsrMatrix csrInstances = (CsrMatrix) instances;
         // todo this is nonsense now, since metric cannot be a string at this point
-        if (Sparse.sparse_named_distances.containsKey(metric)) {
-          distanceFunc = Sparse.sparse_named_distances.get(metric);
+        if (Sparse.SPARSE_NAMED_DISTANCES.containsKey(metric)) {
+          distanceFunc = Sparse.SPARSE_NAMED_DISTANCES.get(metric);
 //          if (Sparse.sparse_need_n_features.contains(metric)) {
 //            metricKwds.put("n_features", instances.cols());
 //          }
@@ -290,13 +262,13 @@ public class Umap {
     for (int i = 0; i < nSamples; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {
         if (knnIndices[i][j] == -1) {
-          continue;  // We didn't get the full knn for i
+          continue;  // We didn't get the full knn for i // todo sai -- i don't think this can happen in Java version
         }
         final float val;
         if (knnIndices[i][j] == i) {
-          val = 0.0F;
-        } else if (knnDists[i][j] - rhos[i] <= 0.0) {
-          val = 1.0F;
+          val = 0;
+        } else if (knnDists[i][j] - rhos[i] <= 0) {
+          val = 1;
         } else {
           val = (float) Math.exp(-((knnDists[i][j] - rhos[i]) / (sigmas[i])));
         }
@@ -448,12 +420,12 @@ public class Umap {
    * and low dimensional fuzzy simplicial sets. In practice this is done by
    * sampling edges based on their membership strength (with the (1-p) terms
    * coming from negative sampling similar to word2vec).
-   * @param headEmbedding array of shape <code>(n_samples, n_components)</code>
+   * @param headEmbedding array of shape <code>(nSamples, nComponents)</code>
    * The initial embedding to be improved by SGD.
-   * @param tailEmbedding array of shape <code>(source_samples, n_components)</code>
+   * @param tailEmbedding array of shape <code>(sourceSamples, nComponents)</code>
    * The reference embedding of embedded points. If not embedding new
    * previously unseen points with respect to an existing embedding this
-   * is simply the head_embedding (again); otherwise it provides the
+   * is simply the <code>headEmbedding</code> (again); otherwise it provides the
    * existing embedding to embed with respect to.
    * @param head array of shape (n_1_simplices)
    * The indices of the heads of 1-simplices with non-zero membership.
@@ -470,7 +442,7 @@ public class Umap {
    * @param initialAlpha Initial learning rate for the SGD.
    * @param negativeSampleRate Number of negative samples to use per positive sample.
    * @param verbose Whether to report information on the current progress of the algorithm.
-   * @return array of shape <code>(n_samples, n_components)</code> The optimized embedding.
+   * @return array of shape <code>(nSamples, nComponents)</code> The optimized embedding.
    */
   private static Matrix optimizeLayout(final Matrix headEmbedding, final Matrix tailEmbedding, final int[] head, final int[] tail, final int nEpochs, final int nVertices, final float[] epochsPerSample, final float a, final float b, final Random random, final float gamma, final float initialAlpha, final float negativeSampleRate, final boolean verbose) {
 
@@ -519,7 +491,7 @@ public class Umap {
             other = tailEmbedding.row(kr);
             distSquared = ReducedEuclideanMetric.SINGLETON.distance(current, other);
 
-            if (distSquared > 0.0) {
+            if (distSquared > 0) {
               gradCoeff = 2.0F * gamma * b / (float) ((0.001 + distSquared) * (a * Math.pow(distSquared, b) + 1));
             } else if (j == kr) {
               continue;
@@ -537,7 +509,7 @@ public class Umap {
         }
       }
 
-      alpha = initialAlpha * (1.0F - (float) n / (float) (nEpochs));
+      alpha = initialAlpha * (1 - (float) n / (float) (nEpochs));
 
       if (verbose && n % (nEpochs / 10) == 0) {
         Utils.message("Completed " + n + "/" + nEpochs);
@@ -551,7 +523,7 @@ public class Umap {
    * initialisation method and then minimizing the fuzzy set cross entropy
    * between the 1-skeletons of the high and low dimensional fuzzy simplicial
    *  sets.
-   * @param data array of shape (n_samples, n_features)
+   * @param data array of shape <code>(nSamples, nFeatures)</code>
    * The source data to be embedded by UMAP.
    * @param graphIn The 1-skeleton of the high dimensional fuzzy simplicial set as
    * represented by a graph for which we require a sparse matrix for the
@@ -584,7 +556,6 @@ public class Umap {
   private static Matrix simplicialSetEmbedding(Matrix data, Matrix graphIn, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, Random random, Metric metric, boolean verbose) {
 
     CooMatrix graph = graphIn.toCoo();
-    //graph.sum_duplicates();
     int nVertices = graph.cols();
 
     if (nEpochs <= 0) {
@@ -639,14 +610,14 @@ public class Umap {
    * Given indices and weights and an original embeddings
    * initialize the positions of new points relative to the
    * indices and weights (of their neighbors in the source data).
-   * @param indices array of shape <code>(n_new_samples, n_neighbors)</code>
+   * @param indices array of shape <code>(nNewSamples, nNeighbors)</code>
    * The indices of the neighbors of each new sample
-   * @param weights array of shape <code>(n_new_samples, n_neighbors)</code>
+   * @param weights array of shape <code>(nNewSamples, nNeighbors)</code>
    * The membership strengths of associated 1-simplices
    * for each of the new samples.
-   * @param embedding array of shape <code>(n_samples, dim)</code>
+   * @param embedding array of shape <code>(nSamples, dim)</code>
    * The original embedding of the source data.
-   * @return array of shape <code>(n_new_samples, dim)</code>
+   * @return array of shape <code>(nNewSamples, dim)</code>
    * An initial embedding of the new sample points.
    */
   private static Matrix initTransform(final int[][] indices, final float[][] weights, final Matrix embedding) {
@@ -713,18 +684,18 @@ public class Umap {
   }
 
   // look up table base curve fitting
-  // averages values for locations between known spread/min_dist pairs
-  private static float[] curve_fit(float spread, float min_dist) {
+  // averages values for locations between known spread/minDist pairs
+  private static float[] curveFit(final float spread, final float minDist) {
     if (spread < 0.5F || spread > 1.5F) {
       throw new IllegalArgumentException("Spread must be in the range 0.5 < spread <= 1.5, got : " + spread);
     }
-    if (min_dist < 0 || min_dist > spread) {
-      throw new IllegalArgumentException("Expecting 0 < min_dist < " + spread + ", got : " + min_dist);
+    if (minDist < 0 || minDist > spread) {
+      throw new IllegalArgumentException("Expecting 0 < minDist < " + spread + ", got : " + minDist);
     }
     int spreadIndex = (int) (10 * spread);
     float spreadDelta = (10 * spread - spreadIndex) / 10.0F;
-    int distIndex = (int) (20 * min_dist);
-    float distDelta = (20 * min_dist - distIndex) / 20.0F;
+    int distIndex = (int) (20 * minDist);
+    float distDelta = (20 * minDist - distIndex) / 20.0F;
     float a = findValue(mSpreadDistAs, spreadIndex, distIndex, spreadDelta, distDelta);
     float b = findValue(mSpreadDistBs, spreadIndex, distIndex, spreadDelta, distDelta);
     return new float[] {a, b};
@@ -734,27 +705,27 @@ public class Umap {
   // dimensional fuzzy simplicial complex construction. We want the
   // smooth curve (from a pre-defined family with simple gradient) that
   // best matches an offset exponential decay.
-  private static float[] find_ab_params(float spread, float min_dist) {
-    //System.out.println("find_ab_params(" + spread + ", " + min_dist + ")");
+  private static float[] findAbParams(float spread, float minDist) {
+    //System.out.println("find_ab_params(" + spread + ", " + minDist + ")");
     /*
     float[] xv = MathUtils.linspace(0, spread * 3, 300);
     float[] yv = new float[xv.length];
-    //  yv[xv < min_dist] = 1.0;
-    //  yv[xv >= min_dist] = Math.exp(-(xv[xv >= min_dist] - min_dist) / spread   );
+    //  yv[xv < minDist] = 1.0;
+    //  yv[xv >= minDist] = Math.exp(-(xv[xv >= minDist] - minDist) / spread   );
     for (int k = 0; k < yv.length; ++k) {
-      if (xv[k] < min_dist) {
+      if (xv[k] < minDist) {
         yv[k] = 1.0F;
       } else {
-        yv[k] = (float) Math.exp(-(xv[k] - min_dist) / spread);
+        yv[k] = (float) Math.exp(-(xv[k] - minDist) / spread);
       }
     }
 
     final float[] params = Curve.curve_fit(xv, yv); // todo curve_fit in scipy
     return new float[]{params[0], params[1]};
     */
-    return curve_fit(spread, min_dist);
+    return curveFit(spread, minDist);
 /*)
-    if (spread == 1.0F && min_dist == 0.1F) {
+    if (spread == 1.0F && minDist == 0.1F) {
       return new float[]{1.57694346F, 0.89506088F};
     }
     throw new UnsupportedOperationException();
@@ -763,7 +734,7 @@ public class Umap {
   }
 
   private boolean mAngularRpForest = false;
-  private String init = "spectral";
+  private String mInit = "spectral";
   private int mNNeighbors = 15;
   private int mNComponents = 2;
   private Integer mNEpochs = null;
@@ -792,19 +763,19 @@ public class Umap {
   private float mRunB;
   private Matrix mRawData;
   private SearchGraph mSearchGraph = null;
-  private int[][] _knn_indices;
-  private float[][] _knn_dists;
+  private int[][] mKnnIndices;
+  private float[][] mKnnDists;
   private List<FlatTree> mRpForest;
   private boolean mSmallData;
-  private Metric _distance_func;
-  private Matrix graph_;
+  private Metric mDistanceFunc;
+  private Matrix mGraph;
   private Matrix mEmbedding;
   private NearestNeighborSearch mSearch;
-  private NearestNeighborRandomInit _random_init;
-  private NearestNeighborTreeInit _tree_init;
+  private NearestNeighborRandomInit mRandomInit;
+  private NearestNeighborTreeInit mTreeInit;
 
   public void setInit(final String init) {
-    this.init = init;
+    mInit = init;
   }
 
   /**
@@ -1039,18 +1010,54 @@ public class Umap {
     mTransformQueueSize = transformQueueSize;
   }
 
+  /**
+   * Whether to use an angular random projection forest to initialise
+   * the approximate nearest neighbor search. This can be faster, but is
+   * mostly on useful for metric that use an angular style distance such
+   * as cosine, correlation etc. In the case of those metrics angular forests
+   * will be chosen automatically.
+   * @param angularRpForest true for an angular random projection forest
+   */
   public void setAngularRpForest(final boolean angularRpForest) {
     mAngularRpForest = angularRpForest;
   }
 
-  public void setTargetNNeighbors(final int target_n_neighbors) {
-    mTargetNNeighbors = target_n_neighbors;
+  /**
+   * The number of nearest neighbors to use to construct the target simplicial
+   * set. If set to -1 use the <code>nNeighbors</code> value.
+   * @param targetNNeighbors target nearest neighbours
+   */
+  public void setTargetNNeighbors(final int targetNNeighbors) {
+    if (targetNNeighbors < 2 && targetNNeighbors != -1) {
+      throw new IllegalArgumentException("targetNNeighbors must be greater than 2");
+    }
+    mTargetNNeighbors = targetNNeighbors;
   }
 
-  public void setTargetWeight(final float target_weight) {
-    mTargetWeight = target_weight;
+// a: float (optional, default null)
+//     More specific parameters controlling the embedding. If null these
+//     values are set automatically as determined by <code>minDist</code> and
+//     <code>spread</code>.
+// b: float (optional, default null)
+//     More specific parameters controlling the embedding. If null these
+//     values are set automatically as determined by <code>minDist</code> and
+//     <code>spread</code>.
+
+  /**
+   * Set weighting factor between data topology and target topology. A value of
+   * 0.0 weights entirely on data, a value of 1.0 weights entirely on target.
+   * The default of 0.5 balances the weighting equally between data and target.
+   * @param targetWeight target weighting factor
+   */
+  public void setTargetWeight(final float targetWeight) {
+    mTargetWeight = targetWeight;
   }
 
+  /**
+   * Random seed used for the stochastic aspects of the transform operation.
+   * This ensures consistency in transform operations. Default: 42.
+   * @param transformSeed random number generator seed
+   */
   public void setTransformSeed(final int transformSeed) {
     mTransformSeed = transformSeed;
   }
@@ -1062,15 +1069,12 @@ public class Umap {
 //    if (!isinstance(init, str) && !isinstance(init, np.ndarray)) {
 //      throw new IllegalArgumentException("init must be a string or ndarray");
 //    }
-    if (!"spectral".equals(init) && !"random".equals(init)) {
+    if (!"spectral".equals(mInit) && !"random".equals(mInit)) {
       throw new IllegalArgumentException("string init values must be 'spectral' || 'random'");
     }
-//    if (isinstance(init, np.ndarray) && init.shape[1] != n_components) {
-//      throw new IllegalArgumentException("init ndarray must match n_components value");
+//    if (isinstance(init, np.ndarray) && init.shape[1] != nComponents) {
+//      throw new IllegalArgumentException("init ndarray must match nComponents value");
 //    }
-    if (mTargetNNeighbors < 2 && mTargetNNeighbors != -1) {
-      throw new IllegalArgumentException("target_n_neighbors must be greater than 2");
-    }
   }
 
   /**
@@ -1079,8 +1083,7 @@ public class Umap {
    * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
    * If the metric is 'precomputed' instances must be a square distance
    * matrix. Otherwise it contains a sample per row. If the method
-   * is 'exact', Instances may be a sparse matrix of type 'csr', 'csc'
-   * or 'coo'.
+   * is 'exact',
    * @param y array of shape <code>(nSamples)</code>
    * A target array for supervised dimension reduction. How this is
    * handled is determined by parameters UMAP was instantiated with.
@@ -1096,7 +1099,7 @@ public class Umap {
 
     // Handle all the optional arguments, setting default
     if (mA == null || mB == null) {
-      final float[] ab = find_ab_params(mSpread, mMinDist);
+      final float[] ab = findAbParams(mSpread, mMinDist);
       mRunA = ab[0];
       mRunB = ab[1];
     } else {
@@ -1109,20 +1112,20 @@ public class Umap {
 //      } else {
 //        init = this.init;
 //      }
-    String init = this.init;
+    String init = this.mInit;
 
     mInitialAlpha = mLearningRate;
 
     validateParameters();
 
-    // Error check n_neighbors based on data size
+    // Error check nNeighbors based on data size
     if (instances.rows() <= mNNeighbors) {
       if (instances.rows() == 1) {
-        mEmbedding = new DefaultMatrix(new float[1][mNComponents]); // MathUtils.zeros((1, this.n_components) );  // needed to sklearn comparability
+        mEmbedding = new DefaultMatrix(new float[1][mNComponents]);
         return;
       }
 
-      Utils.message("n_neighbors is larger than the dataset size; truncating to X.length - 1");
+      Utils.message("nNeighbors is larger than the dataset size; truncating to X.length - 1");
       mRunNNeighbors = instances.rows() - 1;
     } else {
       mRunNNeighbors = mNNeighbors;
@@ -1130,8 +1133,8 @@ public class Umap {
 
     if (instances instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
       final CsrMatrix csrInstances = (CsrMatrix) instances;
-      if (!csrInstances.has_sorted_indices()) {
-        csrInstances.sort_indices();
+      if (!csrInstances.hasSortedIndices()) {
+        csrInstances.sortIndices();
       }
       mSparseData = true;
     } else {
@@ -1146,25 +1149,24 @@ public class Umap {
     if (instances.rows() < SMALL_PROBLEM_THRESHOLD) {
       mSmallData = true;
       final Matrix dmat = PairwiseDistances.pairwiseDistances(instances, mMetric);
-      graph_ = fuzzySimplicialSet(dmat, mRunNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
-      // System.out.println("graph: " + ((CooMatrix) graph_).sparseToString());
+      mGraph = fuzzySimplicialSet(dmat, mRunNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
     } else {
       mSmallData = false;
       // Standard case
       final IndexedDistances nn = nearestNeighbors(instances, mRunNNeighbors, mMetric, mAngularRpForest, mRandom, mVerbose);
-      _knn_indices = nn.getIndices();
-      _knn_dists = nn.getDistances();
+      mKnnIndices = nn.getIndices();
+      mKnnDists = nn.getDistances();
       mRpForest = nn.getForest();
 
-      graph_ = fuzzySimplicialSet(instances, mNNeighbors, mRandom, mMetric, _knn_indices, _knn_dists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      mGraph = fuzzySimplicialSet(instances, mNNeighbors, mRandom, mMetric, mKnnIndices, mKnnDists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
-      _distance_func = mMetric;
+      mDistanceFunc = mMetric;
       if (mMetric == PrecomputedMetric.SINGLETON) {
         Utils.message("Using precomputed metric; transform will be unavailable for new data");
       } else {
-        _random_init = new NearestNeighborRandomInit(_distance_func);
-        _tree_init = new NearestNeighborTreeInit(_distance_func);
-        mSearch = new NearestNeighborSearch(_distance_func);
+        mRandomInit = new NearestNeighborRandomInit(mDistanceFunc);
+        mTreeInit = new NearestNeighborTreeInit(mDistanceFunc);
+        mSearch = new NearestNeighborSearch(mDistanceFunc);
       }
     }
 
@@ -1174,7 +1176,7 @@ public class Umap {
       }
       if (CategoricalMetric.SINGLETON.equals(mTargetMetric)) {
         final float farDist = mTargetWeight < 1.0 ? 2.5F * (1.0F / (1.0F - mTargetWeight)) : 1.0e12F;
-        graph_ = categoricalSimplicialSetIntersection((CooMatrix) graph_, y, farDist);
+        mGraph = categoricalSimplicialSetIntersection((CooMatrix) mGraph, y, farDist);
       } else {
         final int targetNNeighbors = mTargetNNeighbors == -1 ? mRunNNeighbors : mTargetNNeighbors;
 
@@ -1187,8 +1189,8 @@ public class Umap {
           // Standard case
           targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, mRandom, mTargetMetric, null, null, false, 1.0F, 1, false);
         }
-        graph_ = generalSimplicialSetIntersection(graph_, targetGraph, mTargetWeight);
-        graph_ = resetLocalConnectivity(graph_);
+        mGraph = generalSimplicialSetIntersection(mGraph, targetGraph, mTargetWeight);
+        mGraph = resetLocalConnectivity(mGraph);
       }
     }
 
@@ -1198,25 +1200,23 @@ public class Umap {
       Utils.message("Construct embedding");
     }
 
-    mEmbedding = simplicialSetEmbedding(mRawData, graph_, mNComponents, mInitialAlpha, mRunA, mRunB, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, mRandom, mMetric, mVerbose);
+    mEmbedding = simplicialSetEmbedding(mRawData, mGraph, mNComponents, mInitialAlpha, mRunA, mRunB, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, mRandom, mMetric, mVerbose);
 
     if (mVerbose) {
       Utils.message("Finished embedding");
     }
-
-    //this._input_hash = joblib.hash(this._raw_data);
   }
 
   /**
    * Fit instances into an embedded space and return that transformed output.
-   * @param instances array of shape <code>(n_samples, n_features)</code> or <code>(nSamples, nSamples)</code>
-   * If the metric is 'precomputed' instances must be a square distance
+   * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
+   * If the metric is <code>PrecomputedMetric.SINGLETON</code> instances must be a square distance
    * matrix. Otherwise it contains a sample per row.
-   * @param y array of shape <code>(n_samples)</code>
+   * @param y array of shape <code>(nSamples)</code>
    * A target array for supervised dimension reduction. How this is
    * handled is determined by parameters UMAP was instantiated with.
    * The relevant metric is <code>mTargetMetric</code>.
-   * @return array of shape <code>(n_samples, n_components)</code>
+   * @return array of shape <code>(nSamples, nComponents)</code>
    * Embedding of the training data in low-dimensional space.
    */
   Matrix fitTransform(final Matrix instances, final float[] y) {
@@ -1235,9 +1235,9 @@ public class Umap {
   /**
    * Transform instances into the existing embedded space and return that
    * transformed output.
-   * @param instances array, shape <code>(n_samples, n_features)</code>
+   * @param instances array, shape <code>(nSamples, nFeatures)</code>
    * New data to be transformed.
-   * @return array, shape <code>(n_samples, n_components)</code>
+   * @return array, shape <code>(nSamples, nComponents)</code>
    * Embedding of the new data in low-dimensional space.
    * @throws IllegalArgumentException If we fit just a single instance then error.
    */
@@ -1245,18 +1245,10 @@ public class Umap {
     if (mEmbedding.rows() == 1) {
       throw new IllegalArgumentException("Transform unavailable when model was fit with only a single data sample.");
     }
-    // If we just have the original input then short circuit things
-    //X = check_array(X, dtype = np.float32, accept_sparse = "csr");
-    // todo caching of previous run ?
-//    int x_hash = joblib.hash(X);
-//    if (x_hash == this._input_hash) {
-//      return this.embedding_;
-//    }
-
     if (mSparseData) {
       throw new IllegalArgumentException("Transform not available for sparse input.");
     } else if (mMetric instanceof PrecomputedMetric) {
-      throw new IllegalArgumentException("Transform  of new data not available for precomputed metric.");
+      throw new IllegalArgumentException("Transform of new data not available for precomputed metric.");
     }
 
     int[][] indices;
@@ -1269,13 +1261,13 @@ public class Umap {
       indices = Utils.submatrix(indices, indicesSorted, mRunNNeighbors);
       dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
-      final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), _random_init, _tree_init, mRandom);
+      final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), mRandomInit, mTreeInit, mRandom);
       if (mSearchGraph == null) {
         mSearchGraph = new SearchGraph(mRawData.rows());
-        for (int k = 0; k < _knn_indices.length; ++k) {
-          for (int j = 0; j < _knn_indices[k].length; ++j) {
-            if (_knn_dists[k][j] != 0) {
-              mSearchGraph.set(k, _knn_indices[k][j]);
+        for (int k = 0; k < mKnnIndices.length; ++k) {
+          for (int j = 0; j < mKnnIndices[k].length; ++j) {
+            if (mKnnDists[k][j] != 0) {
+              mSearchGraph.set(k, mKnnIndices[k][j]);
             }
           }
         }
@@ -1294,7 +1286,7 @@ public class Umap {
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
-    CsrMatrix csr_graph = (CsrMatrix) Normalize.normalize(graph.toCsr(), "l1");
+    //CsrMatrix csr_graph = (CsrMatrix) Normalize.normalize(graph.toCsr(), "l1");
 //    int[][] inds = csr_graph.indices.reshape(X.rows(), this._n_neighbors);
 //    float[][] weights = csr_graph.data.reshape(X.rows(), this._n_neighbors);
     // todo following need to be "reshape" as above

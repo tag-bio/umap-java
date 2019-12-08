@@ -7,7 +7,9 @@ package com.tagbio.umap;
 
 /**
  * Container for a hyperplane.
+ * @author Leland McInnes (Python)
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class Hyperplane {
 

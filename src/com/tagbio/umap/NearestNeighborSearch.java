@@ -11,7 +11,9 @@ import java.util.TreeSet;
 import com.tagbio.umap.metric.Metric;
 
 /**
+ * @author Leland McInnes (Python)
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class NearestNeighborSearch {
 
