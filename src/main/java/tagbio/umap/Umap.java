@@ -556,7 +556,7 @@ public class Umap {
   private static Matrix simplicialSetEmbedding(Matrix data, Matrix graphIn, int nComponents, float initialAlpha, float a, float b, float gamma, int negativeSampleRate, int nEpochs, String init, Random random, Metric metric, boolean verbose) {
 
     CooMatrix graph = graphIn.toCoo();
-    int nVertices = graph.cols();
+    final int nVertices = graph.cols();
 
     if (nEpochs <= 0) {
       // For smaller datasets we can use more epochs
@@ -571,7 +571,7 @@ public class Umap {
     MathUtils.zeroEntriesBelowLimit(graphData, MathUtils.max(graphData) / (float) nEpochs);
     graph = (CooMatrix) graph.eliminateZeros();
 
-    Matrix embedding;
+    final Matrix embedding;
     if ("random".equals(init)) {
       //embedding = random.uniform(low = -10.0, high = 10.0, size = (graph.rows(), nComponents)).astype(np.float32);
       embedding = new DefaultMatrix(MathUtils.uniform(random, -10, 10, graph.rows(), nComponents));
@@ -625,7 +625,7 @@ public class Umap {
     for (int i = 0; i < indices.length; ++i) {
       for (int j = 0; j < indices[i].length; ++j) {
         for (int d = 0; d < embedding.cols(); ++d) {
-          result[i][d] += (weights[i][j] * embedding.get(indices[i][j], d));
+          result[i][d] += weights[i][j] * embedding.get(indices[i][j], d);
         }
       }
     }
@@ -636,7 +636,7 @@ public class Umap {
 //    return 1.0 / (1.0 + a * Math.pow(x, 2 * b));
 //
 
-  private static float[][] mSpreadDistAs = {
+  private static final float[][] SPREAD_DIST_AS = {
     {},
     {},
     {},
@@ -655,7 +655,7 @@ public class Umap {
     {0.00000F, 0.92742F, 0.84237F, 0.76312F, 0.68968F, 0.62189F, 0.55955F, 0.50242F, 0.45021F, 0.40260F, 0.35933F, 0.32008F, 0.28455F, 0.25248F, 0.22359F, 0.19762F, 0.17432F, 0.15347F, 0.13483F, 0.11822F, 0.10345F, 0.09033F, 0.07870F, 0.06843F, 0.05936F, 0.05137F, 0.04437F, 0.03821F, 0.03283F, 0.02814F, 0.02405F, 0.02050F},
     {0.00000F, 0.83896F, 0.76357F, 0.69330F, 0.62813F, 0.56793F, 0.51250F, 0.46161F, 0.41501F, 0.37246F, 0.33368F, 0.29843F, 0.26643F, 0.23745F, 0.21126F, 0.18763F, 0.16635F, 0.14723F, 0.13008F, 0.11472F, 0.10100F, 0.08875F, 0.07784F, 0.06815F, 0.05954F, 0.05192F, 0.04518F, 0.03924F, 0.03401F, 0.02941F, 0.02537F, 0.02184F, 0.01875F, 0.01606F},
   };
-  private static float[][] mSpreadDistBs = {
+  private static final float[][] SPREAD_DIST_BS = {
     {},
     {},
     {},
@@ -675,10 +675,10 @@ public class Umap {
     {0.00000F, 0.82249F, 0.85520F, 0.88837F, 0.92186F, 0.95555F, 0.98941F, 1.02340F, 1.05750F, 1.09170F, 1.12598F, 1.16036F, 1.19486F, 1.22948F, 1.26423F, 1.29912F, 1.33417F, 1.36938F, 1.40477F, 1.44033F, 1.47610F, 1.51211F, 1.54836F, 1.58489F, 1.62170F, 1.65883F, 1.69629F, 1.73407F, 1.77222F, 1.81079F, 1.84979F, 1.88926F, 1.92923F, 1.96975F},
   };
 
-  private static float findValue(float[][] spreadDist, int spreadIndex, int distIndex, float spreadDelta, float distDelta) {
-    float start = spreadDist[spreadIndex][distIndex] + distDelta * (spreadDist[spreadIndex][distIndex+1] - spreadDist[spreadIndex][distIndex]);
-    float end = spreadDist[spreadIndex+1][distIndex] + distDelta * (spreadDist[spreadIndex+1][distIndex+1] - spreadDist[spreadIndex+1][distIndex]);
-    float val = start + spreadDelta * (end - start);
+  private static float findValue(final float[][] spreadDist, final int spreadIndex, final int distIndex, final float spreadDelta, final float distDelta) {
+    final float start = spreadDist[spreadIndex][distIndex] + distDelta * (spreadDist[spreadIndex][distIndex + 1] - spreadDist[spreadIndex][distIndex]);
+    final float end = spreadDist[spreadIndex + 1][distIndex] + distDelta * (spreadDist[spreadIndex + 1][distIndex + 1] - spreadDist[spreadIndex + 1][distIndex]);
+    final float val = start + spreadDelta * (end - start);
     //System.out.println(spreadDelta + " : " + distDelta + " : " + start + " : " + end + " : " + val);
     return val;
   }
@@ -692,12 +692,12 @@ public class Umap {
     if (minDist < 0 || minDist > spread) {
       throw new IllegalArgumentException("Expecting 0 < minDist < " + spread + ", got : " + minDist);
     }
-    int spreadIndex = (int) (10 * spread);
-    float spreadDelta = (10 * spread - spreadIndex) / 10.0F;
-    int distIndex = (int) (20 * minDist);
-    float distDelta = (20 * minDist - distIndex) / 20.0F;
-    float a = findValue(mSpreadDistAs, spreadIndex, distIndex, spreadDelta, distDelta);
-    float b = findValue(mSpreadDistBs, spreadIndex, distIndex, spreadDelta, distDelta);
+    final int spreadIndex = (int) (10 * spread);
+    final float spreadDelta = (10 * spread - spreadIndex) / 10.0F;
+    final int distIndex = (int) (20 * minDist);
+    final float distDelta = (20 * minDist - distIndex) / 20.0F;
+    final float a = findValue(SPREAD_DIST_AS, spreadIndex, distIndex, spreadDelta, distDelta);
+    final float b = findValue(SPREAD_DIST_BS, spreadIndex, distIndex, spreadDelta, distDelta);
     return new float[] {a, b};
   }
 
@@ -1004,7 +1004,7 @@ public class Umap {
    * this will control how aggressively to search for nearest neighbors.
    * Larger values will result in slower performance but more accurate
    * nearest neighbor evaluation. Default 4.0.
-   * @param transformQueueSize
+   * @param transformQueueSize queue size
    */
   public void setTransformQueueSize(final float transformQueueSize) {
     mTransformQueueSize = transformQueueSize;
@@ -1112,7 +1112,7 @@ public class Umap {
 //      } else {
 //        init = this.init;
 //      }
-    String init = this.mInit;
+    final String init = mInit;
 
     mInitialAlpha = mLearningRate;
 
@@ -1180,7 +1180,7 @@ public class Umap {
       } else {
         final int targetNNeighbors = mTargetNNeighbors == -1 ? mRunNNeighbors : mTargetNNeighbors;
 
-        Matrix targetGraph;
+        final Matrix targetGraph;
         // Handle the small case as precomputed as before
         if (y.length < SMALL_PROBLEM_THRESHOLD) {
           final Matrix ydmat = PairwiseDistances.pairwiseDistances(MathUtils.promoteTranspose(y), mTargetMetric);
@@ -1252,7 +1252,7 @@ public class Umap {
     }
 
     int[][] indices;
-    float[][] dists;
+    final float[][] dists;
     if (mSmallData) {
       final Matrix dmat = PairwiseDistances.pairwiseDistances(instances, mRawData, mMetric);
       indices = MathUtils.subarray(MathUtils.argpartition(dmat, mRunNNeighbors), mRunNNeighbors);
@@ -1277,10 +1277,10 @@ public class Umap {
       dists = MathUtils.subarray(result.weights(), mRunNNeighbors);
     }
 
-    int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);
+    final int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);
     final float[][] sigmasRhos = smoothKnnDist(dists, mRunNNeighbors, adjustedLocalConnectivity);
-    float[] sigmas = sigmasRhos[0];
-    float[] rhos = sigmasRhos[1];
+    final float[] sigmas = sigmasRhos[0];
+    final float[] rhos = sigmasRhos[1];
     CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, instances.rows(), mRawData.rows());
 
     // This was a very specially constructed graph with constant degree.
@@ -1290,9 +1290,9 @@ public class Umap {
 //    int[][] inds = csr_graph.indices.reshape(X.rows(), this._n_neighbors);
 //    float[][] weights = csr_graph.data.reshape(X.rows(), this._n_neighbors);
     // todo following need to be "reshape" as above
-    int[][] inds = null;
-    float[][] weights = null;
-    Matrix embedding = initTransform(inds, weights, mEmbedding);
+    final int[][] inds = null;
+    final float[][] weights = null;
+    final Matrix embedding = initTransform(inds, weights, mEmbedding);
 
     final int nEpochs;
     if (mNEpochs == null) {
@@ -1311,8 +1311,8 @@ public class Umap {
 
     final float[] epochsPerSample = makeEpochsPerSample(graph.data(), nEpochs);
 
-    int[] head = graph.row();
-    int[] tail = graph.col();
+    final int[] head = graph.row();
+    final int[] tail = graph.col();
 
     return optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, mRunA, mRunB, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
   }
