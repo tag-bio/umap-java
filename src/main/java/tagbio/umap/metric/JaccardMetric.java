@@ -6,11 +6,12 @@
 package tagbio.umap.metric;
 
 /**
- * Dice distance.
+ * Jaccard distance.
  * @author Sean A. Irvine
  */
 public final class JaccardMetric extends Metric {
 
+  /** Jaccard distance. */
   public static final JaccardMetric SINGLETON = new JaccardMetric();
 
   private JaccardMetric() {

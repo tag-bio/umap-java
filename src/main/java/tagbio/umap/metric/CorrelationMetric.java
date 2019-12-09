@@ -10,6 +10,7 @@ package tagbio.umap.metric;
  */
 public final class CorrelationMetric extends Metric {
 
+  /** Correlation distance. */
   public static final CorrelationMetric SINGLETON = new CorrelationMetric();
 
   private CorrelationMetric() {

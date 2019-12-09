@@ -11,6 +11,7 @@ package tagbio.umap.metric;
  */
 public final class CategoricalMetric extends Metric {
 
+  /** Special indicator for categorical data. */
   public static final CategoricalMetric SINGLETON = new CategoricalMetric();
 
   private CategoricalMetric() {

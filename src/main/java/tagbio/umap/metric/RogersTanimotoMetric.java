@@ -8,8 +8,9 @@ package tagbio.umap.metric;
 /**
  * Rogers Tanimoto distance.
  */
-public final class RogersTanimotoMetric extends Metric {
+public class RogersTanimotoMetric extends Metric {
 
+  /** Rogers Tanimoto distance. */
   public static final RogersTanimotoMetric SINGLETON = new RogersTanimotoMetric();
 
   RogersTanimotoMetric() {

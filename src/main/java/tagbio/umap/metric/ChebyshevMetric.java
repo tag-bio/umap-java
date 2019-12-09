@@ -10,6 +10,7 @@ package tagbio.umap.metric;
  */
 public final class ChebyshevMetric extends Metric {
 
+  /** Chebyshev distance. */
   public static final ChebyshevMetric SINGLETON = new ChebyshevMetric();
 
   private ChebyshevMetric() {

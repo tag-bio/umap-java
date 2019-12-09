@@ -13,6 +13,7 @@ package tagbio.umap.metric;
  */
 public final class ReducedEuclideanMetric extends Metric {
 
+  /** Reduced Euclidean distance. */
   public static final ReducedEuclideanMetric SINGLETON = new ReducedEuclideanMetric();
 
   private ReducedEuclideanMetric() {

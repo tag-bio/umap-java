@@ -11,6 +11,7 @@ package tagbio.umap.metric;
  */
 public final class PrecomputedMetric extends Metric {
 
+  /** Special indicator that the metric has been precomputed. */
   public static final PrecomputedMetric SINGLETON = new PrecomputedMetric();
 
   private PrecomputedMetric() {

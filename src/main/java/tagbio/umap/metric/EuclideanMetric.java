@@ -10,6 +10,7 @@ package tagbio.umap.metric;
  */
 public final class EuclideanMetric extends Metric {
 
+  /** Euclidean metric. */
   public static final EuclideanMetric SINGLETON = new EuclideanMetric();
 
   private EuclideanMetric() {

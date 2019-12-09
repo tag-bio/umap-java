@@ -11,6 +11,7 @@ package tagbio.umap.metric;
  */
 public final class CosineMetric extends Metric {
 
+  /** Cosine distance. */
   public static final CosineMetric SINGLETON = new CosineMetric();
 
   private CosineMetric() {

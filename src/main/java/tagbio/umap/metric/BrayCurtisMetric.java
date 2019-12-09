@@ -10,6 +10,7 @@ package tagbio.umap.metric;
  */
 public final class BrayCurtisMetric extends Metric {
 
+  /** Bray Curtis distance. */
   public static final BrayCurtisMetric SINGLETON = new BrayCurtisMetric();
 
   private BrayCurtisMetric() {
