@@ -1,9 +1,9 @@
 package com.tagbio.umap;
 
-import junit.framework.TestCase;
-
 import java.util.Arrays;
 import java.util.Random;
+
+import junit.framework.TestCase;
 
 public class MathUtilsTest extends TestCase {
 
@@ -38,7 +38,7 @@ public class MathUtilsTest extends TestCase {
   }
 
   public void testMean2D() {
-    assertEquals(7.833333333333333, MathUtils.mean(new float[][] {{0, 42}, {2, 3}, {-7, 7}}), 1e-10);
+    assertEquals(7.83333, MathUtils.mean(new float[][] {{0, 42}, {2, 3}, {-7, 7}}), 1e-5);
   }
 
   public void testFilterPositive() {

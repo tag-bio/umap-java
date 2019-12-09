@@ -5,8 +5,6 @@
  */
 package com.tagbio.umap;
 
-import com.tagbio.umap.metric.EuclideanMetric;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.zip.GZIPInputStream;
+
+import com.tagbio.umap.metric.EuclideanMetric;
 
 abstract class Data {
   private float[][] mData;

@@ -2,8 +2,8 @@
 *.class
 .idea
 umap-java.iml
-out
+target
 build
-test/com/tagbio/umap/gene_exp_data.tsv.gz
-test/com/tagbio/umap/gene_exp_info.tsv
-test/com/tagbio/umap/mammoth.tsv
+src/test/resources/com/tagbio/umap/gene_exp_data.tsv.gz
+src/test/resources/com/tagbio/umap/gene_exp_info.tsv
+src/test/resources/com/tagbio/umap/mammoth.tsv
