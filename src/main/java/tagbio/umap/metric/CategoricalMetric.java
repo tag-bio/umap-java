@@ -9,7 +9,7 @@ package tagbio.umap.metric;
  * Special indicator for categorical data.
  * @author Sean A. Irvine
  */
-public class CategoricalMetric extends Metric {
+public final class CategoricalMetric extends Metric {
 
   public static final CategoricalMetric SINGLETON = new CategoricalMetric();
 

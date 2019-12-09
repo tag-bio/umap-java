@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Yule distance.
  */
-public class YuleMetric extends Metric {
+public final class YuleMetric extends Metric {
 
   public static final YuleMetric SINGLETON = new YuleMetric();
 

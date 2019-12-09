@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Russel Rao distance.
  */
-public class RussellRaoMetric extends Metric {
+public final class RussellRaoMetric extends Metric {
 
   public static final RussellRaoMetric SINGLETON = new RussellRaoMetric();
 

@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Kulsinski distance.
  */
-public class KulsinskiMetric extends Metric {
+public final class KulsinskiMetric extends Metric {
 
   public static final KulsinskiMetric SINGLETON = new KulsinskiMetric();
 

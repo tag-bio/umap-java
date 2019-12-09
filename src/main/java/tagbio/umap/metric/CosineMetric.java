@@ -9,7 +9,7 @@ package tagbio.umap.metric;
  * Cosine distance.
  * @author Sean A. Irvine
  */
-public class CosineMetric extends Metric {
+public final class CosineMetric extends Metric {
 
   public static final CosineMetric SINGLETON = new CosineMetric();
 

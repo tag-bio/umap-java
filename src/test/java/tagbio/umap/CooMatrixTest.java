@@ -27,7 +27,7 @@ public class CooMatrixTest extends AbstractMatrixTest {
       } else if (r < 0) {
         fail("rows out of order: row["+(i-1)+"]:"+matrix.row()[i-1]+" !<= row["+i+"]:"+matrix.row()[i]);
       }
-      assertEquals("data at " + i + " not correct", matrix.data()[i], matrix.row()[i] + (float)(matrix.col()[i] / 10.0f));
+      assertEquals("data at " + i + " not correct", matrix.data()[i], matrix.row()[i] + (matrix.col()[i] / 10.0f));
     }
   }
 

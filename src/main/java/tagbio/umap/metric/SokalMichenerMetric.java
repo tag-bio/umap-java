@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Sokal Michener distance.
  */
-public class SokalMichenerMetric extends RogersTanimotoMetric {
+public final class SokalMichenerMetric extends RogersTanimotoMetric {
 
   public static final SokalMichenerMetric SINGLETON = new SokalMichenerMetric();
 

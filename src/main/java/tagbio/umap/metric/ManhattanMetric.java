@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Manhattan distance.
  */
-public class ManhattanMetric extends Metric {
+public final class ManhattanMetric extends Metric {
 
   public static final ManhattanMetric SINGLETON = new ManhattanMetric();
 

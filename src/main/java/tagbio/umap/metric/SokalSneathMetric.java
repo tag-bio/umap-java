@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Sokal Sneath distance.
  */
-public class SokalSneathMetric extends Metric {
+public final class SokalSneathMetric extends Metric {
 
   public static final SokalSneathMetric SINGLETON = new SokalSneathMetric();
 

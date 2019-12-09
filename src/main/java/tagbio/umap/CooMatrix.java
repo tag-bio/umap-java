@@ -185,7 +185,7 @@ class CooMatrix extends Matrix {
     int left = 0;
     int right = mRow.length - 1;
     while (left <= right) {
-      int mid = left + (right - left) / 2;
+      final int mid = left + (right - left) / 2;
       // Check if x is present at mid
       if (mRow[mid] == r) {
         if (mCol[mid] == c) {
@@ -536,6 +536,7 @@ class CooMatrix extends Matrix {
     while (k < mRow.length) {
       if (mRow[k] != row) {
         // Moving to a new row, compute max
+        row = mRow[k];
         max = mData[k];
         for (int j = k + 1; j < mRow.length && mRow[j] == mRow[k]; ++j) {
           max = Math.max(max, mData[j]);

@@ -17,7 +17,9 @@ import java.util.Random;
  * @author Sean A. Irvine
  * @author Richard Littin
  */
-class RandomProjectionTree {
+final class RandomProjectionTree {
+
+  private RandomProjectionTree() { }
 
   // Used for a floating point "nearly zero" comparison
   private static final float EPS = 1e-8F;
@@ -328,7 +330,7 @@ class RandomProjectionTree {
    */
   private static Object[] sparseEuclideanRandomProjectionSplit(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final Random random) {
     // Select two random points, set the hyperplane between them
-    int leftIndex = random.nextInt(indices.length);
+    final int leftIndex = random.nextInt(indices.length);
     int rightIndex = random.nextInt(indices.length);
     if (leftIndex == rightIndex) {
       rightIndex = (rightIndex + 1) % indices.length;
@@ -452,8 +454,8 @@ class RandomProjectionTree {
       final Hyperplane hyperplane = (Hyperplane) erps[2];
       final float offset = (float) erps[3];
 
-      RandomProjectionTreeNode leftNode = makeSparseEuclideanTree(inds, indptr, data, leftIndices, random, leafSize);
-      RandomProjectionTreeNode rightNode = makeSparseEuclideanTree(inds, indptr, data, rightIndices, random, leafSize);
+      final RandomProjectionTreeNode leftNode = makeSparseEuclideanTree(inds, indptr, data, leftIndices, random, leafSize);
+      final RandomProjectionTreeNode rightNode = makeSparseEuclideanTree(inds, indptr, data, rightIndices, random, leafSize);
 
       return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
     } else {

@@ -9,7 +9,7 @@ package tagbio.umap.metric;
  * Dice distance.
  * @author Sean A. Irvine
  */
-public class DiceMetric extends Metric {
+public final class DiceMetric extends Metric {
 
   public static final DiceMetric SINGLETON = new DiceMetric();
 

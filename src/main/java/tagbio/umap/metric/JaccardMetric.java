@@ -9,7 +9,7 @@ package tagbio.umap.metric;
  * Dice distance.
  * @author Sean A. Irvine
  */
-public class JaccardMetric extends Metric {
+public final class JaccardMetric extends Metric {
 
   public static final JaccardMetric SINGLETON = new JaccardMetric();
 

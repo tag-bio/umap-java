@@ -13,7 +13,7 @@ import java.util.Random;
  * @author Sean A. Irvine
  * @author Richard Littin
  */
-class MathUtils {
+final class MathUtils {
 
   private MathUtils() { }
 

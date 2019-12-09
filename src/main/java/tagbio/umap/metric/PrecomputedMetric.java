@@ -9,7 +9,7 @@ package tagbio.umap.metric;
  * Special indicator that the metric has been precomputed.
  * @author Sean A. Irvine
  */
-public class PrecomputedMetric extends Metric {
+public final class PrecomputedMetric extends Metric {
 
   public static final PrecomputedMetric SINGLETON = new PrecomputedMetric();
 

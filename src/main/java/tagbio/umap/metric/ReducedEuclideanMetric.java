@@ -11,7 +11,7 @@ package tagbio.umap.metric;
  * @author Sean A. Irvine
  * @author Richard Littin
  */
-public class ReducedEuclideanMetric extends Metric {
+public final class ReducedEuclideanMetric extends Metric {
 
   public static final ReducedEuclideanMetric SINGLETON = new ReducedEuclideanMetric();
 

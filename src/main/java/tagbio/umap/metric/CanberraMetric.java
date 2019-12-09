@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Canberra distance.
  */
-public class CanberraMetric extends Metric {
+public final class CanberraMetric extends Metric {
 
   public static final CanberraMetric SINGLETON = new CanberraMetric();
 

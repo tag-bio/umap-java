@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Hamming distance.
  */
-public class HammingMetric extends Metric {
+public final class HammingMetric extends Metric {
 
   public static final HammingMetric SINGLETON = new HammingMetric();
 

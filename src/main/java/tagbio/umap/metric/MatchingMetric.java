@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Matching distance.
  */
-public class MatchingMetric extends Metric {
+public final class MatchingMetric extends Metric {
 
   public static final MatchingMetric SINGLETON = new MatchingMetric();
 

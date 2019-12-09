@@ -8,7 +8,7 @@ package tagbio.umap.metric;
 /**
  * Haversine distance.
  */
-public class HaversineMetric extends Metric {
+public final class HaversineMetric extends Metric {
 
   public static final HaversineMetric SINGLETON = new HaversineMetric();
 
