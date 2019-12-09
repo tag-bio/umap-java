@@ -65,11 +65,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
-
-import tagbio.umap.metric.PrecomputedMetric;
 
 import junit.framework.TestCase;
+import tagbio.umap.metric.PrecomputedMetric;
 
 /**
  * Tests the corresponding class.
@@ -239,17 +237,17 @@ public class UmapTest extends TestCase {
 //sparse_spatial_data = sparse.csr_matrix(spatial_data * binary_data)
 //sparse_binary_data = sparse.csr_matrix(binary_data)
 
-  private static Matrix makeNNData() {
-    final Random r = new Random();
-    final float[][] data = new float[1002][5]; // last two rows remain 0 to test corner cases
-    for (int k = 0; k < 1000; ++k) {
-      for (int j = 0; j < data[k].length; ++j) {
-        data[k][j] = r.nextFloat();
-      }
-    }
-    return new DefaultMatrix(data);
-  }
-  private static final Matrix nn_data = makeNNData();
+//  private static Matrix makeNNData() {
+//    final Random r = new Random();
+//    final float[][] data = new float[1002][5]; // last two rows remain 0 to test corner cases
+//    for (int k = 0; k < 1000; ++k) {
+//      for (int j = 0; j < data[k].length; ++j) {
+//        data[k][j] = r.nextFloat();
+//      }
+//    }
+//    return new DefaultMatrix(data);
+//  }
+//  private static final Matrix nn_data = makeNNData();
 
 //binary_nn_data = np.random.choice(a=[False, True], size=(1000, 5), p=[0.66, 1 - 0.66])
 //binary_nn_data = np.vstack(

@@ -36,7 +36,9 @@ import java.util.Set;
 
 import tagbio.umap.metric.Metric;
 
-class Sparse {
+final class Sparse {
+
+  private Sparse() { }
 
 // // Just reproduce a simpler version of numpy unique (not numba supported yet)
 // @numba.njit()
@@ -58,7 +60,7 @@ class Sparse {
 
   static int[] arrUnique(final int[] a) {
     Arrays.sort(a);
-    int dups = countDups(a);
+    final int dups = countDups(a);
     if (dups == 0) {
       return a;
     }
@@ -661,14 +663,14 @@ class Sparse {
   }
 
 
-  static final Set<String> sparse_need_n_features = new HashSet<>();
+  static final Set<String> SPARSE_NEED_N_FEATURES = new HashSet<>();
   static {
-    sparse_need_n_features.add("hamming");
-    sparse_need_n_features.add("matching");
-    sparse_need_n_features.add("kulsinski");
-    sparse_need_n_features.add("rogerstanimoto");
-    sparse_need_n_features.add("russellrao");
-    sparse_need_n_features.add("sokalmichener");
-    sparse_need_n_features.add("correlation");
+    SPARSE_NEED_N_FEATURES.add("hamming");
+    SPARSE_NEED_N_FEATURES.add("matching");
+    SPARSE_NEED_N_FEATURES.add("kulsinski");
+    SPARSE_NEED_N_FEATURES.add("rogerstanimoto");
+    SPARSE_NEED_N_FEATURES.add("russellrao");
+    SPARSE_NEED_N_FEATURES.add("sokalmichener");
+    SPARSE_NEED_N_FEATURES.add("correlation");
   }
 }

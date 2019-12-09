@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,14 +84,12 @@ abstract class Data {
     return mSampleNames.toArray(new String[0]);
   }
 
-  public void setSampleNames(String [] name) {
+  public void setSampleNames(String[] name) {
     if (name.length != mSampleNames.size()) {
       throw new IllegalArgumentException("Incorrect number of names.");
     }
     mSampleNames.clear();
-    for (String a : name) {
-      mSampleNames.add(a);
-    }
+    Collections.addAll(mSampleNames, name);
   }
 
   abstract String getName();

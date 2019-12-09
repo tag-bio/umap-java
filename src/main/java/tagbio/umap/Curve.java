@@ -9,8 +9,8 @@ package tagbio.umap;
  * @author Richard Littin
  */
 
-class Curve {
-  Curve() {
+final class Curve {
+  private Curve() {
   }
 
   private static double curve(final float x, final float a, final float b) {
@@ -26,7 +26,7 @@ class Curve {
   }
 
   public static float[] curve_fit(float[] xdata, float[] ydata) {
-      // Used curve method above
+    // Used curve method above
 
 //        def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
 //                check_finite=True, bounds=(-np.inf, np.inf), method=None,
@@ -224,21 +224,20 @@ class Curve {
     assert epsfcn + 1.0f != 1.0f;
     final int maxfev = 200 * (n + 1);
 
-    int col_deriv=0;
-    float ftol=1.49012e-8F;
-    float xtol=1.49012e-8F;
-    float gtol=0.0F;
-    int factor=100;
+    int col_deriv = 0;
+    float ftol = 1.49012e-8F;
+    float xtol = 1.49012e-8F;
+    float gtol = 0.0F;
+    int factor = 100;
 
-      //       if method == 'lm':
- //
-        //res = leastsq(func, p0, full_output=1)
+    //       if method == 'lm':
+    //
+    //res = leastsq(func, p0, full_output=1)
 //
 //        popt, pcov, infodict, errmsg, ier = res
 //        cost = np.sum(infodict['fvec'] ** 2)
 //        if ier not in [1, 2, 3, 4]:
 //        raise RuntimeError("Optimal parameters not found: " + errmsg)
-
 
 
 //        warn_cov = False

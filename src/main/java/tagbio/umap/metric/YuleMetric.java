@@ -35,7 +35,7 @@ public final class YuleMetric extends Metric {
         ++numFalseTrue;
       }
     }
-    int numFalseFalse = x.length - numTrueTrue - numTrueFalse - numFalseTrue;
+    final int numFalseFalse = x.length - numTrueTrue - numTrueFalse - numFalseTrue;
 
     return numTrueFalse == 0 || numFalseTrue == 0 ? 0 : (2 * numTrueFalse * numFalseTrue) / (float) (numTrueTrue * numFalseFalse + numTrueFalse * numFalseTrue);
   }

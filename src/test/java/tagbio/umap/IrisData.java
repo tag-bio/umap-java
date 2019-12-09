@@ -22,7 +22,7 @@ public class IrisData extends Data {
   }
 
   public static void main(String[] args) throws IOException {
-    Data id = new IrisData();
+    final Data id = new IrisData();
 
     System.out.println("Attributes:");
     for (String att : id.getAttributes()) {

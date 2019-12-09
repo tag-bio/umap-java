@@ -5,10 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class TimingTest {
+public final class TimingTest {
+
+  TimingTest() {
+  }
 
   private static void save(float[][] embedding, int[] indexes, String title) throws FileNotFoundException {
-    final File csvOutputFile = new File("/home/richard/tmp/umap/"+ title +".tsv");
+    final File csvOutputFile = new File("/home/richard/tmp/umap/" + title + ".tsv");
     try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
       for (int r = 0; r < embedding.length; r++) {
         for (int c = 0; c < embedding[0].length; c++) {
