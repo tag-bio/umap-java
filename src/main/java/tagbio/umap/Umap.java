@@ -655,7 +655,7 @@ public class Umap {
     final float[] params = Curve.curve_fit(xv, yv); // todo curve_fit in scipy
     return new float[]{params[0], params[1]};
     */
-   return Curve.curve_fit(spread, minDist);
+    return Curve.curve_fit(spread, minDist);
   }
 
   private boolean mAngularRpForest = false;
