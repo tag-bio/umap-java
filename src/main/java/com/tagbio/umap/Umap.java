@@ -633,7 +633,6 @@ public class Umap {
     return new DefaultMatrix(result);
   }
 
-
   // Fit a, b params for the differentiable curve used in lower
   // dimensional fuzzy simplicial complex construction. We want the
   // smooth curve (from a pre-defined family with simple gradient) that
@@ -1017,7 +1016,6 @@ public class Umap {
    */
   private void fit(Matrix instances, float[] y) {
     UmapProgress.reset(5);
-
     if (mVerbose) {
       Utils.message("Starting fitting for " + instances.rows() + " instances with " + instances.cols() + " attributes");
     }
