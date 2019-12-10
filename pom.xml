@@ -22,27 +22,34 @@
     <checkstyle.config.location>checkstyle.xml</checkstyle.config.location>
   </properties>
 
-  <reporting>
+  <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.1.0</version>
+        <configuration>
+          <consoleOutput>true</consoleOutput>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <goals>
+              <goal>checkstyle</goal>
+            </goals>
+            <phase>prepare-package</phase>
+          </execution>
+        </executions>
       </plugin>
-    </plugins>
-  </reporting>
-
-  <build>
-    <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.3.2</version>
-          <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-          </configuration>
-        </plugin>
     </plugins>
   </build>
 </project>

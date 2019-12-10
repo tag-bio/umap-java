@@ -3,7 +3,8 @@
 
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
-    <property name="severity" value="warning"/>
+  <property name="severity" value="warning"/>
+  <property name="fileExtensions" value="java, properties, xml"/>
     <module name="TreeWalker">
     <module name="ConstantName">
       <property name="format" value="^[A-Z](_?[A-Z0-9]+)*$"/>
