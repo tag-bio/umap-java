@@ -1123,7 +1123,7 @@ public class Umap {
       }
     }
     UmapProgress.update();
-    UmapProgress.incTotal(mNEpochs == null ? (graph_.rows() <= 10000 ? 500 : 200) : mNEpochs);
+    UmapProgress.incTotal(mNEpochs == null ? (mGraph.rows() <= 10000 ? 500 : 200) : mNEpochs);
 
     final int nEpochs = mNEpochs == null ? 0 : mNEpochs;
 
