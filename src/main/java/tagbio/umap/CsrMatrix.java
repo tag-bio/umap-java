@@ -15,9 +15,9 @@ import java.util.Arrays;
  */
 class CsrMatrix extends Matrix {
 
-  private int[] mIndptr;  // indptr[row] to indptr[row + 1] locations of cols in indices
-  private int[] mIndices; // positions of actual data
-  private float[] mData;
+  private final int[] mIndptr;  // indptr[row] to indptr[row + 1] locations of cols in indices
+  private final int[] mIndices; // positions of actual data
+  private final float[] mData;
 
   CsrMatrix(final float[] data, final int[] indptr, final int[] indices, final int rowCount, final int colCount) {
     super(rowCount, colCount);

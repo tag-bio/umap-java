@@ -25,12 +25,12 @@ class NearestNeighborRandomInit {
   void init(final int nNeighbors, final Matrix data, final Matrix queryPoints, final Heap heap, final Random random) {
     for (int i = 0; i < queryPoints.rows(); ++i) {
       final int[] indices = Utils.rejectionSample(nNeighbors, data.rows(), random);
-      for (int j = 0; j < indices.length; ++j) {
-        if (indices[j] < 0) { // todo is this check necessary?
+      for (int index : indices) {
+        if (index < 0) { // todo is this check necessary?
           continue;
         }
-        final float d = mDist.distance(data.row(indices[j]), queryPoints.row(i));
-        heap.push(i, d, indices[j], true);
+        final float d = mDist.distance(data.row(index), queryPoints.row(i));
+        heap.push(i, d, index, true);
       }
     }
   }

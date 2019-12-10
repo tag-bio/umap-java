@@ -207,8 +207,8 @@ public class Umap {
 //        knnDists = (float[][]) nn[1];
       } else {
         final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(distanceFunc);
-        int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5) / 20.0));
-        int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
+        final int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5) / 20.0));
+        final int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
 
         if (verbose) {
           Utils.message("Building random projection forest with " + nTrees + " trees");
@@ -509,7 +509,7 @@ public class Umap {
         }
       }
 
-      alpha = initialAlpha * (1 - (float) n / (float) (nEpochs));
+      alpha = initialAlpha * (1 - (float) n / (float) nEpochs);
 
       if (verbose && n % (nEpochs / 10) == 0) {
         Utils.message("Completed " + n + "/" + nEpochs);
@@ -678,9 +678,7 @@ public class Umap {
   private static float findValue(final float[][] spreadDist, final int spreadIndex, final int distIndex, final float spreadDelta, final float distDelta) {
     final float start = spreadDist[spreadIndex][distIndex] + distDelta * (spreadDist[spreadIndex][distIndex + 1] - spreadDist[spreadIndex][distIndex]);
     final float end = spreadDist[spreadIndex + 1][distIndex] + distDelta * (spreadDist[spreadIndex + 1][distIndex + 1] - spreadDist[spreadIndex + 1][distIndex]);
-    final float val = start + spreadDelta * (end - start);
-    //System.out.println(spreadDelta + " : " + distDelta + " : " + start + " : " + end + " : " + val);
-    return val;
+    return start + spreadDelta * (end - start);
   }
 
   // look up table base curve fitting
@@ -752,8 +750,8 @@ public class Umap {
   private float mTargetWeight = 0.5F;
   private int mTransformSeed = 42;
   private boolean mVerbose = false;
-  private Float mA = null;
-  private Float mB = null;
+  private final Float mA = null;
+  private final Float mB = null;
   private Random mRandom = new Random(42);
 
   private float mInitialAlpha;

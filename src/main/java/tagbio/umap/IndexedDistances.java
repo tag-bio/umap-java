@@ -14,9 +14,9 @@ import java.util.List;
  */
 class IndexedDistances {
 
-  private int[][] mIndices;
-  private float[][] mDistances;
-  private List<FlatTree> mForest;
+  private final int[][] mIndices;
+  private final float[][] mDistances;
+  private final List<FlatTree> mForest;
 
   IndexedDistances(final int[][] indices, final float[][] distances, final List<FlatTree> forest) {
     mIndices = indices;

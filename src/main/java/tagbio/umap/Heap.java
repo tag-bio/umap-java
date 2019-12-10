@@ -16,9 +16,9 @@ import java.util.Random;
  */
 class Heap {
 
-  private int[][] mIndices;
-  private float[][] mWeights;
-  private boolean[][] mIsNew;
+  private final int[][] mIndices;
+  private final float[][] mWeights;
+  private final boolean[][] mIsNew;
 
   private Heap(final int[][] indices, final float[][] weights) {
     mIndices = indices;
