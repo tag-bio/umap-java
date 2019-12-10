@@ -37,7 +37,8 @@ public final class TimingTest {
   }
 
   public static void main(final String[] args) {
-    UmapProgress.addProgressListener(new PrintProgress());
+    final PrintProgress printProgress = new PrintProgress();
+    UmapProgress.addProgressListener(printProgress);
     try {
 //      for (Data data : new Data[]{new IrisData(), new DigitData(), new MammothData(), new GeneData()}) {
       for (Data data : new Data[]{new MammothData()}) {
@@ -79,6 +80,8 @@ public final class TimingTest {
       }
     } catch (IOException e) {
       e.printStackTrace();
+    } finally {
+      UmapProgress.removeProgressListener(printProgress);
     }
 
   }

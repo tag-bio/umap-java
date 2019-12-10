@@ -655,7 +655,7 @@ public class Umap {
     final float[] params = Curve.curve_fit(xv, yv); // todo curve_fit in scipy
     return new float[]{params[0], params[1]};
     */
-    return Curve.curve_fit(spread, minDist);
+    return Curve.curveFit(spread, minDist);
   }
 
   private boolean mAngularRpForest = false;
@@ -677,8 +677,8 @@ public class Umap {
   private float mTargetWeight = 0.5F;
   private int mTransformSeed = 42;
   private boolean mVerbose = false;
-  private final Float mA = null;
-  private final Float mB = null;
+//  private final Float mA = null;
+//  private final Float mB = null;
   private Random mRandom = new Random(42);
 
   private float mInitialAlpha;
@@ -1024,14 +1024,14 @@ public class Umap {
     mRawData = instances;
 
     // Handle all the optional arguments, setting default
-    if (mA == null || mB == null) {
+    //if (mA == null || mB == null) {
       final float[] ab = findAbParams(mSpread, mMinDist);
       mRunA = ab[0];
       mRunB = ab[1];
-    } else {
-      mRunA = mA;
-      mRunB = mB;
-    }
+//    } else {
+//      mRunA = mA;
+//      mRunB = mB;
+//    }
 
 //      if (isinstance(this.init, np.ndarray)) {
 //        init = check_array(this.init,        /*  dtype = */np.float32,         /* accept_sparse =*/ false);

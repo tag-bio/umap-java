@@ -11,7 +11,7 @@ package tagbio.umap;
 class RandomProjectionTreeNode {
 
   private final int[] mIndices;
-  private final boolean mIsLeaf;
+  //private final boolean mIsLeaf;
   private final Hyperplane mHyperplane;
   private final Float mOffset;
   private final RandomProjectionTreeNode mLeftChild;
@@ -19,7 +19,7 @@ class RandomProjectionTreeNode {
 
   RandomProjectionTreeNode(final int[] indices, final boolean isLeaf, final Hyperplane hyperplane, final Float offset, final RandomProjectionTreeNode leftChild, final RandomProjectionTreeNode rightChild) {
     mIndices = indices;
-    mIsLeaf = isLeaf;
+    //mIsLeaf = isLeaf;
     mHyperplane = hyperplane;
     mOffset = offset;
     mLeftChild = leftChild;

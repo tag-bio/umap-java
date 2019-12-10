@@ -100,7 +100,7 @@ class Heap {
     while (true) {
       final int ic1 = 2 * i + 1;
       final int ic2 = ic1 + 1;
-      int iSwap;
+      final int iSwap;
 
       if (ic1 >= mIndices[0].length) {
         break;
@@ -169,7 +169,7 @@ class Heap {
       final int ic1 = 2 * i + 1;
       final int ic2 = ic1 + 1;
 
-      int iSwap;
+      final int iSwap;
       if (ic1 >= mIndices[0].length) {
         break;
       } else if (ic2 >= mIndices[0].length) {
@@ -249,7 +249,7 @@ class Heap {
        final float[] distHeap = mWeights[i];
 
        for (int j = 0; j < indHeap.length - 1; ++j) {
-         int s = indHeap[0];
+         final int s = indHeap[0];
          indHeap[0] = indHeap[indHeap.length - j - 1];
          indHeap[indHeap.length - j - 1] = s;
          final float t = distHeap[0];

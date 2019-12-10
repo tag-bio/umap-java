@@ -13,7 +13,7 @@ final class Curve {
   private Curve() {
   }
 
-  private static float[][] mSpreadDistAs = {
+  private static final float[][] SPREAD_DIST_AS = {
     {},
     {},
     {},
@@ -32,7 +32,7 @@ final class Curve {
     {0.00000F, 0.92742F, 0.84237F, 0.76312F, 0.68968F, 0.62189F, 0.55955F, 0.50242F, 0.45021F, 0.40260F, 0.35933F, 0.32008F, 0.28455F, 0.25248F, 0.22359F, 0.19762F, 0.17432F, 0.15347F, 0.13483F, 0.11822F, 0.10345F, 0.09033F, 0.07870F, 0.06843F, 0.05936F, 0.05137F, 0.04437F, 0.03821F, 0.03283F, 0.02814F, 0.02405F, 0.02050F},
     {0.00000F, 0.83896F, 0.76357F, 0.69330F, 0.62813F, 0.56793F, 0.51250F, 0.46161F, 0.41501F, 0.37246F, 0.33368F, 0.29843F, 0.26643F, 0.23745F, 0.21126F, 0.18763F, 0.16635F, 0.14723F, 0.13008F, 0.11472F, 0.10100F, 0.08875F, 0.07784F, 0.06815F, 0.05954F, 0.05192F, 0.04518F, 0.03924F, 0.03401F, 0.02941F, 0.02537F, 0.02184F, 0.01875F, 0.01606F},
   };
-  private static float[][] mSpreadDistBs = {
+  private static final float[][] SPREAD_DIST_BS = {
     {},
     {},
     {},
@@ -53,28 +53,26 @@ final class Curve {
   };
 
   private static float findValue(float[][] spreadDist, int spreadIndex, int distIndex, float spreadDelta, float distDelta) {
-    float start = spreadDist[spreadIndex][distIndex] + distDelta * (spreadDist[spreadIndex][distIndex+1] - spreadDist[spreadIndex][distIndex]);
-    float end = spreadDist[spreadIndex+1][distIndex] + distDelta * (spreadDist[spreadIndex+1][distIndex+1] - spreadDist[spreadIndex+1][distIndex]);
-    float val = start + spreadDelta * (end - start);
-    //System.out.println(spreadDelta + " : " + distDelta + " : " + start + " : " + end + " : " + val);
-    return val;
+    final float start = spreadDist[spreadIndex][distIndex] + distDelta * (spreadDist[spreadIndex][distIndex + 1] - spreadDist[spreadIndex][distIndex]);
+    final float end = spreadDist[spreadIndex + 1][distIndex] + distDelta * (spreadDist[spreadIndex + 1][distIndex + 1] - spreadDist[spreadIndex + 1][distIndex]);
+    return start + spreadDelta * (end - start);
   }
 
   // look up table base curve fitting
-  // averages values for locations between known spread/min_dist pairs
-  public static float[] curve_fit(float spread, float min_dist) {
+  // averages values for locations between known spread/minDist pairs
+  public static float[] curveFit(float spread, float minDist) {
     if (spread < 0.5F || spread > 1.5F) {
       throw new IllegalArgumentException("Spread must be in the range 0.5 < spread <= 1.5, got : " + spread);
     }
-    if (min_dist < 0 || min_dist > spread) {
-      throw new IllegalArgumentException("Expecting 0 < min_dist < " + spread + ", got : " + min_dist);
+    if (minDist < 0 || minDist > spread) {
+      throw new IllegalArgumentException("Expecting 0 < minDist < " + spread + ", got : " + minDist);
     }
-    int spreadIndex = (int) (10 * spread);
-    float spreadDelta = (10 * spread - spreadIndex) / 10.0F;
-    int distIndex = (int) (20 * min_dist);
-    float distDelta = (20 * min_dist - distIndex) / 20.0F;
-    float a = findValue(mSpreadDistAs, spreadIndex, distIndex, spreadDelta, distDelta);
-    float b = findValue(mSpreadDistBs, spreadIndex, distIndex, spreadDelta, distDelta);
+    final int spreadIndex = (int) (10 * spread);
+    final float spreadDelta = (10 * spread - spreadIndex) / 10.0F;
+    final int distIndex = (int) (20 * minDist);
+    final float distDelta = (20 * minDist - distIndex) / 20.0F;
+    final float a = findValue(SPREAD_DIST_AS, spreadIndex, distIndex, spreadDelta, distDelta);
+    final float b = findValue(SPREAD_DIST_BS, spreadIndex, distIndex, spreadDelta, distDelta);
     return new float[] {a, b};
   }
 
@@ -83,7 +81,7 @@ final class Curve {
     return 1.0 / (1.0 + a * Math.pow(x, 2 * b));
   }
 
-  private static float[] wrap_curve(final float[] x, final float[] y, final float a, final float b) {
+  private static float[] wrapCurve(final float[] x, final float[] y, final float a, final float b) {
     final float[] res = new float[x.length];
     for (int i = 0; i < x.length; i++) {
       res[i] = (float) (curve(x[i], a, b) - y[i]);
@@ -91,10 +89,8 @@ final class Curve {
     return res;
   }
 
-  public static float[] curve_fit(float[] xdata, float[] ydata) {
-    // Used curve method above
 
-//        def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
+  //        def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
 //                check_finite=True, bounds=(-np.inf, np.inf), method=None,
 //                jac=None, **kwargs):
 //        """
@@ -266,6 +262,9 @@ final class Curve {
 //    >>> plt.show()
 //
 //    """
+  public static float[] curveFit(float[] xdata, float[] ydata) {
+    // Uses curve method above
+    /*
     final int n = 2;  // number of fit parameters fixed to 2 (a and b)
 
     //lb, ub = prepare_bounds(bounds, n)
@@ -295,7 +294,7 @@ final class Curve {
     float xtol = 1.49012e-8F;
     float gtol = 0.0F;
     int factor = 100;
-
+*/
     //       if method == 'lm':
     //
     //res = leastsq(func, p0, full_output=1)
