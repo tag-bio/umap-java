@@ -5,7 +5,6 @@
  */
 package tagbio.umap;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,6 +34,16 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
     mThreads = threads;
   }
 
+  private void waitForThreads(final Thread... threads) {
+    try {
+      for (final Thread thread : threads) {
+        thread.join();
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Override
   Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray) {
     return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, 0.001F, 0.5F);
@@ -44,24 +53,32 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
   Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final float delta, final float rho) {
     UmapProgress.incTotal(nIters);
 
+    final Thread[] threads = new Thread[mThreads];
     final int nVertices = data.rows();
+    final int chunkSize = (nVertices + mThreads - 1) / mThreads;
     final Heap currentGraph = new Heap(data.rows(), nNeighbors);
-    // todo parallel -- note use of random, care needed to maintain determinism -- i.e. how to split generator, sync on .push in heap
-    for (int i = 0; i < data.rows(); ++i) {
-      final float[] iRow = data.row(i);
-      for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
-        final float d = mMetric.distance(iRow, data.row(index));
-        currentGraph.push(i, d, index, true);
-        currentGraph.push(index, d, i, true);
-      }
+    for (int t = 0; t < mThreads; ++t) {
+      final int lo = t * chunkSize;
+      final int hi = Math.min((t + 1) * chunkSize, nVertices);
+      threads[t] = new Thread(() -> {
+        for (int i = lo; i < hi; ++i) {
+          final float[] iRow = data.row(i);
+          for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
+            final float d = mMetric.distance(iRow, data.row(index));
+            currentGraph.push(i, d, index, true);
+            currentGraph.push(index, d, i, true);
+          }
+        }
+      });
+      threads[t].start();
     }
+    waitForThreads(threads);
 
     if (rpTreeInit) {
-      final Thread[] threads = new Thread[mThreads];
-      final int chunkSize = (leafArray.length + mThreads - 1) / mThreads;
+      final int cs = (leafArray.length + mThreads - 1) / mThreads;
       for (int t = 0; t < mThreads; ++t) {
-        final int lo = t * chunkSize;
-        final int hi = Math.min((t + 1) * chunkSize, leafArray.length);
+        final int lo = t * cs;
+        final int hi = Math.min((t + 1) * cs, leafArray.length);
         threads[t] = new Thread(() -> {
           //System.out.println("T: " + lo + ":" + hi + " : " + leafArray.length);
           for (int l = lo; l < hi; ++l) {
@@ -78,13 +95,7 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
         });
         threads[t].start();
       }
-      try {
-        for (final Thread thread : threads) {
-          thread.join();
-        }
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
+      waitForThreads(threads);
     }
 
     final boolean[] rejectStatus = new boolean[maxCandidates];
@@ -95,8 +106,6 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
 
       final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
 
-      final Thread[] threads = new Thread[mThreads];
-      final int chunkSize = (nVertices + mThreads - 1) / mThreads;
       final AtomicInteger totalC = new AtomicInteger();
       for (int t = 0; t < mThreads; ++t) {
         final int lo = t * chunkSize;
@@ -139,13 +148,7 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
         });
         threads[t].start();
       }
-      try {
-        for (final Thread thread : threads) {
-          thread.join();
-        }
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
+      waitForThreads(threads);
 
       final int c = totalC.get();
 
@@ -170,10 +173,5 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
     }
 
     return currentGraph.deheapSort();
-  }
-
-
-  static Heap initialiseSearch(final List<FlatTree> forest, final Matrix data, final Matrix queryPoints, final int nNeighbors, final NearestNeighborRandomInit initFromRandom, NearestNeighborTreeInit initFromTree, final Random random) {
-    return NearestNeighborDescent.initialiseSearch(forest, data, queryPoints, nNeighbors, initFromRandom, initFromTree, random);
   }
 }

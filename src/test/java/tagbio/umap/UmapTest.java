@@ -89,6 +89,24 @@ public class UmapTest extends TestCase {
     assertEquals(-324.09808, MathUtils.sum(matrix), 1e-4);
   }
 
+  public void testIrisViaDouble() throws IOException {
+    final Data data = new IrisData();
+    final Umap umap = new Umap();
+    umap.setInit("random");
+    umap.setVerbose(true);
+    final float[][] d = data.getData();
+    final double[][] dd = new double[d.length][d[0].length];
+    for (int k = 0; k < d.length; ++k) {
+      for (int j = 0; j < d[0].length; ++j) {
+        dd[k][j] = d[k][j];
+      }
+    }
+    final double[][] matrix = umap.fitTransform(dd);
+    assertEquals(150, matrix.length);
+    assertEquals(2, matrix[0].length);
+    assertEquals(-324.09808, MathUtils.sum(matrix), 1e-4);
+  }
+
   public void testDigits() throws IOException {
     final Data data = new DigitData();
     final Umap umap = new Umap();
@@ -187,7 +205,7 @@ public class UmapTest extends TestCase {
 
   public void testPrimes() {
     //final int[] omega = new int[1000000];
-    //final float[][] d = factorizations(omega, 10000);
+    //final float[][] d = factorizations(omega, 1000);
     final int[] omega = new int[1000];
     final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
@@ -195,6 +213,7 @@ public class UmapTest extends TestCase {
     umap.setInit("random");
     umap.setVerbose(true);
     umap.setNumberComponents(2);
+    umap.setThreads(4);
     final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
     assertEquals(-5775.2890625, MathUtils.sum(matrix), 1e-4);

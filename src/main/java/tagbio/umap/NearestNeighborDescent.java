@@ -40,7 +40,6 @@ class NearestNeighborDescent {
   Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final float delta, final float rho) {
     final int nVertices = data.rows();
     final Heap currentGraph = new Heap(data.rows(), nNeighbors);
-    // todo parallel -- note use of random, care needed to maintain determinism -- i.e. how to split generator, sync on .push in heap
     for (int i = 0; i < data.rows(); ++i) {
       final float[] iRow = data.row(i);
       for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
