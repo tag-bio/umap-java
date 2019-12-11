@@ -1172,12 +1172,66 @@ public class Umap {
     return mEmbedding;
   }
 
+  /**
+   * Fit instances into an embedded space and return that transformed output.
+   * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
+   * If the metric is <code>PrecomputedMetric.SINGLETON</code> instances must be a square distance
+   * matrix. Otherwise it contains a sample per row.
+   * @param y array of shape <code>(nSamples)</code>
+   * A target array for supervised dimension reduction. How this is
+   * handled is determined by parameters UMAP was instantiated with.
+   * The relevant metric is <code>mTargetMetric</code>.
+   * @return array of shape <code>(nSamples, nComponents)</code>
+   * Embedding of the training data in low-dimensional space.
+   */
   public Matrix fitTransform(final Matrix instances) {
     return fitTransform(instances, null);
   }
 
+  /**
+   * Fit instances into an embedded space and return that transformed output.
+   * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
+   * If the metric is <code>PrecomputedMetric.SINGLETON</code> instances must be a square distance
+   * matrix. Otherwise it contains a sample per row.
+   * @param y array of shape <code>(nSamples)</code>
+   * A target array for supervised dimension reduction. How this is
+   * handled is determined by parameters UMAP was instantiated with.
+   * The relevant metric is <code>mTargetMetric</code>.
+   * @return array of shape <code>(nSamples, nComponents)</code>
+   * Embedding of the training data in low-dimensional space.
+   */
   public float[][] fitTransform(final float[][] instances) {
     return fitTransform(new DefaultMatrix(instances), null).toArray();
+  }
+
+  /**
+   * Fit instances into an embedded space and return that transformed output.
+   * This version internally converts all the doubles to floats.
+   * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
+   * If the metric is <code>PrecomputedMetric.SINGLETON</code> instances must be a square distance
+   * matrix. Otherwise it contains a sample per row.
+   * @param y array of shape <code>(nSamples)</code>
+   * A target array for supervised dimension reduction. How this is
+   * handled is determined by parameters UMAP was instantiated with.
+   * The relevant metric is <code>mTargetMetric</code>.
+   * @return array of shape <code>(nSamples, nComponents)</code>
+   * Embedding of the training data in low-dimensional space.
+   */
+  public double[][] fitTransform(final double[][] instances) {
+    final float[][] input = new float[instances.length][instances[0].length];
+    for (int k = 0; k < instances.length; ++k) {
+      for (int j = 0; j < instances[0].length; ++j) {
+        input[k][j] = (float) instances[k][j];
+      }
+    }
+    final Matrix result = fitTransform(new DefaultMatrix(input), null);
+    final double[][] output = new double[result.rows()][result.cols()];
+    for (int k = 0; k < result.rows(); ++k) {
+      for (int j = 0; j < result.cols(); ++j) {
+        output[k][j] = result.get(k, j);
+      }
+    }
+    return output;
   }
 
   /**
