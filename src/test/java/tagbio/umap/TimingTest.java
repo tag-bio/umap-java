@@ -41,7 +41,7 @@ public final class TimingTest {
     UmapProgress.addProgressListener(printProgress);
     try {
 //      for (Data data : new Data[]{new IrisData(), new DigitData(), new MammothData(), new GeneData()}) {
-      for (Data data : new Data[]{new MammothData()}) {
+      for (Data data : new Data[]{new GeneData()}) {
         System.out.println("DATA: " + data.getName());
         for (int seed : new int[]{42}) {//, 123, 98765, -4444, 10101}) {
           for (float minDist : new float[]{0.1f}){ //, 0.25f, 0.5f, 0.8f, 0.99f}) {
@@ -57,9 +57,9 @@ public final class TimingTest {
               long start = System.nanoTime();
               final float[][] embedding = umap.fitTransform(data.getData());
               long end = System.nanoTime();
-//              final String title = String.format("%s_md%1.2f_nn%03d_s%d", data.getName(), minDist, neighbours, seed);
-//              save(embedding, data.getSampleClassIndex(), title);
-//              System.out.println(String.format("\t%.3f", (end - start) / 1000000000.0F));
+              final String title = String.format("%s_md%1.2f_nn%03d_s%d", data.getName(), minDist, neighbours, seed);
+              save(embedding, data.getSampleClassIndex(), title);
+              System.out.println(String.format("\t%.3f", (end - start) / 1000000000.0F));
             }
           }
         }

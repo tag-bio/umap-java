@@ -262,7 +262,7 @@ final class Curve {
 //    >>> plt.show()
 //
 //    """
-  public static float[] curveFit(float[] xdata, float[] ydata) {
+//  public static float[] curveFit(float[] xdata, float[] ydata) {
     // Uses curve method above
     /*
     final int n = 2;  // number of fit parameters fixed to 2 (a and b)
@@ -327,8 +327,8 @@ final class Curve {
 //        return popt, pcov, infodict, errmsg, ier
 //    else:
 //        return popt, pcov
-    return null;
-  }
+//    return null;
+//  }
 //
 //
 //    static float[] leastsq(func, x0, args=(), Dfun=None, full_output=0,

@@ -154,7 +154,6 @@ public class Umap {
     if (verbose) {
       Utils.message("Finding nearest neighbors");
     }
-
     final int[][] knnIndices;
     final float[][] knnDists;
     final List<FlatTree> rpForest;
@@ -173,20 +172,21 @@ public class Umap {
       }
       rpForest = Collections.emptyList();
     } else {
-      Metric distanceFunc = metric;
-      angular = distanceFunc.isAngular();
+//      Metric distanceFunc = metric;
+//      angular = distanceFunc.isAngular();
+      boolean isAngular = metric.isAngular();
 
       if (instances instanceof CsrMatrix) {
-        final CsrMatrix csrInstances = (CsrMatrix) instances;
-        // todo this is nonsense now, since metric cannot be a string at this point
-        if (Sparse.SPARSE_NAMED_DISTANCES.containsKey(metric)) {
-          distanceFunc = Sparse.SPARSE_NAMED_DISTANCES.get(metric);
-//          if (Sparse.sparse_need_n_features.contains(metric)) {
-//            metricKwds.put("n_features", instances.cols());
-//          }
-        } else {
-          throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
-        }
+//        final CsrMatrix csrInstances = (CsrMatrix) instances;
+//        // todo this is nonsense now, since metric cannot be a string at this point
+//        if (Sparse.SPARSE_NAMED_DISTANCES.containsKey(metric)) {
+//          distanceFunc = Sparse.SPARSE_NAMED_DISTANCES.get(metric);
+////          if (Sparse.sparse_need_n_features.contains(metric)) {
+////            metricKwds.put("n_features", instances.cols());
+////          }
+//        } else {
+//          throw new IllegalArgumentException("Metric " + metric + " not supported for sparse data");
+//        }
         throw new UnsupportedOperationException();
 //        metric_nn_descent = Sparse.make_sparse_nn_descent(distanceFunc, tuple(metricKwds.values()));
 //
@@ -206,19 +206,21 @@ public class Umap {
 //        knnIndices = (int[][]) nn[0];
 //        knnDists = (float[][]) nn[1];
       } else {
-        final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(distanceFunc);
+        final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(metric);
         final int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5) / 20.0));
         final int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
+        UmapProgress.incTotal(nIters + nTrees + 2);
 
         if (verbose) {
           Utils.message("Building random projection forest with " + nTrees + " trees");
         }
-        rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, angular);
+        rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, isAngular);
         final int[][] leafArray = RandomProjectionTree.rptreeLeafArray(rpForest);
         if (verbose) {
           Utils.message("NN descent for " + nIters + " iterations");
         }
-        final Heap nn = metricNearestNeighborsDescent.descent(instances, nNeighbors, random, 60, true, nIters, leafArray, verbose);
+        metricNearestNeighborsDescent.setVerbose(verbose);
+        final Heap nn = metricNearestNeighborsDescent.descent(instances, nNeighbors, random, 60, true, nIters, leafArray);
         knnIndices = nn.indices();
         knnDists = nn.weights();
       }
@@ -675,7 +677,7 @@ public class Umap {
   private Metric mTargetMetric = CategoricalMetric.SINGLETON;
   private int mTargetNNeighbors = -1;
   private float mTargetWeight = 0.5F;
-  private int mTransformSeed = 42;
+//  private int mTransformSeed = 42;
   private boolean mVerbose = false;
 //  private final Float mA = null;
 //  private final Float mB = null;
@@ -692,7 +694,7 @@ public class Umap {
   private float[][] mKnnDists;
   private List<FlatTree> mRpForest;
   private boolean mSmallData;
-  private Metric mDistanceFunc;
+//  private Metric mDistanceFunc;
   private Matrix mGraph;
   private Matrix mEmbedding;
   private NearestNeighborSearch mSearch;
@@ -978,14 +980,14 @@ public class Umap {
     mTargetWeight = targetWeight;
   }
 
-  /**
-   * Random seed used for the stochastic aspects of the transform operation.
-   * This ensures consistency in transform operations. Default: 42.
-   * @param transformSeed random number generator seed
-   */
-  public void setTransformSeed(final int transformSeed) {
-    mTransformSeed = transformSeed;
-  }
+//  /**
+//   * Random seed used for the stochastic aspects of the transform operation.
+//   * This ensures consistency in transform operations. Default: 42.
+//   * @param transformSeed random number generator seed
+//   */
+//  public void setTransformSeed(final int transformSeed) {
+//    mTransformSeed = transformSeed;
+//  }
 
   private void validateParameters() {
     if (mMinDist > mSpread) {
@@ -1089,13 +1091,13 @@ public class Umap {
 
       mGraph = fuzzySimplicialSet(instances, mNNeighbors, mRandom, mMetric, mKnnIndices, mKnnDists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
 
-      mDistanceFunc = mMetric;
+      final Metric distanceFunc = mMetric;
       if (mMetric == PrecomputedMetric.SINGLETON) {
         Utils.message("Using precomputed metric; transform will be unavailable for new data");
       } else {
-        mRandomInit = new NearestNeighborRandomInit(mDistanceFunc);
-        mTreeInit = new NearestNeighborTreeInit(mDistanceFunc);
-        mSearch = new NearestNeighborSearch(mDistanceFunc);
+        mRandomInit = new NearestNeighborRandomInit(distanceFunc);
+        mTreeInit = new NearestNeighborTreeInit(distanceFunc);
+        mSearch = new NearestNeighborSearch(distanceFunc);
       }
     }
     UmapProgress.update();
@@ -1122,8 +1124,8 @@ public class Umap {
         mGraph = resetLocalConnectivity(mGraph);
       }
     }
-    UmapProgress.update();
     UmapProgress.incTotal(mNEpochs == null ? (mGraph.rows() <= 10000 ? 500 : 200) : mNEpochs);
+    UmapProgress.update();
 
     final int nEpochs = mNEpochs == null ? 0 : mNEpochs;
 

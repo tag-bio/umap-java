@@ -208,11 +208,12 @@ class Heap {
   // Restore the heap property for a heap with an out of place element
   // at position <code>elt</code>. This works with a heap pair where <code>heap1</code> carries
   // the weights and <code>heap2</code> holds the corresponding elements.
-  private static void siftdown(final float[] heap1, final int[] heap2, final int length, int elt) {
-    while (elt * 2 + 1 < length) {
-      final int leftChild = elt * 2 + 1;
+  private static void siftdown(final float[] heap1, final int[] heap2, final int length, final int elt) {
+    int mid = elt;
+    while (mid * 2 + 1 < length) {
+      final int leftChild = mid * 2 + 1;
       final int rightChild = leftChild + 1;
-      int swap = elt;
+      int swap = mid;
 
       if (heap1[swap] < heap1[leftChild]) {
         swap = leftChild;
@@ -222,16 +223,16 @@ class Heap {
         swap = rightChild;
       }
 
-      if (swap == elt) {
+      if (swap == mid) {
         break;
       } else {
         final float t = heap1[swap];
-        heap1[swap] = heap1[elt];
-        heap1[elt] = t;
+        heap1[swap] = heap1[mid];
+        heap1[mid] = t;
         final int s = heap2[swap];
-        heap2[swap] = heap2[elt];
-        heap2[elt] = s;
-        elt = swap;
+        heap2[swap] = heap2[mid];
+        heap2[mid] = s;
+        mid = swap;
       }
     }
   }

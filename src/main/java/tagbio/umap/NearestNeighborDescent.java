@@ -19,6 +19,7 @@ import tagbio.umap.metric.Metric;
 class NearestNeighborDescent {
 
   private final Metric mMetric;
+  private boolean mVerbose;
 
   /**
    * Construct a nearest neighbor descent object for the given metric.
@@ -28,13 +29,15 @@ class NearestNeighborDescent {
     mMetric = metric;
   }
 
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose) {
-    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, verbose, 0.001F, 0.5F);
+  void setVerbose(boolean flag) {
+    mVerbose = flag;
   }
 
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
-    UmapProgress.incTotal(nIters);
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray) {
+    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, 0.001F, 0.5F);
+  }
 
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final float delta, final float rho) {
     final int nVertices = data.rows();
     final Heap currentGraph = new Heap(data.rows(), nNeighbors);
     // todo parallel -- note use of random, care needed to maintain determinism -- i.e. how to split generator, sync on .push in heap
@@ -46,6 +49,7 @@ class NearestNeighborDescent {
         currentGraph.push(index, d, i, true);
       }
     }
+    UmapProgress.update();
 
     if (rpTreeInit) {
       // todo parallel
@@ -60,10 +64,11 @@ class NearestNeighborDescent {
         }
       }
     }
+    UmapProgress.update();
 
     for (int n = 0; n < nIters; ++n) {
-      if (verbose) {
-        Utils.message("NearestNeighborDescent: " + n + " / " + nIters);
+      if (mVerbose) {
+        Utils.message("NearestNeighborDescent: " + (n + 1) + " / " + nIters);
       }
 
       final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
@@ -75,7 +80,7 @@ class NearestNeighborDescent {
           if (p < 0 || random.nextFloat() < rho) {
             continue;
           }
-          for (int k = 0; k < maxCandidates; ++k) {
+          for (int k = j; k < maxCandidates; ++k) {
             final int q = candidateNeighbors.index(i, k);
             if (q < 0 || (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k))) {
               continue;
@@ -98,7 +103,6 @@ class NearestNeighborDescent {
       }
       UmapProgress.update();
     }
-
     return currentGraph.deheapSort();
   }
 

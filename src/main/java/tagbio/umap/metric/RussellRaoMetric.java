@@ -17,9 +17,9 @@ public final class RussellRaoMetric extends Metric {
     super(false);
   }
 
-  private int countNonZero(final float[] x) {
+  private int countNonZero(final float[] values) {
     int c = 0;
-    for (final float v : x) {
+    for (final float v : values) {
       if (v != 0) {
         ++c;
       }

@@ -530,12 +530,12 @@ final class RandomProjectionTree {
   }
 
 
-  private static int[] recursiveFlatten(final RandomProjectionTreeNode tree, final Object hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, int nodeNum, int leafNum) {
+  private static int[] recursiveFlatten(final RandomProjectionTreeNode tree, final Object hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, final int nodeNum, final int leafNum) {
     if (tree.isLeaf()) {
       children[nodeNum][0] = -leafNum;
       //indices[leafNum, :tree.getIndices().shape[0]] =tree.getIndices();
       indices[leafNum] = tree.getIndices();
-      return new int[]{nodeNum, ++leafNum};
+      return new int[]{nodeNum, leafNum + 1};
     } else {
       if (tree.getHyperplane().shape().length > 1) {
         // sparse case
@@ -547,12 +547,9 @@ final class RandomProjectionTree {
       }
       offsets[nodeNum] = tree.getOffset();
       children[nodeNum][0] = nodeNum + 1;
-      final int oldNodeNum = nodeNum;
-      final int[] t = recursiveFlatten(tree.getLeftChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
-      nodeNum = t[0];
-      leafNum = t[1];
-      children[oldNodeNum][1] = nodeNum + 1;
-      return recursiveFlatten(tree.getRightChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
+      final int[] flattenInfo = recursiveFlatten(tree.getLeftChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
+      children[nodeNum][1] = flattenInfo[0] + 1;
+      return recursiveFlatten(tree.getRightChild(), hyperplanes, offsets, children, indices, flattenInfo[0] + 1, flattenInfo[1]);
     }
   }
 
@@ -624,6 +621,7 @@ final class RandomProjectionTree {
     try {
       for (int i = 0; i < nTrees; ++i) {
         result.add(flattenTree(makeTree(data, random, leafSize, angular), leafSize));
+        UmapProgress.update();
       }
     } catch (RuntimeException e) {
       Utils.message("Random Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");

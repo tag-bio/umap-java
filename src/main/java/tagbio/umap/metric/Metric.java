@@ -39,33 +39,7 @@ public abstract class Metric {
     return mIsAngular;
   }
 
-  private static final Map<String, Metric> METRICS = new HashMap<>();
-  static {
-    METRICS.put("euclidean", EuclideanMetric.SINGLETON);
-    METRICS.put("l2", EuclideanMetric.SINGLETON);
-    METRICS.put("manhattan", ManhattanMetric.SINGLETON);
-    METRICS.put("l1", ManhattanMetric.SINGLETON);
-    METRICS.put("taxicab", ManhattanMetric.SINGLETON);
-    METRICS.put("chebyshev", ChebyshevMetric.SINGLETON);
-    METRICS.put("linfinity", ChebyshevMetric.SINGLETON);
-    METRICS.put("linfty", ChebyshevMetric.SINGLETON);
-    METRICS.put("linf", ChebyshevMetric.SINGLETON);
-    METRICS.put("canberra", CanberraMetric.SINGLETON);
-    METRICS.put("cosine", CosineMetric.SINGLETON);
-    METRICS.put("correlation", CorrelationMetric.SINGLETON);
-    METRICS.put("haversine", HaversineMetric.SINGLETON);
-    METRICS.put("braycurtis", BrayCurtisMetric.SINGLETON);
-    METRICS.put("hamming", HammingMetric.SINGLETON);
-    METRICS.put("jaccard", JaccardMetric.SINGLETON);
-    METRICS.put("dice", DiceMetric.SINGLETON);
-    METRICS.put("matching", MatchingMetric.SINGLETON);
-    METRICS.put("kulsinski", KulsinskiMetric.SINGLETON);
-    METRICS.put("rogerstanimoto", RogersTanimotoMetric.SINGLETON);
-    METRICS.put("russellrao", RussellRaoMetric.SINGLETON);
-    METRICS.put("sokalsneath", SokalSneathMetric.SINGLETON);
-    METRICS.put("sokalmichener", SokalMichenerMetric.SINGLETON);
-    METRICS.put("yule", YuleMetric.SINGLETON);
-  }
+  private static Map<String, Metric> sMETRICS = null;
 
   /**
    * Retrieve a metric by name.
@@ -73,7 +47,35 @@ public abstract class Metric {
    * @return metric
    */
   public static Metric getMetric(final String name) {
-    final Metric m = METRICS.get(name.toLowerCase());
+    if (sMETRICS == null) {
+      sMETRICS = new HashMap<>();
+      sMETRICS.put("euclidean", EuclideanMetric.SINGLETON);
+      sMETRICS.put("l2", EuclideanMetric.SINGLETON);
+      sMETRICS.put("manhattan", ManhattanMetric.SINGLETON);
+      sMETRICS.put("l1", ManhattanMetric.SINGLETON);
+      sMETRICS.put("taxicab", ManhattanMetric.SINGLETON);
+      sMETRICS.put("chebyshev", ChebyshevMetric.SINGLETON);
+      sMETRICS.put("linfinity", ChebyshevMetric.SINGLETON);
+      sMETRICS.put("linfty", ChebyshevMetric.SINGLETON);
+      sMETRICS.put("linf", ChebyshevMetric.SINGLETON);
+      sMETRICS.put("canberra", CanberraMetric.SINGLETON);
+      sMETRICS.put("cosine", CosineMetric.SINGLETON);
+      sMETRICS.put("correlation", CorrelationMetric.SINGLETON);
+      sMETRICS.put("haversine", HaversineMetric.SINGLETON);
+      sMETRICS.put("braycurtis", BrayCurtisMetric.SINGLETON);
+      sMETRICS.put("hamming", HammingMetric.SINGLETON);
+      sMETRICS.put("jaccard", JaccardMetric.SINGLETON);
+      sMETRICS.put("dice", DiceMetric.SINGLETON);
+      sMETRICS.put("matching", MatchingMetric.SINGLETON);
+      sMETRICS.put("kulsinski", KulsinskiMetric.SINGLETON);
+      sMETRICS.put("rogerstanimoto", RogersTanimotoMetric.SINGLETON);
+      sMETRICS.put("russellrao", RussellRaoMetric.SINGLETON);
+      sMETRICS.put("sokalsneath", SokalSneathMetric.SINGLETON);
+      sMETRICS.put("sokalmichener", SokalMichenerMetric.SINGLETON);
+      sMETRICS.put("yule", YuleMetric.SINGLETON);
+    }
+
+    final Metric m = sMETRICS.get(name.toLowerCase());
     if (m == null) {
       throw new IllegalArgumentException("Unknown metric: " + name);
     }
