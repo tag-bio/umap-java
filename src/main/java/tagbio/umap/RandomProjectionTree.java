@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Random projection trees.
@@ -629,6 +631,37 @@ final class RandomProjectionTree {
     }
     return result;
   }
+
+  static List<FlatTree> makeForest(final Matrix data, final int nNeighbors, final int nTrees, final Random random, final boolean angular, int threads) {
+    if (threads == 1) {
+      return makeForest(data, nNeighbors, nTrees, random, angular);
+    }
+    final ExecutorService executor = Executors.newFixedThreadPool(threads);
+    final ArrayList<FlatTree> result = new ArrayList<>();
+    final int leafSize = Math.max(10, nNeighbors);
+    try {
+      for (int i = 0; i < nTrees; ++i) {
+        final Thread thread = new Thread(() -> {
+          result.add(flattenTree(makeTree(data, random, leafSize, angular), leafSize));
+          UmapProgress.update();
+        });
+        executor.execute(thread);
+      }
+    } catch (RuntimeException e) {
+      Utils.message("Random Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");
+      throw e; // Python blindly continued from this point ... we die for now
+    }
+    executor.shutdown();
+    while (!executor.isTerminated()) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException ie ) {
+        System.out.println("Sleep interrupted...");
+      }
+    }
+    return result;
+  }
+
 
   /**
    * Generate an array of sets of candidate nearest neighbors by

@@ -57,16 +57,33 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
     }
 
     if (rpTreeInit) {
-      // todo parallel
-      for (final int[] leaf : leafArray) {
-        for (int i = 0; i < leaf.length; ++i) {
-          final float[] iRow = data.row(leaf[i]);
-          for (int j = i + 1; j < leaf.length; ++j) {
-            final float d = mMetric.distance(iRow, data.row(leaf[j]));
-            currentGraph.push(leaf[i], d, leaf[j], true);
-            currentGraph.push(leaf[j], d, leaf[i], true);
+      final Thread[] threads = new Thread[mThreads];
+      final int chunkSize = (leafArray.length + mThreads - 1) / mThreads;
+      for (int t = 0; t < mThreads; ++t) {
+        final int lo = t * chunkSize;
+        final int hi = Math.min((t + 1) * chunkSize, leafArray.length);
+        threads[t] = new Thread(() -> {
+          //System.out.println("T: " + lo + ":" + hi + " : " + leafArray.length);
+          for (int l = lo; l < hi; ++l) {
+            int[] leaf = leafArray[l];
+            for (int i = 0; i < leaf.length; ++i) {
+              final float[] iRow = data.row(leaf[i]);
+              for (int j = i + 1; j < leaf.length; ++j) {
+                final float d = mMetric.distance(iRow, data.row(leaf[j]));
+                currentGraph.push(leaf[i], d, leaf[j], true);
+                currentGraph.push(leaf[j], d, leaf[i], true);
+              }
+            }
           }
+        });
+        threads[t].start();
+      }
+      try {
+        for (final Thread thread : threads) {
+          thread.join();
         }
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
       }
     }
 

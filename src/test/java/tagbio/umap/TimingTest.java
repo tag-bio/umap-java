@@ -54,7 +54,7 @@ public final class TimingTest {
               umap.setMinDist(minDist);
               umap.setNumberNearestNeighbours(neighbours);
               umap.setVerbose(true);
-              //umap.setThreads(1);
+              umap.setThreads(4);
               long start = System.nanoTime();
               final float[][] embedding = umap.fitTransform(data.getData());
               long end = System.nanoTime();

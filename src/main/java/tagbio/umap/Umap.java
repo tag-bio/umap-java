@@ -214,7 +214,7 @@ public class Umap {
         if (verbose) {
           Utils.message("Building random projection forest with " + nTrees + " trees");
         }
-        rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, isAngular);
+        rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, isAngular, threads);
         final int[][] leafArray = RandomProjectionTree.rptreeLeafArray(rpForest);
         if (verbose) {
           Utils.message("NN descent for " + nIters + " iterations");
