@@ -86,6 +86,7 @@ public class UmapTest extends TestCase {
     //System.out.println(matrix);
     assertEquals(150, matrix.length);
     assertEquals(2, matrix[0].length);
+    assertEquals(-324.09808, MathUtils.sum(matrix), 1e-4);
   }
 
   public void testDigits() throws IOException {
@@ -100,6 +101,7 @@ public class UmapTest extends TestCase {
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
     assertEquals(1797, matrix.length);
     assertEquals(3, matrix[0].length);
+    assertEquals(1054.7100830078125, MathUtils.sum(matrix), 1e-4);
 //    final int[] classIndexes = data.getSampleClassIndex();
 //    for (int r = 0; r < matrix.length; ++r) {
 //      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + matrix[r][2] + " " + classIndexes[r]);
@@ -137,10 +139,11 @@ public class UmapTest extends TestCase {
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(5902, matrix.length);
 //    assertEquals(2, matrix[0].length);
-//    final int[] classIndexes = data.getSampleClassIndex();
-//    for (int r = 0; r < matrix.length; ++r) {
-//      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + classIndexes[r]);
-//    }
+//    assertEquals(2601.2939453125, MathUtils.sum(matrix), 1e-4);
+////    final int[] classIndexes = data.getSampleClassIndex();
+////    for (int r = 0; r < matrix.length; ++r) {
+////      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + classIndexes[r]);
+////    }
 //  }
 
   private int[] primes(final int m) {
@@ -194,6 +197,7 @@ public class UmapTest extends TestCase {
     umap.setNumberComponents(2);
     final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
+    assertEquals(-5775.2890625, MathUtils.sum(matrix), 1e-4);
 //    for (int r = 0; r < matrix.length; ++r) {
 //      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + omega[r]);
 //    }

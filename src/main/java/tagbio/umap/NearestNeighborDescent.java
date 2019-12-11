@@ -66,6 +66,7 @@ class NearestNeighborDescent {
     }
     UmapProgress.update();
 
+    final boolean[] rejectStatus = new boolean[maxCandidates];
     for (int n = 0; n < nIters; ++n) {
       if (mVerbose) {
         Utils.message("NearestNeighborDescent: " + (n + 1) + " / " + nIters);
@@ -76,13 +77,23 @@ class NearestNeighborDescent {
       int c = 0;
       for (int i = 0; i < nVertices; ++i) {
         for (int j = 0; j < maxCandidates; ++j) {
+          rejectStatus[j] = random.nextFloat() < rho;
+        }
+
+        for (int j = 0; j < maxCandidates; ++j) {
           final int p = candidateNeighbors.index(i, j);
-          if (p < 0 || random.nextFloat() < rho) {
+          if (p < 0) {
             continue;
           }
-          for (int k = j; k < maxCandidates; ++k) {
+          for (int k = 0; k <= j; ++k) {
             final int q = candidateNeighbors.index(i, k);
-            if (q < 0 || (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k))) {
+            if (q < 0) {
+              continue;
+            }
+            if (rejectStatus[j] && rejectStatus[k]) {
+              continue;
+            }
+            if (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k)) {
               continue;
             }
 
@@ -96,6 +107,19 @@ class NearestNeighborDescent {
           }
         }
       }
+
+//      // todo delete this debug
+//      final int[][] idx = currentGraph.indices();
+//      final float[][] w = currentGraph.weights();
+//      float sum = 0;
+//      for (int i = 0; i < idx.length; ++i) {
+//        for (int j = 0; j < idx[i].length; ++j) {
+//          if (idx[i][j] >= 0) {
+//            sum += w[i][j];
+//          }
+//        }
+//      }
+//      System.out.println(n + " heap-weight " + sum + " c=" + c);
 
       if (c <= delta * nNeighbors * data.rows()) {
         UmapProgress.update(nIters - n);

@@ -63,6 +63,16 @@ final class MathUtils {
     return s / c;
   }
 
+  static float sum(final float[][] x) {
+    float s = 0;
+    for (final float[] row : x) {
+      for (final float v : row) {
+        s += v;
+      }
+    }
+    return s;
+  }
+
 //  static double mean(final float[][] x, final int col) {
 //    double s = 0;
 //    for (final float[] row : x) {
