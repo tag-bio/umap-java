@@ -19,7 +19,7 @@ import tagbio.umap.metric.Metric;
 class NearestNeighborDescent {
 
   protected final Metric mMetric;
-  private boolean mVerbose;
+  protected boolean mVerbose;
 
   /**
    * Construct a nearest neighbor descent object for the given metric.

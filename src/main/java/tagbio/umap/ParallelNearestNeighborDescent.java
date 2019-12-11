@@ -35,11 +35,13 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
     mThreads = threads;
   }
 
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose) {
-    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, verbose, 0.001F, 0.5F);
+  @Override
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray) {
+    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, 0.001F, 0.5F);
   }
 
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final boolean verbose, final float delta, final float rho) {
+  @Override
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final float delta, final float rho) {
     UmapProgress.incTotal(nIters);
 
     final int nVertices = data.rows();
@@ -70,7 +72,7 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
 
     final boolean[] rejectStatus = new boolean[maxCandidates];
     for (int n = 0; n < nIters; ++n) {
-      if (verbose) {
+      if (mVerbose) {
         Utils.message("NearestNeighborDescent: " + n + " / " + nIters);
       }
 
