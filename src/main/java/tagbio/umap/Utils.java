@@ -271,4 +271,13 @@ final class Utils {
     }
     return submat;
   }
+
+  static Random[] splitRandom(final Random random, final int n) {
+    final Random[] randoms = new Random[n];
+    final long baseSeed = random.nextLong();
+    for (int j = 0; j < n; ++j) {
+      randoms[j] = new Random(baseSeed * (j + 1) + j); 
+    }
+    return randoms;
+  }
 }

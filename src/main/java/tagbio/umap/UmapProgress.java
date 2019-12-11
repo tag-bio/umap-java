@@ -16,14 +16,13 @@ public final class UmapProgress {
   private UmapProgress() {
   }
 
-  // TODO - synchronization across static methods
   public static synchronized void addProgressListener(final ProgressListener listener) {
     if (!PROGRESS.mProgressListeners.contains(listener)) {
       PROGRESS.mProgressListeners.add(listener);
     }
   }
 
-  public static boolean removeProgressListener(final ProgressListener listener) {
+  public static synchronized boolean removeProgressListener(final ProgressListener listener) {
     return PROGRESS.mProgressListeners.remove(listener);
   }
 
@@ -38,19 +37,19 @@ public final class UmapProgress {
     }
   }
 
-  public static void reset(final int total) {
+  public static synchronized void reset(final int total) {
     PROGRESS.mTotal = total;
     PROGRESS.mCounter = 0;
     PROGRESS.mLastNotificationTime = 0L;
     update(0);
   }
 
-  public static void incTotal(final int inc) {
+  public static synchronized void incTotal(final int inc) {
     PROGRESS.mTotal += inc;
     update(0);
   }
 
-  public static void finished() {
+  public static synchronized void finished() {
     PROGRESS.mCounter = PROGRESS.mTotal;
     PROGRESS.mLastNotificationTime = 0L;
     update(0);
@@ -60,7 +59,7 @@ public final class UmapProgress {
     update(1);
   }
 
-  public static void update(int n) {
+  public static synchronized void update(int n) {
     PROGRESS.mCounter += n;
     if (PROGRESS.mCounter > PROGRESS.mTotal) {
       Utils.message("Update counter exceeded total: " + PROGRESS.mCounter + " : " + PROGRESS.mTotal);

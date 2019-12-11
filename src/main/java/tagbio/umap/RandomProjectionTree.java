@@ -618,11 +618,13 @@ final class RandomProjectionTree {
    * @return list of random projection trees
    */
   static List<FlatTree> makeForest(final Matrix data, final int nNeighbors, final int nTrees, final Random random, final boolean angular) {
+    final Random[] randoms = Utils.splitRandom(random, nTrees);  // insure same set of random numbers for 1 and multiple threads
+
     final ArrayList<FlatTree> result = new ArrayList<>();
     final int leafSize = Math.max(10, nNeighbors);
     try {
       for (int i = 0; i < nTrees; ++i) {
-        result.add(flattenTree(makeTree(data, random, leafSize, angular), leafSize));
+        result.add(flattenTree(makeTree(data, randoms[i], leafSize, angular), leafSize));
         UmapProgress.update();
       }
     } catch (RuntimeException e) {
@@ -636,13 +638,17 @@ final class RandomProjectionTree {
     if (threads == 1) {
       return makeForest(data, nNeighbors, nTrees, random, angular);
     }
+    final Random[] randoms = Utils.splitRandom(random, nTrees);  // insure same set of random numbers for 1 and multiple threads
+
     final ExecutorService executor = Executors.newFixedThreadPool(threads);
     final ArrayList<FlatTree> result = new ArrayList<>();
     final int leafSize = Math.max(10, nNeighbors);
     try {
       for (int i = 0; i < nTrees; ++i) {
+        final Random rand = randoms[i];
+        final int ii = i;
         final Thread thread = new Thread(() -> {
-          result.add(flattenTree(makeTree(data, random, leafSize, angular), leafSize));
+          result.add(flattenTree(makeTree(data, rand, leafSize, angular), leafSize));
           UmapProgress.update();
         });
         executor.execute(thread);
