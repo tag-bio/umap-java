@@ -150,7 +150,7 @@ public class Umap {
    *   knnDists: array of shape <code>(nSamples, nNeighbors)</code>
    *   The distances to the <code>nNeighbors</code> closest points in the dataset.
    */
-  static IndexedDistances nearestNeighbors(final Matrix instances, final int nNeighbors, final Metric metric, boolean angular, final Random random, final boolean verbose) {
+  static IndexedDistances nearestNeighbors(final Matrix instances, final int nNeighbors, final Metric metric, boolean angular, final Random random, final int threads, final boolean verbose) {
     if (verbose) {
       Utils.message("Finding nearest neighbors");
     }
@@ -206,7 +206,7 @@ public class Umap {
 //        knnIndices = (int[][]) nn[0];
 //        knnDists = (float[][]) nn[1];
       } else {
-        final NearestNeighborDescent metricNearestNeighborsDescent = new NearestNeighborDescent(metric);
+        final NearestNeighborDescent metricNearestNeighborsDescent = threads == 1 ? new NearestNeighborDescent(metric) :  new ParallelNearestNeighborDescent(metric, threads);
         final int nTrees = 5 + (int) (Math.round(Math.pow(instances.rows(), 0.5) / 20.0));
         final int nIters = Math.max(5, (int) (Math.round(MathUtils.log2(instances.rows()))));
         UmapProgress.incTotal(nIters + nTrees + 2);
@@ -320,15 +320,16 @@ public class Umap {
    * The higher this value the more connected the manifold becomes
    * locally. In practice this should be not more than the local intrinsic
    * dimension of the manifold.
+   * @param threads Number of threads
    * @param verbose Whether to report information on the current progress of the algorithm.
    * @return A fuzzy simplicial set represented as a sparse matrix. The <code>(i, j)</code>
    * entry of the matrix represents the membership strength of the
    * 1-simplex between the ith and jth sample points.
    */
-  static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final Random random, final Metric metric, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final int localConnectivity, final boolean verbose) {
+  static Matrix fuzzySimplicialSet(final Matrix instances, final int nNeighbors, final Random random, final Metric metric, int[][] knnIndices, float[][] knnDists, final boolean angular, final float setOpMixRatio, final int localConnectivity, final int threads, final boolean verbose) {
 
     if (knnIndices == null || knnDists == null) {
-      final IndexedDistances nn = nearestNeighbors(instances, nNeighbors, metric, angular, random, verbose);
+      final IndexedDistances nn = nearestNeighbors(instances, nNeighbors, metric, angular, random, threads, verbose);
       knnIndices = nn.getIndices();
       knnDists = nn.getDistances();
     }
@@ -682,6 +683,7 @@ public class Umap {
 //  private final Float mA = null;
 //  private final Float mB = null;
   private Random mRandom = new Random(42);
+  private int mThreads = 1;
 
   private float mInitialAlpha;
   private int mRunNNeighbors;
@@ -989,6 +991,17 @@ public class Umap {
 //    mTransformSeed = transformSeed;
 //  }
 
+  /**
+   * Set the maximum number of threads to use (default 1).
+   * @param threads number of threads
+   */
+  public void setThreads(final int threads) {
+    if (threads < 1) {
+      throw new IllegalArgumentException("threads must be at least 1");
+    }
+    mThreads = threads;
+  }
+
   private void validateParameters() {
     if (mMinDist > mSpread) {
       throw new IllegalArgumentException("minDist must be less than or equal to spread");
@@ -1080,16 +1093,16 @@ public class Umap {
     if (instances.rows() < SMALL_PROBLEM_THRESHOLD) {
       mSmallData = true;
       final Matrix dmat = PairwiseDistances.pairwiseDistances(instances, mMetric);
-      mGraph = fuzzySimplicialSet(dmat, mRunNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      mGraph = fuzzySimplicialSet(dmat, mRunNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mThreads, mVerbose);
     } else {
       mSmallData = false;
       // Standard case
-      final IndexedDistances nn = nearestNeighbors(instances, mRunNNeighbors, mMetric, mAngularRpForest, mRandom, mVerbose);
+      final IndexedDistances nn = nearestNeighbors(instances, mRunNNeighbors, mMetric, mAngularRpForest, mRandom, mThreads, mVerbose);
       mKnnIndices = nn.getIndices();
       mKnnDists = nn.getDistances();
       mRpForest = nn.getForest();
 
-      mGraph = fuzzySimplicialSet(instances, mNNeighbors, mRandom, mMetric, mKnnIndices, mKnnDists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mVerbose);
+      mGraph = fuzzySimplicialSet(instances, mNNeighbors, mRandom, mMetric, mKnnIndices, mKnnDists, mAngularRpForest, mSetOpMixRatio, mLocalConnectivity, mThreads, mVerbose);
 
       final Metric distanceFunc = mMetric;
       if (mMetric == PrecomputedMetric.SINGLETON) {
@@ -1115,10 +1128,10 @@ public class Umap {
         // Handle the small case as precomputed as before
         if (y.length < SMALL_PROBLEM_THRESHOLD) {
           final Matrix ydmat = PairwiseDistances.pairwiseDistances(MathUtils.promoteTranspose(y), mTargetMetric);
-          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1, false);
+          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1, mThreads, false);
         } else {
           // Standard case
-          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, mRandom, mTargetMetric, null, null, false, 1.0F, 1, false);
+          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, mRandom, mTargetMetric, null, null, false, 1.0F, 1, mThreads, false);
         }
         mGraph = generalSimplicialSetIntersection(mGraph, targetGraph, mTargetWeight);
         mGraph = resetLocalConnectivity(mGraph);

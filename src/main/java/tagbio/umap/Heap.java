@@ -75,66 +75,68 @@ class Heap {
    * @return True iff the pushed element is new.
    */
   boolean push(final int row, final float weight, final int index, final boolean flag) {
-    final int[] indices = mIndices[row];
-    final float[] weights = mWeights[row];
-    final boolean[] isNew = mIsNew[row];
+    synchronized (mIndices[row]) {
+      final int[] indices = mIndices[row];
+      final float[] weights = mWeights[row];
+      final boolean[] isNew = mIsNew[row];
 
-    if (weight >= weights[0]) {
-      return false;
-    }
-
-    // break if we already have this element.
-    for (final int value : indices) {
-      if (index == value) {
+      if (weight >= weights[0]) {
         return false;
       }
-    }
 
-    // insert val at position zero
-    weights[0] = weight;
-    indices[0] = index;
-    isNew[0] = flag;
-
-    // descend the heap, swapping values until the max heap criterion is met
-    int i = 0;
-    while (true) {
-      final int ic1 = 2 * i + 1;
-      final int ic2 = ic1 + 1;
-      final int iSwap;
-
-      if (ic1 >= mIndices[0].length) {
-        break;
-      } else if (ic2 >= mIndices[0].length) {
-        if (weights[ic1] > weight) {
-          iSwap = ic1;
-        } else {
-          break;
-        }
-      } else if (weights[ic1] >= weights[ic2]) {
-        if (weight < weights[ic1]) {
-          iSwap = ic1;
-        } else {
-          break;
-        }
-      } else {
-        if (weight < weights[ic2]) {
-          iSwap = ic2;
-        } else {
-          break;
+      // break if we already have this element.
+      for (final int value : indices) {
+        if (index == value) {
+          return false;
         }
       }
 
-      weights[i] = weights[iSwap];
-      indices[i] = indices[iSwap];
-      isNew[i] = isNew[iSwap];
+      // insert val at position zero
+      weights[0] = weight;
+      indices[0] = index;
+      isNew[0] = flag;
 
-      i = iSwap;
+      // descend the heap, swapping values until the max heap criterion is met
+      int i = 0;
+      while (true) {
+        final int ic1 = 2 * i + 1;
+        final int ic2 = ic1 + 1;
+        final int iSwap;
+
+        if (ic1 >= mIndices[0].length) {
+          break;
+        } else if (ic2 >= mIndices[0].length) {
+          if (weights[ic1] > weight) {
+            iSwap = ic1;
+          } else {
+            break;
+          }
+        } else if (weights[ic1] >= weights[ic2]) {
+          if (weight < weights[ic1]) {
+            iSwap = ic1;
+          } else {
+            break;
+          }
+        } else {
+          if (weight < weights[ic2]) {
+            iSwap = ic2;
+          } else {
+            break;
+          }
+        }
+
+        weights[i] = weights[iSwap];
+        indices[i] = indices[iSwap];
+        isNew[i] = isNew[iSwap];
+
+        i = iSwap;
+      }
+
+      weights[i] = weight;
+      indices[i] = index;
+      isNew[i] = flag;
+      return true;
     }
-
-    weights[i] = weight;
-    indices[i] = index;
-    isNew[i] = flag;
-    return true;
   }
 
   /**

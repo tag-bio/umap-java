@@ -18,7 +18,7 @@ import tagbio.umap.metric.Metric;
  */
 class NearestNeighborDescent {
 
-  private final Metric mMetric;
+  protected final Metric mMetric;
   private boolean mVerbose;
 
   /**

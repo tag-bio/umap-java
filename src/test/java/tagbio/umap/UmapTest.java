@@ -1240,7 +1240,7 @@ public class UmapTest extends TestCase {
 
   public void testNearestNeighborsPrecomputed() throws IOException {
     final Matrix distances = new IrisData(true).getDistances();
-    final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, false);
+    final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, 1, false);
     // Comparison values from Python
     assertTrue(Arrays.deepEquals(new int[][] {{0, 2}, {1, 2}, {2, 1}, {3, 5}, {4, 3}, {5, 3}, {6, 5}, {7, 8}, {8, 7}, {9, 2}}, id.getIndices()));
     assertArrayEquals(new double[][] {{0, 0.509902}, {0, 0.30000022}, {0, 0.30000022}, {0, 0.26457536}, {0, 0.64031225}, {0, 0.26457536}, {0, 0.86023235}, {0, 0.51961535}, {0, 0.51961535}, {0, 5.8360944}}, id.getDistances());
@@ -1250,7 +1250,7 @@ public class UmapTest extends TestCase {
   public void testComputeMembershipStrengths() throws IOException {
     final Matrix distances = new IrisData(true).getDistances();
     final float[][] sigmaRhos = Umap.smoothKnnDist(distances.toArray(), 2, 1);
-    final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, false);
+    final IndexedDistances id = Umap.nearestNeighbors(distances, 2, PrecomputedMetric.SINGLETON, false, null, 1, false);
     final CooMatrix m = Umap.computeMembershipStrengths(id.getIndices(), id.getDistances(), sigmaRhos[0], sigmaRhos[1], distances.rows(), distances.cols());
     // Comparison values from Python
     // The next three lines are order dependent in the CooMatrix, so not ideal for comparison
@@ -1273,7 +1273,7 @@ public class UmapTest extends TestCase {
 
   public void testFuzzySimplicialSet() throws IOException {
     final Matrix distances = new IrisData(true).getDistances();
-    final Matrix m = Umap.fuzzySimplicialSet(distances, 2, null, PrecomputedMetric.SINGLETON, null, null, false, 1, 1, false);
+    final Matrix m = Umap.fuzzySimplicialSet(distances, 2, null, PrecomputedMetric.SINGLETON, null, null, false, 1, 1, 1, false);
     // Comparison values from Python
     /*
     [[0.         0.         0.99999222 0.         0.         0.          0.         0.         0.         0.        ]
