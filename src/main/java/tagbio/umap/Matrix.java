@@ -331,4 +331,26 @@ abstract class Matrix {
     }
     return new DefaultMatrix(d);
   }
+
+  /**
+   * Return a L1 row normalized version of this matrix.  That is, each row is normalized
+   * by the L1 norm of the row.
+   * @return row normalized matrix
+   */
+  Matrix l1Normalize() {
+    final float[][] d = new float[rows()][];
+    for (int k = 0; k < rows(); ++k) {
+      final float[] row = row(k);
+      final float l1 = Utils.norm(row);
+      if (l1 == 0) {
+        d[k] = Arrays.copyOf(row, cols());
+      } else {
+        d[k] = new float[cols()];
+        for (int j = 0; j < cols(); ++j) {
+          d[k][j] = row[j] / l1;
+        }
+      }
+    }
+    return new DefaultMatrix(d);
+  }
 }

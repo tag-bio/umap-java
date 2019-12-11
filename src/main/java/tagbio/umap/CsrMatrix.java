@@ -110,7 +110,24 @@ class CsrMatrix extends Matrix {
         d[j] = mData[j] / max;
       }
     }
-    // Note would be safer to cop mIndptr and mIndices arrays
+    // Note would be safer to copy mIndptr and mIndices arrays
+    return new CsrMatrix(d, mIndptr, mIndices, rows(), cols());
+  }
+
+  @Override
+  Matrix l1Normalize() {
+    final float[] d = new float[mData.length];
+    for (int row = 0; row < rows(); ++row) {
+      float ss = 0;
+      for (int j = mIndptr[row] + 1; j < mIndptr[row + 1]; ++j) {
+        ss += mData[j] * mData[j];
+      }
+      final float l1 = (float) Math.sqrt(ss);
+      for (int j = mIndptr[row]; j < mIndptr[row + 1]; ++j) {
+        d[j] = mData[j] / l1;
+      }
+    }
+    // Note would be safer to copy mIndptr and mIndices arrays
     return new CsrMatrix(d, mIndptr, mIndices, rows(), cols());
   }
 
@@ -122,6 +139,14 @@ class CsrMatrix extends Matrix {
   void sortIndices() {
     // todo
     throw new UnsupportedOperationException();
+  }
+
+  int[][] reshapeIndicies(final int rows, final int cols) {
+    return MathUtils.reshape(mIndices, rows, cols);
+  }
+
+  float[][] reshapeWeights(final int rows, final int cols) {
+    return MathUtils.reshape(mData, rows, cols);
   }
 
 }
