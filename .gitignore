@@ -7,3 +7,4 @@ build
 src/test/resources/com/tagbio/umap/gene_exp_data.tsv.gz
 src/test/resources/com/tagbio/umap/gene_exp_info.tsv
 src/test/resources/com/tagbio/umap/mammoth.tsv
+/bin/
