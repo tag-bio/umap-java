@@ -5,10 +5,15 @@
  */
 package tagbio.umap;
 
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import tagbio.umap.metric.Metric;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Nearest neighbor descent for a specified distance metric.
@@ -51,127 +56,125 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
 
   @Override
   Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final float delta, final float rho) {
-    UmapProgress.incTotal(nIters);
+    final ExecutorService executor = Executors.newFixedThreadPool(mThreads);
+    try {
+      UmapProgress.incTotal(nIters);
 
-    final Thread[] threads = new Thread[mThreads];
-    final int nVertices = data.rows();
-    final int chunkSize = (nVertices + mThreads - 1) / mThreads;
-    final Heap currentGraph = new Heap(data.rows(), nNeighbors);
-    for (int t = 0; t < mThreads; ++t) {
-      final int lo = t * chunkSize;
-      final int hi = Math.min((t + 1) * chunkSize, nVertices);
-      threads[t] = new Thread(() -> {
-        for (int i = lo; i < hi; ++i) {
-          final float[] iRow = data.row(i);
-          for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
-            final float d = mMetric.distance(iRow, data.row(index));
-            currentGraph.push(i, d, index, true);
-            currentGraph.push(index, d, i, true);
-          }
-        }
-      });
-      threads[t].start();
-    }
-    waitForThreads(threads);
+      final List<Future<Integer>> futures = new ArrayList<>();
 
-    if (rpTreeInit) {
-      final int cs = (leafArray.length + mThreads - 1) / mThreads;
-      for (int t = 0; t < mThreads; ++t) {
-        final int lo = t * cs;
-        final int hi = Math.min((t + 1) * cs, leafArray.length);
-        threads[t] = new Thread(() -> {
-          //System.out.println("T: " + lo + ":" + hi + " : " + leafArray.length);
-          for (int l = lo; l < hi; ++l) {
-            int[] leaf = leafArray[l];
-            for (int i = 0; i < leaf.length; ++i) {
-              final float[] iRow = data.row(leaf[i]);
-              for (int j = i + 1; j < leaf.length; ++j) {
-                final float d = mMetric.distance(iRow, data.row(leaf[j]));
-                currentGraph.push(leaf[i], d, leaf[j], true);
-                currentGraph.push(leaf[j], d, leaf[i], true);
-              }
-            }
-          }
-        });
-        threads[t].start();
-      }
-      waitForThreads(threads);
-    }
+      final int nVertices = data.rows();
+      final Heap currentGraph = new Heap(data.rows(), nNeighbors);
 
-    final boolean[] rejectStatus = new boolean[maxCandidates];
-    for (int n = 0; n < nIters; ++n) {
-      if (mVerbose) {
-        Utils.message("NearestNeighborDescent: " + n + " / " + nIters);
-      }
+      final int chunkSize = (nVertices + mThreads - 1) / mThreads;
 
-      final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
-
-      final AtomicInteger totalC = new AtomicInteger();
       for (int t = 0; t < mThreads; ++t) {
         final int lo = t * chunkSize;
         final int hi = Math.min((t + 1) * chunkSize, nVertices);
-        threads[t] = new Thread(() -> {
-          int c = 0;
+        futures.add(executor.submit(() -> {
           for (int i = lo; i < hi; ++i) {
-            for (int j = 0; j < maxCandidates; ++j) {
-              rejectStatus[j] = random.nextFloat() < rho;
+            final float[] iRow = data.row(i);
+            for (final int index : Utils.rejectionSample(nNeighbors, data.rows(), random)) {
+              final float d = mMetric.distance(iRow, data.row(index));
+              currentGraph.push(i, d, index, true);
+              currentGraph.push(index, d, i, true);
             }
-
-            for (int j = 0; j < maxCandidates; ++j) {
-              final int p = candidateNeighbors.index(i, j);
-              if (p < 0) {
-                continue;
-              }
-              for (int k = 0; k <= j; ++k) {
-                final int q = candidateNeighbors.index(i, k);
-                if (q < 0) {
-                  continue;
-                }
-                if (rejectStatus[j] && rejectStatus[k]) {
-                  continue;
-                }
-                if (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k)) {
-                  continue;
-                }
-
-                final float d = mMetric.distance(data.row(p), data.row(q));
-                if (currentGraph.push(p, d, q, true)) {
-                  ++c;
-                }
-                if (currentGraph.push(q, d, p, true)) {
-                  ++c;
-                }
-              }
-            }
-            totalC.addAndGet(c);
           }
-        });
-        threads[t].start();
+          return 0;
+        }));
       }
-      waitForThreads(threads);
+      waitForFutures(futures);
 
-      final int c = totalC.get();
-
-//      // todo delete this debug
-//      final int[][] idx = currentGraph.indices();
-//      final float[][] w = currentGraph.weights();
-//      float sum = 0;
-//      for (int i = 0; i < idx.length; ++i) {
-//        for (int j = 0; j < idx[i].length; ++j) {
-//          if (idx[i][j] >= 0) {
-//            sum += w[i][j];
-//          }
-//        }
-//      }
-//      System.out.println(n + " heap-weight " + sum + " c=" + c);
-
-      if (c <= delta * nNeighbors * data.rows()) {
-        UmapProgress.update(nIters - n);
-        break;
+      if (rpTreeInit) {
+        final int cs = (leafArray.length + mThreads - 1) / mThreads;
+        for (int t = 0; t < mThreads; ++t) {
+          final int lo = t * cs;
+          final int hi = Math.min((t + 1) * cs, leafArray.length);
+          futures.add(executor.submit(() -> {
+            //System.out.println("T: " + lo + ":" + hi + " : " + leafArray.length);
+            for (int l = lo; l < hi; ++l) {
+              int[] leaf = leafArray[l];
+              for (int i = 0; i < leaf.length; ++i) {
+                final float[] iRow = data.row(leaf[i]);
+                for (int j = i + 1; j < leaf.length; ++j) {
+                  final float d = mMetric.distance(iRow, data.row(leaf[j]));
+                  currentGraph.push(leaf[i], d, leaf[j], true);
+                  currentGraph.push(leaf[j], d, leaf[i], true);
+                }
+              }
+            }
+            return 0;
+          }));
+        }
+        waitForFutures(futures);
       }
-      UmapProgress.update();
+
+      final boolean[] rejectStatus = new boolean[maxCandidates];
+      for (int n = 0; n < nIters; ++n) {
+        if (mVerbose) {
+          Utils.message("NearestNeighborDescent: " + (n + 1) + " / " + nIters);
+        }
+
+        final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
+
+        for (int t = 0; t < mThreads; ++t) {
+          final int lo = t * chunkSize;
+          final int hi = Math.min((t + 1) * chunkSize, nVertices);
+          futures.add(executor.submit(() -> {
+            int c = 0;
+            for (int i = lo; i < hi; ++i) {
+              for (int j = 0; j < maxCandidates; ++j) {
+                rejectStatus[j] = random.nextFloat() < rho;
+              }
+
+              for (int j = 0; j < maxCandidates; ++j) {
+                final int p = candidateNeighbors.index(i, j);
+                if (p < 0) {
+                  continue;
+                }
+                for (int k = 0; k <= j; ++k) {
+                  final int q = candidateNeighbors.index(i, k);
+                  if (q < 0 || (rejectStatus[j] && rejectStatus[k]) || (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k))) {
+                    continue;
+                  }
+
+                  final float d = mMetric.distance(data.row(p), data.row(q));
+                  if (currentGraph.push(p, d, q, true)) {
+                    ++c;
+                  }
+                  if (currentGraph.push(q, d, p, true)) {
+                    ++c;
+                  }
+                }
+              }
+            }
+            return c;
+          }));
+        }
+        final int c = waitForFutures(futures);
+
+        if (c <= delta * nNeighbors * data.rows()) {
+          UmapProgress.update(nIters - n);
+          break;
+        }
+        UmapProgress.update();
+      }
+
+      return currentGraph.deheapSort();
+    } catch (InterruptedException | ExecutionException ex) {
+      throw new RuntimeException(ex);
+    } finally {
+      executor.shutdown();
     }
+  }
 
-    return currentGraph.deheapSort();
+  private static int waitForFutures(List<Future<Integer>> futures) throws InterruptedException, ExecutionException {
+    //System.out.println("WAITING " + futures.size());
+    int c = 0;
+    for (Future<Integer> future : futures) {
+      c += future.get();
+    }
+    futures.clear();
+    //System.out.println("DONE " + futures.size() + " : " + c);
+    return c;
   }
 }
