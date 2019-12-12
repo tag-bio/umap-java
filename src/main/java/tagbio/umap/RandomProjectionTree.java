@@ -10,8 +10,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Random projection trees.
@@ -640,30 +644,31 @@ final class RandomProjectionTree {
     }
     final Random[] randoms = Utils.splitRandom(random, nTrees);  // insure same set of random numbers for 1 and multiple threads
 
+    Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
+      @Override
+      public void uncaughtException(Thread th, Throwable ex) {
+        Utils.message("XXXXRandom Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");
+        throw new RuntimeException(ex); // Python blindly continued from this point ... we die for now
+      }
+    };
+
     final ExecutorService executor = Executors.newFixedThreadPool(threads);
-    final ArrayList<FlatTree> result = new ArrayList<>();
+    final List<Future<FlatTree>> futures = new ArrayList<>();
+
     final int leafSize = Math.max(10, nNeighbors);
-    try {
-      for (int i = 0; i < nTrees; ++i) {
-        final Random rand = randoms[i];
-        final int ii = i;
-        final Thread thread = new Thread(() -> {
-          result.add(flattenTree(makeTree(data, rand, leafSize, angular), leafSize));
-          UmapProgress.update();
-        });
-        executor.execute(thread);
-      }
-    } catch (RuntimeException e) {
-      Utils.message("Random Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");
-      throw e; // Python blindly continued from this point ... we die for now
+    for (final Random rand : randoms) {  // randoms.length == nTrees
+      futures.add(executor.submit(() -> flattenTree(makeTree(data, rand, leafSize, angular), leafSize)));
     }
-    executor.shutdown();
-    while (!executor.isTerminated()) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException ie ) {
-        System.out.println("Sleep interrupted...");
+
+    final ArrayList<FlatTree> result = new ArrayList<>();
+    try {
+      for (Future<FlatTree> future : futures) {
+        result.add(future.get());
+        UmapProgress.update();
       }
+    } catch (InterruptedException | ExecutionException ex) {
+      Utils.message("Random Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");
+      throw new RuntimeException(ex); // Python blindly continued from this point ... we die for now
     }
     return result;
   }
