@@ -65,9 +65,10 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
       final int nVertices = data.rows();
       final Heap currentGraph = new Heap(data.rows(), nNeighbors);
 
-      final int chunkSize = (nVertices + mThreads - 1) / mThreads;
+      final int jobs = (int)(mThreads * (1 + MathUtils.log2(mThreads)));
+      final int chunkSize = (nVertices + jobs - 1) / jobs;
 
-      for (int t = 0; t < mThreads; ++t) {
+      for (int t = 0; t < jobs; ++t) {
         final int lo = t * chunkSize;
         final int hi = Math.min((t + 1) * chunkSize, nVertices);
         futures.add(executor.submit(() -> {
@@ -85,8 +86,8 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
       waitForFutures(futures);
 
       if (rpTreeInit) {
-        final int cs = (leafArray.length + mThreads - 1) / mThreads;
-        for (int t = 0; t < mThreads; ++t) {
+        final int cs = (leafArray.length + jobs - 1) / jobs;
+        for (int t = 0; t < jobs; ++t) {
           final int lo = t * cs;
           final int hi = Math.min((t + 1) * cs, leafArray.length);
           futures.add(executor.submit(() -> {
@@ -116,7 +117,7 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
 
         final Heap candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, random);
 
-        for (int t = 0; t < mThreads; ++t) {
+        for (int t = 0; t < jobs; ++t) {
           final int lo = t * chunkSize;
           final int hi = Math.min((t + 1) * chunkSize, nVertices);
           futures.add(executor.submit(() -> {
