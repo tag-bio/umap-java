@@ -1177,7 +1177,6 @@ public class Umap {
    * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
    * If the metric is <code>PrecomputedMetric.SINGLETON</code> instances must be a square distance
    * matrix. Otherwise it contains a sample per row.
-   * @param y array of shape <code>(nSamples)</code>
    * A target array for supervised dimension reduction. How this is
    * handled is determined by parameters UMAP was instantiated with.
    * The relevant metric is <code>mTargetMetric</code>.
@@ -1193,7 +1192,6 @@ public class Umap {
    * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
    * If the metric is <code>PrecomputedMetric.SINGLETON</code> instances must be a square distance
    * matrix. Otherwise it contains a sample per row.
-   * @param y array of shape <code>(nSamples)</code>
    * A target array for supervised dimension reduction. How this is
    * handled is determined by parameters UMAP was instantiated with.
    * The relevant metric is <code>mTargetMetric</code>.
@@ -1210,7 +1208,6 @@ public class Umap {
    * @param instances array of shape <code>(nSamples, nFeatures)</code> or <code>(nSamples, nSamples)</code>
    * If the metric is <code>PrecomputedMetric.SINGLETON</code> instances must be a square distance
    * matrix. Otherwise it contains a sample per row.
-   * @param y array of shape <code>(nSamples)</code>
    * A target array for supervised dimension reduction. How this is
    * handled is determined by parameters UMAP was instantiated with.
    * The relevant metric is <code>mTargetMetric</code>.
@@ -1243,7 +1240,7 @@ public class Umap {
    * Embedding of the new data in low-dimensional space.
    * @throws IllegalArgumentException If we fit just a single instance then error.
    */
-  private Matrix transform(Matrix instances) {
+  public Matrix transform(Matrix instances) {
     if (mEmbedding.rows() == 1) {
       throw new IllegalArgumentException("Transform unavailable when model was fit with only a single data sample.");
     }
@@ -1286,14 +1283,11 @@ public class Umap {
     CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, instances.rows(), mRawData.rows());
 
     // This was a very specially constructed graph with constant degree.
-    // That lets us do fancy unpacking by reshaping the csr matrix indices
+    // That lets us do fancy unpacking by reshaping the Csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
-    //CsrMatrix csr_graph = (CsrMatrix) Normalize.normalize(graph.toCsr(), "l1");
-//    int[][] inds = csr_graph.indices.reshape(X.rows(), this._n_neighbors);
-//    float[][] weights = csr_graph.data.reshape(X.rows(), this._n_neighbors);
-    // todo following need to be "reshape" as above
-    final int[][] inds = null;
-    final float[][] weights = null;
+    CsrMatrix csrGraph = (CsrMatrix) graph.toCsr().l1Normalize();
+    final int[][] inds = csrGraph.reshapeIndicies(instances.rows(), mRunNNeighbors);
+    final float[][] weights = csrGraph.reshapeWeights(instances.rows(), mRunNNeighbors);
     final Matrix embedding = initTransform(inds, weights, mEmbedding);
 
     final int nEpochs;
@@ -1317,5 +1311,18 @@ public class Umap {
     final int[] tail = graph.col();
 
     return optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, mRunA, mRunB, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
+  }
+
+  /**
+   * Transform instances into the existing embedded space and return that
+   * transformed output.
+   * @param instances array, shape <code>(nSamples, nFeatures)</code>
+   * New data to be transformed.
+   * @return array, shape <code>(nSamples, nComponents)</code>
+   * Embedding of the new data in low-dimensional space.
+   * @throws IllegalArgumentException If we fit just a single instance then error.
+   */
+  public float[][] transform(final float[][] instances) {
+    return transform(new DefaultMatrix(instances)).toArray();
   }
 }

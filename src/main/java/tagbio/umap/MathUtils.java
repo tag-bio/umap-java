@@ -255,4 +255,32 @@ final class MathUtils {
     return res;
   }
 
+  static int[][] reshape(final int[] in, final int rows, final int cols) {
+    final int[][] res = new int[rows][cols];
+    int k = 0;
+    for (int row = 0; row < rows; ++row) {
+      for (int col = 0; col < cols; ++col, ++k) {
+        res[row][col] = in[k];
+      }
+    }
+    if (k != in.length) {
+      throw new RuntimeException("Size mismatch for reshape");
+    }
+    return res;
+  }
+
+  static float[][] reshape(final float[] in, final int rows, final int cols) {
+    final float[][] res = new float[rows][cols];
+    int k = 0;
+    for (int row = 0; row < rows; ++row) {
+      for (int col = 0; col < cols; ++col, ++k) {
+        res[row][col] = in[k];
+      }
+    }
+    if (k != in.length) {
+      throw new RuntimeException("Size mismatch for reshape");
+    }
+    return res;
+  }
+
 }
