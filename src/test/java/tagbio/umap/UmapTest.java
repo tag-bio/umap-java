@@ -204,16 +204,16 @@ public class UmapTest extends TestCase {
   }
 
   public void testPrimes() {
-    final int[] omega = new int[1000000];
-    final float[][] d = factorizations(omega, 1000);
-    //final int[] omega = new int[1000];
-    //final float[][] d = factorizations(omega, 100);
+    //final int[] omega = new int[1000000];
+    //final float[][] d = factorizations(omega, 1000);
+    final int[] omega = new int[1000];
+    final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
     final Umap umap = new Umap();
     umap.setInit("random");
     umap.setVerbose(true);
     umap.setNumberComponents(2);
-    umap.setThreads(4);
+    //umap.setThreads(4);
     final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
     assertEquals(-5775.2890625, MathUtils.sum(matrix), 1e-4);
