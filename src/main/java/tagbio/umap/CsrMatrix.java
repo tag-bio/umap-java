@@ -27,15 +27,18 @@ class CsrMatrix extends Matrix {
   }
 
   int[] indptr() {
-    return Arrays.copyOf(mIndptr, mIndptr.length);
+    return mIndptr;
+    //return Arrays.copyOf(mIndptr, mIndptr.length);
   }
 
   int[] indicies() {
-    return Arrays.copyOf(mIndices, mIndices.length);
+    return mIndices;
+    //return Arrays.copyOf(mIndices, mIndices.length);
   }
 
   float[] data() {
-    return Arrays.copyOf(mData, mData.length);
+    return mData;
+    //return Arrays.copyOf(mData, mData.length);
   }
 
   @Override
@@ -118,11 +121,10 @@ class CsrMatrix extends Matrix {
   Matrix l1Normalize() {
     final float[] d = new float[mData.length];
     for (int row = 0; row < rows(); ++row) {
-      float ss = 0;
-      for (int j = mIndptr[row] + 1; j < mIndptr[row + 1]; ++j) {
-        ss += mData[j] * mData[j];
+      float l1 = 0;
+      for (int j = mIndptr[row]; j < mIndptr[row + 1]; ++j) {
+        l1 += Math.abs(mData[j]);
       }
-      final float l1 = (float) Math.sqrt(ss);
       for (int j = mIndptr[row]; j < mIndptr[row + 1]; ++j) {
         d[j] = mData[j] / l1;
       }
@@ -142,11 +144,26 @@ class CsrMatrix extends Matrix {
   }
 
   int[][] reshapeIndicies(final int rows, final int cols) {
-    return MathUtils.reshape(mIndices, rows, cols);
+    final int[][] res = new int[rows][cols];
+    for (int row = 0; row < rows; ++row) {
+      final int end = mIndptr[row + 1];
+      // evilness here implicit self match at position 0
+      for (int col = 0, pos = mIndptr[row]; col < cols && pos < end; ++col, ++pos) {
+        res[row][col] = mIndices[pos];
+      }
+    }
+    return res;
   }
 
   float[][] reshapeWeights(final int rows, final int cols) {
-    return MathUtils.reshape(mData, rows, cols);
+    final float[][] res = new float[rows][cols];
+    for (int row = 0; row < rows; ++row) {
+      final int end = mIndptr[row + 1];
+      for (int col = 1, pos = mIndptr[row]; col < cols && pos < end; ++col, ++pos) {
+        res[row][col] = mData[pos];
+      }
+    }
+    return res;
   }
 
 }

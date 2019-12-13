@@ -507,6 +507,7 @@ final class RandomProjectionTree {
     // Make a tree recursively until we get below the leaf size
     if (isSparse) {
       final CsrMatrix csrData = (CsrMatrix) data;
+      // todo is the following copy operation necessary?
       final int[] inds = csrData.indicies();
       final int[] indptr = csrData.indptr();
       final float[] spdata = csrData.data();

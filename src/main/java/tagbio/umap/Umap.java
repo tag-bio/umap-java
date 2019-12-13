@@ -1253,12 +1253,18 @@ public class Umap {
     int[][] indices;
     final float[][] dists;
     if (mSmallData) {
-      final Matrix dmat = PairwiseDistances.pairwiseDistances(instances, mRawData, mMetric);
-      indices = MathUtils.subarray(MathUtils.argpartition(dmat, mRunNNeighbors), mRunNNeighbors);
-      final float[][] dmatShortened = Utils.submatrix(dmat, indices, mRunNNeighbors);
-      final int[][] indicesSorted = MathUtils.argsort(dmatShortened);
-      indices = Utils.submatrix(indices, indicesSorted, mRunNNeighbors);
-      dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
+      final Matrix distanceMatrix = PairwiseDistances.pairwiseDistances(instances, mRawData, mMetric);
+      indices = new int[distanceMatrix.rows()][];
+      for (int k = 0; k < distanceMatrix.rows(); ++k) {
+        indices[k] = MathUtils.argsort(Arrays.copyOf(distanceMatrix.row(k), distanceMatrix.cols()));
+      }
+      indices = MathUtils.subarray(indices, mRunNNeighbors);
+      dists = Utils.submatrix(distanceMatrix, indices, mRunNNeighbors);
+//      indices = MathUtils.subarray(MathUtils.argpartition(distanceMatrix, mRunNNeighbors), mRunNNeighbors);
+//      final float[][] dmatShortened = Utils.submatrix(distanceMatrix, indices, mRunNNeighbors);
+//      final int[][] indicesSorted = MathUtils.argsort(dmatShortened);
+//      indices = Utils.submatrix(indices, indicesSorted, mRunNNeighbors);
+//      dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
       final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), mRandomInit, mTreeInit, mRandom);
       if (mSearchGraph == null) {
@@ -1285,7 +1291,10 @@ public class Umap {
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the Csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
-    CsrMatrix csrGraph = (CsrMatrix) graph.toCsr().l1Normalize();
+    // todo above comment seems dubious considering the suppression of zeros
+    // todo seems to be off by 1
+    final CsrMatrix csrMatrix = graph.toCsr();
+    CsrMatrix csrGraph = (CsrMatrix) csrMatrix.l1Normalize();
     final int[][] inds = csrGraph.reshapeIndicies(instances.rows(), mRunNNeighbors);
     final float[][] weights = csrGraph.reshapeWeights(instances.rows(), mRunNNeighbors);
     final Matrix embedding = initTransform(inds, weights, mEmbedding);

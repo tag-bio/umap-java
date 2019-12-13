@@ -230,6 +230,19 @@ class CooMatrix extends Matrix {
     return this;
   }
 
+  CsrMatrix toCsr() {
+    final int[] indptr = new int[rows() + 1];
+    int r = -1;
+    for (int k = 0; k < mData.length; ++k) {
+      while (mRow[k] > r) {
+        indptr[++r] = k;
+      }
+    }
+    indptr[rows()] = mData.length;
+    // todo can we drop these copies?
+    return new CsrMatrix(Arrays.copyOf(mData, mData.length), indptr, Arrays.copyOf(mCol, mCol.length), rows(), cols());
+  }
+
   @Override
   Matrix eliminateZeros() {
     int zeros = 0;

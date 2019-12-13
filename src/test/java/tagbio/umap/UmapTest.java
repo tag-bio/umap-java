@@ -89,6 +89,20 @@ public class UmapTest extends TestCase {
     assertEquals(-324.09808, MathUtils.sum(matrix), 1e-4);
   }
 
+  public void testIrisWithTransform() throws IOException {
+    final Data data = new IrisData();
+    final Umap umap = new Umap();
+    umap.setInit("random");
+    umap.setVerbose(true);
+    final float[][] d = data.getData();
+    final float[][] matrix = umap.fitTransform(d);
+    final float[][] t = umap.transform(d);
+    //System.out.println(matrix);
+    assertEquals(150, t.length);
+    assertEquals(2, t[0].length);
+    assertEquals(-324.09808, MathUtils.sum(t), 1e-4);
+  }
+
   public void testIrisViaDouble() throws IOException {
     final Data data = new IrisData();
     final Umap umap = new Umap();
