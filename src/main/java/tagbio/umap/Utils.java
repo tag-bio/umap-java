@@ -26,7 +26,7 @@ final class Utils {
    * <code>YYYY-MM-DD hh:mm:ss</code>.
    * @return date string
    */
-  private static String now() {
+  static String now() {
     final StringBuilder sb = new StringBuilder();
     final Calendar cal = new GregorianCalendar();
     sb.append(cal.get(Calendar.YEAR)).append('-');
@@ -68,9 +68,9 @@ final class Utils {
 
   /**
    * A fast computation of knn indices.
-   * @param instances array of shape (nSamples, nFeatures)
+   * @param instances array of shape <code>(nSamples, nFeatures)</code>
    * @param nNeighbors the number of nearest neighbors to compute for each sample in <code>instances</code>
-   * @return array of shape (nSamples, nNeighbors) containing the indices of the <code>nNeighbours</code>
+   * @return array of shape <code>(nSamples, nNeighbors)</code> containing the indices of the <code>nNeighbours</code>
    * closest points in the dataset.
    */
   static int[][] fastKnnIndices(final Matrix instances, final int nNeighbors) {
@@ -81,7 +81,6 @@ final class Utils {
     }
     return knnIndices;
   }
-
 
   /**
    * L2 norm of a vector.

@@ -48,7 +48,28 @@ public class UtilsTest extends TestCase {
     for (int i = 0; i < randoms.length; i++) {
       assertNotSame(expected[i], randoms[i].nextInt());
     }
+  }
 
+  public void testNow() {
+    assertTrue(Utils.now().matches("20[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] "));
+  }
+
+  public void testFastKnnIndices() {
+    final Matrix m = new DefaultMatrix(new float[][] {{1, 2}, {0, 1}, {1, 0}, {0, 0}, {2, 1}});
+    final int[][] knn = Utils.fastKnnIndices(m, 2);
+    assertEquals("[[0, 1], [0, 1], [1, 0], [0, 1], [1, 0]]", Arrays.deepToString(knn));
+  }
+
+  public void testL2Norm() {
+    final float[] vec = new float[2];
+    assertEquals(0.0, Utils.norm(vec), 1e-6);
+    vec[0] = 1;
+    assertEquals(1.0, Utils.norm(vec), 1e-6);
+    vec[1] = 1;
+    assertEquals(Math.sqrt(2), Utils.norm(vec), 1e-6);
+    vec[0] = 3;
+    vec[1] = 4;
+    assertEquals(5.0, Utils.norm(vec), 1e-6);
   }
 }
 
