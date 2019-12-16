@@ -1291,10 +1291,7 @@ public class Umap {
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the Csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
-    // todo above comment seems dubious considering the suppression of zeros
-    // todo seems to be off by 1
-    final CsrMatrix csrMatrix = graph.toCsr();
-    CsrMatrix csrGraph = (CsrMatrix) csrMatrix.l1Normalize();
+    final CsrMatrix csrGraph = (CsrMatrix) graph.toCsr().l1Normalize();
     final int[][] inds = csrGraph.reshapeIndicies(instances.rows(), mRunNNeighbors);
     final float[][] weights = csrGraph.reshapeWeights(instances.rows(), mRunNNeighbors);
     final Matrix embedding = initTransform(inds, weights, mEmbedding);

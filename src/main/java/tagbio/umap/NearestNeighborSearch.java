@@ -24,8 +24,6 @@ class NearestNeighborSearch {
   }
 
   Heap initializedNndSearch(final Matrix data, final SearchGraph searchGraph, Heap initialization, final Matrix queryPoints) {
-    //Heap initializedNndSearch(final Matrix data, final int[] indptr, final int[] indices, Heap initialization, final Matrix queryPoints) {
-
     for (int i = 0; i < queryPoints.rows(); ++i) {
 
       final Set<Integer> tried = new TreeSet<>();

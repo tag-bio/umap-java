@@ -18,8 +18,8 @@ import tagbio.umap.metric.Metric;
  */
 class NearestNeighborDescent {
 
-  protected final Metric mMetric;
-  protected boolean mVerbose;
+  final Metric mMetric;
+  boolean mVerbose;
 
   /**
    * Construct a nearest neighbor descent object for the given metric.
@@ -51,7 +51,6 @@ class NearestNeighborDescent {
     UmapProgress.update();
 
     if (rpTreeInit) {
-      // todo parallel
       for (final int[] leaf : leafArray) {
         for (int i = 0; i < leaf.length; ++i) {
           final float[] iRow = data.row(leaf[i]);

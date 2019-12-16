@@ -5,8 +5,6 @@
  */
 package tagbio.umap;
 
-import tagbio.umap.metric.Metric;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -14,6 +12,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import tagbio.umap.metric.Metric;
 
 /**
  * Nearest neighbor descent for a specified distance metric.
@@ -37,16 +37,6 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
       throw new IllegalArgumentException();
     }
     mThreads = threads;
-  }
-
-  private void waitForThreads(final Thread... threads) {
-    try {
-      for (final Thread thread : threads) {
-        thread.join();
-      }
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override

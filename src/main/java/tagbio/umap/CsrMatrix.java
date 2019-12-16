@@ -159,7 +159,7 @@ class CsrMatrix extends Matrix {
     final float[][] res = new float[rows][cols];
     for (int row = 0; row < rows; ++row) {
       final int end = mIndptr[row + 1];
-      for (int col = 1, pos = mIndptr[row]; col < cols && pos < end; ++col, ++pos) {
+      for (int col = 0, pos = mIndptr[row]; col < cols && pos < end; ++col, ++pos) {
         res[row][col] = mData[pos];
       }
     }
