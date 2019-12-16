@@ -159,24 +159,24 @@ public class UmapTest extends TestCase {
 //    }
 //  }
 
-  public void testGenes() throws IOException {
-    final Data data = new GeneData();
-    final Umap umap = new Umap();
-    umap.setInit("random");
-    umap.setVerbose(true);
-    umap.setNumberComponents(2);
-    final float[][] d = data.getData();
-    final long start = System.currentTimeMillis();
-    final float[][] matrix = umap.fitTransform(d);
-    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
-    assertEquals(5902, matrix.length);
-    assertEquals(2, matrix[0].length);
-    assertEquals(2601.2939453125, MathUtils.sum(matrix), 1e-4);
-//    final int[] classIndexes = data.getSampleClassIndex();
-//    for (int r = 0; r < matrix.length; ++r) {
-//      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + classIndexes[r]);
-//    }
-  }
+//  public void testGenes() throws IOException {
+//    final Data data = new GeneData();
+//    final Umap umap = new Umap();
+//    umap.setInit("random");
+//    umap.setVerbose(true);
+//    umap.setNumberComponents(2);
+//    final float[][] d = data.getData();
+//    final long start = System.currentTimeMillis();
+//    final float[][] matrix = umap.fitTransform(d);
+//    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
+//    assertEquals(5902, matrix.length);
+//    assertEquals(2, matrix[0].length);
+//    assertEquals(2601.2939453125, MathUtils.sum(matrix), 1e-4);
+////    final int[] classIndexes = data.getSampleClassIndex();
+////    for (int r = 0; r < matrix.length; ++r) {
+////      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + classIndexes[r]);
+////    }
+//  }
 
   private int[] primes(final int m) {
     final List<Integer> primes = new ArrayList<>();
