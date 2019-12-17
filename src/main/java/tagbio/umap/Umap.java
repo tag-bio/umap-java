@@ -693,8 +693,6 @@ public class Umap {
   private Matrix mGraph;
   private Matrix mEmbedding;
   private NearestNeighborSearch mSearch;
-  private NearestNeighborRandomInit mRandomInit;
-  private NearestNeighborTreeInit mTreeInit;
 
   public void setInit(final String init) {
     mInit = init;
@@ -1101,8 +1099,6 @@ public class Umap {
       if (mMetric == PrecomputedMetric.SINGLETON) {
         Utils.message("Using precomputed metric; transform will be unavailable for new data");
       } else {
-        mRandomInit = new NearestNeighborRandomInit(distanceFunc);
-        mTreeInit = new NearestNeighborTreeInit(distanceFunc);
         mSearch = new NearestNeighborSearch(distanceFunc);
       }
     }
@@ -1259,7 +1255,7 @@ public class Umap {
 //      indices = Utils.submatrix(indices, indicesSorted, mRunNNeighbors);
 //      dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
-      final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), mRandomInit, mTreeInit, mRandom);
+      final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), mSearch, mRandom);
       if (mSearchGraph == null) {
         mSearchGraph = new SearchGraph(mRawData.rows());
         for (int k = 0; k < mKnnIndices.length; ++k) {
@@ -1284,7 +1280,7 @@ public class Umap {
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the Csr matrix indices
     // and data. Doing so relies on the constant degree assumption!
-    final CsrMatrix csrGraph = (CsrMatrix) graph.toCsr().l1Normalize();
+    final CsrMatrix csrGraph = graph.toCsr().l1Normalize().toCsr();
     final int[][] inds = csrGraph.reshapeIndicies(instances.rows(), mRunNNeighbors);
     final float[][] weights = csrGraph.reshapeWeights(instances.rows(), mRunNNeighbors);
     final Matrix embedding = initTransform(inds, weights, mEmbedding);
@@ -1302,7 +1298,7 @@ public class Umap {
     }
 
     MathUtils.zeroEntriesBelowLimit(graph.data(), MathUtils.max(graph.data()) / (float) nEpochs);
-    graph = (CooMatrix) graph.eliminateZeros();
+    graph = graph.eliminateZeros().toCoo();
 
     final float[] epochsPerSample = makeEpochsPerSample(graph.data(), nEpochs);
 

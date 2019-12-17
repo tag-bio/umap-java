@@ -5,6 +5,7 @@
  */
 package tagbio.umap;
 
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -21,6 +22,29 @@ class NearestNeighborSearch {
 
   NearestNeighborSearch(final Metric dist) {
     mDist = dist;
+  }
+
+  void treeInit(final FlatTree tree, final Matrix data, final Matrix queryPoints, final Heap heap, final Random random) {
+    for (int i = 0; i < queryPoints.rows(); ++i) {
+      final int[] indices = tree.searchFlatTree(queryPoints.row(i), random);
+      for (final int index : indices) {
+        if (index < 0) {
+          continue;
+        }
+        final float d = mDist.distance(data.row(index), queryPoints.row(i));
+        heap.push(i, d, index, true);
+      }
+    }
+  }
+
+  void randomInit(final int nNeighbors, final Matrix data, final Matrix queryPoints, final Heap heap, final Random random) {
+    for (int i = 0; i < queryPoints.rows(); ++i) {
+      final int[] indices = Utils.rejectionSample(nNeighbors, data.rows(), random);
+      for (final int index : indices) {
+        final float d = mDist.distance(data.row(index), queryPoints.row(i));
+        heap.push(i, d, index, true);
+      }
+    }
   }
 
   Heap initializedNndSearch(final Matrix data, final SearchGraph searchGraph, Heap initialization, final Matrix queryPoints) {
@@ -41,7 +65,7 @@ class NearestNeighborSearch {
         }
         //final int[] candidates = new int[indptr[vertex + 1] - indptr[vertex]];
         //System.arraycopy(indices, indptr[vertex], candidates, 0, candidates.length);
-        for (int candidate : searchGraph.row(vertex)) {
+        for (final int candidate : searchGraph.row(vertex)) {
           if (candidate == vertex || candidate == -1 || tried.contains(candidate)) { // todo is this -1 needed
             continue;
           }
