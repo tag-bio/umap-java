@@ -6,7 +6,6 @@
 package tagbio.umap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -427,9 +426,9 @@ final class RandomProjectionTree {
       final RandomProjectionTreeNode leftNode = makeEuclideanTree(data, leftIndices, random, leafSize);
       final RandomProjectionTreeNode rightNode = makeEuclideanTree(data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
+      return new RandomProjectionTreeNode(null, hyperplane, offset, leftNode, rightNode);
     } else {
-      return new RandomProjectionTreeNode(indices, true, null, null, null, null);
+      return new RandomProjectionTreeNode(indices, null, null, null, null);
     }
   }
 
@@ -444,9 +443,9 @@ final class RandomProjectionTree {
       final RandomProjectionTreeNode leftNode = makeAngularTree(data, leftIndices, random, leafSize);
       final RandomProjectionTreeNode rightNode = makeAngularTree(data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
+      return new RandomProjectionTreeNode(null, hyperplane, offset, leftNode, rightNode);
     } else {
-      return new RandomProjectionTreeNode(indices, true, null, null, null, null);
+      return new RandomProjectionTreeNode(indices, null, null, null, null);
     }
   }
 
@@ -461,9 +460,9 @@ final class RandomProjectionTree {
       final RandomProjectionTreeNode leftNode = makeSparseEuclideanTree(inds, indptr, data, leftIndices, random, leafSize);
       final RandomProjectionTreeNode rightNode = makeSparseEuclideanTree(inds, indptr, data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
+      return new RandomProjectionTreeNode(null, hyperplane, offset, leftNode, rightNode);
     } else {
-      return new RandomProjectionTreeNode(indices, true, null, null, null, null);
+      return new RandomProjectionTreeNode(indices, null, null, null, null);
     }
   }
 
@@ -478,9 +477,9 @@ final class RandomProjectionTree {
       final RandomProjectionTreeNode leftNode = makeSparseAngularTree(inds, indptr, data, leftIndices, random, leafSize);
       final RandomProjectionTreeNode rightNode = makeSparseAngularTree(inds, indptr, data, rightIndices, random, leafSize);
 
-      return new RandomProjectionTreeNode(null, false, hyperplane, offset, leftNode, rightNode);
+      return new RandomProjectionTreeNode(null, hyperplane, offset, leftNode, rightNode);
     } else {
-      return new RandomProjectionTreeNode(indices, true, null, null, null, null);
+      return new RandomProjectionTreeNode(indices, null, null, null, null);
     }
   }
 
@@ -525,65 +524,6 @@ final class RandomProjectionTree {
   }
 
 
-  // Determine the most number on non zeros in a hyperplane entry.
-  private static int maxSparseHyperplaneSize(RandomProjectionTreeNode tree) {
-    if (tree.isLeaf()) {
-      return 0;
-    } else {
-      return Math.max(tree.getHyperplane().shape()[1], Math.max(maxSparseHyperplaneSize(tree.getLeftChild()), maxSparseHyperplaneSize(tree.getRightChild())));
-    }
-  }
-
-
-  private static int[] recursiveFlatten(final RandomProjectionTreeNode tree, final Object hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, final int nodeNum, final int leafNum) {
-    if (tree.isLeaf()) {
-      children[nodeNum][0] = -leafNum;
-      //indices[leafNum, :tree.getIndices().shape[0]] =tree.getIndices();
-      indices[leafNum] = tree.getIndices();
-      return new int[]{nodeNum, leafNum + 1};
-    } else {
-      if (tree.getHyperplane().shape().length > 1) {
-        // sparse case
-        ((float[][][]) hyperplanes)[nodeNum] = new float[][] {tree.getHyperplane().data()}; // todo dubious
-        //hyperplanes[nodeNum][:, :tree.getHyperplane().shape[1]] =tree.getHyperplane();
-      } else {
-        ((float[][]) hyperplanes)[nodeNum] = tree.getHyperplane().data();
-      }
-      offsets[nodeNum] = tree.getOffset();
-      children[nodeNum][0] = nodeNum + 1;
-      final int[] flattenInfo = recursiveFlatten(tree.getLeftChild(), hyperplanes, offsets, children, indices, nodeNum + 1, leafNum);
-      children[nodeNum][1] = flattenInfo[0] + 1;
-      return recursiveFlatten(tree.getRightChild(), hyperplanes, offsets, children, indices, flattenInfo[0] + 1, flattenInfo[1]);
-    }
-  }
-
-  private static int[][] negOnes(final int a, final int b) {
-    final int[][] res = new int[a][b];
-    for (final int[] row : res) {
-      Arrays.fill(row, -1);
-    }
-    return res;
-  }
-
-  private static FlatTree flattenTree(final RandomProjectionTreeNode tree, final int leafSize) {
-    final int nNodes = tree.numNodes();
-    final int numLeaves = tree.numLeaves();
-
-    final Object hyperplanes;
-    if (tree.getHyperplane().shape().length > 1) {
-      // sparse case
-      final int maxHyperplaneNnz = maxSparseHyperplaneSize(tree);
-      hyperplanes = new float[nNodes][tree.getHyperplane().shape()[0]][maxHyperplaneNnz];
-    } else {
-      hyperplanes = new float[nNodes][tree.getHyperplane().shape()[0]];
-    }
-    final float[] offsets = new float[nNodes];
-    final int[][] children = negOnes(nNodes, 2);
-    final int[][] indices = new int[numLeaves][];
-    recursiveFlatten(tree, hyperplanes, offsets, children, indices, 0, 0);
-    return new FlatTree(hyperplanes, offsets, children, indices);
-  }
-
  private static boolean selectSide(final float[] hyperplane, final float offset, final float[] point, final Random random) {
    float margin = offset;
    for (int d = 0; d < point.length; ++d) {
@@ -626,7 +566,7 @@ final class RandomProjectionTree {
     final int leafSize = Math.max(10, nNeighbors);
     try {
       for (int i = 0; i < nTrees; ++i) {
-        result.add(flattenTree(makeTree(data, randoms[i], leafSize, angular), leafSize));
+        result.add(makeTree(data, randoms[i], leafSize, angular).flatten());
         UmapProgress.update();
       }
     } catch (RuntimeException e) {
@@ -648,7 +588,7 @@ final class RandomProjectionTree {
 
       final int leafSize = Math.max(10, nNeighbors);
       for (final Random rand : randoms) {  // randoms.length == nTrees
-        futures.add(executor.submit(() -> flattenTree(makeTree(data, rand, leafSize, angular), leafSize)));
+        futures.add(executor.submit(() -> makeTree(data, rand, leafSize, angular).flatten()));
       }
 
       final ArrayList<FlatTree> result = new ArrayList<>();
