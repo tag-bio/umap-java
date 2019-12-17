@@ -655,7 +655,6 @@ public class Umap {
   }
 
   private boolean mAngularRpForest = false;
-  private String mInit = "spectral";
   private int mNNeighbors = 15;
   private int mNComponents = 2;
   private Integer mNEpochs = null;
@@ -693,10 +692,6 @@ public class Umap {
   private Matrix mGraph;
   private Matrix mEmbedding;
   private NearestNeighborSearch mSearch;
-
-  public void setInit(final String init) {
-    mInit = init;
-  }
 
   /**
    * Set the size local neighborhood (in terms of number of neighboring
@@ -1000,9 +995,6 @@ public class Umap {
 //    if (!isinstance(init, str) && !isinstance(init, np.ndarray)) {
 //      throw new IllegalArgumentException("init must be a string or ndarray");
 //    }
-    if (!"spectral".equals(mInit) && !"random".equals(mInit)) {
-      throw new IllegalArgumentException("string init values must be 'spectral' || 'random'");
-    }
 //    if (isinstance(init, np.ndarray) && init.shape[1] != nComponents) {
 //      throw new IllegalArgumentException("init ndarray must match nComponents value");
 //    }
@@ -1044,7 +1036,6 @@ public class Umap {
 //      } else {
 //        init = this.init;
 //      }
-    final String init = mInit;
 
     mInitialAlpha = mLearningRate;
 
@@ -1135,7 +1126,7 @@ public class Umap {
       Utils.message("Construct embedding");
     }
 
-    mEmbedding = simplicialSetEmbedding(mRawData, mGraph, mNComponents, mInitialAlpha, mRunA, mRunB, mRepulsionStrength, mNegativeSampleRate, nEpochs, init, mRandom, mMetric, mVerbose);
+    mEmbedding = simplicialSetEmbedding(mRawData, mGraph, mNComponents, mInitialAlpha, mRunA, mRunB, mRepulsionStrength, mNegativeSampleRate, nEpochs, "random", mRandom, mMetric, mVerbose);
 
     if (mVerbose) {
       Utils.message("Finished embedding");

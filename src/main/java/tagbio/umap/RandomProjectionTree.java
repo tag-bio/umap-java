@@ -216,6 +216,7 @@ final class RandomProjectionTree {
    * This particular split uses cosine distance to determine the hyperplane
    * and which side each data sample falls on.
    * @param matrix CSR format matrix
+   * @param indices indices of data points
    * @param random randomness source
    * @return The elements of <code>indices</code> that fall on the "left" side of the
    * random hyperplane.

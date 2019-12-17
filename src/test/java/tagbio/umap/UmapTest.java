@@ -77,7 +77,6 @@ public class UmapTest extends TestCase {
   public void testIris() throws IOException {
     final Data data = new IrisData();
     final Umap umap = new Umap();
-    umap.setInit("random");
     umap.setVerbose(true);
     final float[][] d = data.getData();
     final long start = System.currentTimeMillis();
@@ -106,7 +105,6 @@ public class UmapTest extends TestCase {
   public void testIrisViaDouble() throws IOException {
     final Data data = new IrisData();
     final Umap umap = new Umap();
-    umap.setInit("random");
     umap.setVerbose(true);
     final float[][] d = data.getData();
     final double[][] dd = new double[d.length][d[0].length];
@@ -124,7 +122,6 @@ public class UmapTest extends TestCase {
   public void testDigits() throws IOException {
     final Data data = new DigitData();
     final Umap umap = new Umap();
-    umap.setInit("random");
     umap.setVerbose(true);
     umap.setNumberComponents(3);
     final float[][] d = data.getData();
@@ -145,7 +142,6 @@ public class UmapTest extends TestCase {
 //    final float[][] d = data.getData();
 //    final long start = System.currentTimeMillis();
 //    final Umap umap = new Umap();
-//    umap.setInit("random");
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
 //    umap.setNumberNearestNeighbours(100);
@@ -162,7 +158,6 @@ public class UmapTest extends TestCase {
 //  public void testGenes() throws IOException {
 //    final Data data = new GeneData();
 //    final Umap umap = new Umap();
-//    umap.setInit("random");
 //    umap.setVerbose(true);
 //    umap.setNumberComponents(2);
 //    final float[][] d = data.getData();
@@ -224,7 +219,6 @@ public class UmapTest extends TestCase {
     final float[][] d = factorizations(omega, 100);
     final long start = System.currentTimeMillis();
     final Umap umap = new Umap();
-    umap.setInit("random");
     umap.setVerbose(true);
     umap.setNumberComponents(2);
     //umap.setThreads(4);
@@ -239,7 +233,6 @@ public class UmapTest extends TestCase {
   public void testFindABParams() throws IOException {
     final Data data = new IrisData();
     final Umap umap = new Umap();
-    umap.setInit("random");
 
     for (float spread : new float[]{-1.234F, 0.0F, 2.0F, 0.49F, 1.51F}) {
       umap.setSpread(spread);

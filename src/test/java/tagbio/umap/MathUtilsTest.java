@@ -104,10 +104,9 @@ public class MathUtilsTest extends TestCase {
     assertEquals(3, uniform.length);
 
     random = new Random(1234);
-    for (int i = 0; i < uniform.length; ++i) {
-      assertEquals(4, uniform[i].length);
-      for (int j = 0; j < uniform[i].length; ++j) {
-        final float value = uniform[i][j];
+    for (final float[] floats : uniform) {
+      assertEquals(4, floats.length);
+      for (final float value : floats) {
         assertTrue(value >= 1);
         assertTrue(value <= 5);
         assertEquals(1.0F + random.nextFloat() * 4.0F, value);
