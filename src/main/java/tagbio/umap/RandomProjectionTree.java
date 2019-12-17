@@ -48,8 +48,8 @@ final class RandomProjectionTree {
     // Select two random points, set the hyperplane between them
     final int leftIndex = random.nextInt(indices.length);
     int rightIndex = random.nextInt(indices.length);
-    if (leftIndex == rightIndex) {
-      rightIndex = (rightIndex + 1) % indices.length;
+    if (leftIndex == rightIndex && ++rightIndex == indices.length) {
+      rightIndex = 0;
     }
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
@@ -149,8 +149,8 @@ final class RandomProjectionTree {
     // Select two random points, set the hyperplane between them
     final int leftIndex = random.nextInt(indices.length);
     int rightIndex = random.nextInt(indices.length);
-    if (leftIndex == rightIndex) {
-      rightIndex = (rightIndex + 1) % indices.length;
+    if (leftIndex == rightIndex && ++rightIndex == indices.length) {
+      rightIndex = 0;
     }
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
@@ -225,8 +225,8 @@ final class RandomProjectionTree {
     // Select two random points, set the hyperplane between them
     final int leftIndex = random.nextInt(indices.length);
     int rightIndex = random.nextInt(indices.length);
-    if (leftIndex == rightIndex) {
-      rightIndex = (rightIndex + 1) % indices.length;
+    if (leftIndex == rightIndex && ++rightIndex == indices.length) {
+      rightIndex = 0;
     }
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
@@ -319,8 +319,8 @@ final class RandomProjectionTree {
     // Select two random points, set the hyperplane between them
     final int leftIndex = random.nextInt(indices.length);
     int rightIndex = random.nextInt(indices.length);
-    if (leftIndex == rightIndex) {
-      rightIndex = (rightIndex + 1) % indices.length;
+    if (leftIndex == rightIndex && ++rightIndex == indices.length) {
+      rightIndex = 0;
     }
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
