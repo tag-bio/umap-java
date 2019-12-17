@@ -14,8 +14,8 @@ import java.util.Arrays;
  */
 class SparseVector {
 
-  final int[] mIndices;
-  final float[] mData;
+  private final int[] mIndices;
+  private final float[] mData;
 
   /**
    * Vector.

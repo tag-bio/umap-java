@@ -298,7 +298,7 @@ final class RandomProjectionTree {
       }
     }
 
-    final Hyperplane hyperplane = new Hyperplane(sd.mIndices, sd.mData); // todo
+    final Hyperplane hyperplane = new Hyperplane(sd.getIndices(), sd.getData());
 
     return new Object[]{indicesLeft, indicesRight, hyperplane, null};
   }
@@ -379,7 +379,7 @@ final class RandomProjectionTree {
       }
     }
 
-    final Hyperplane hyperplane = new Hyperplane(sd.mIndices, sd.mData);
+    final Hyperplane hyperplane = new Hyperplane(sd.getIndices(), sd.getData());
 
     return new Object[]{indicesLeft, indicesRight, hyperplane, hyperplaneOffset};
   }
