@@ -73,16 +73,6 @@ final class Sparse {
     return res;
   }
 
-  static int[] arrUnion(final int[] ar1, final int[] ar2) {
-    if (ar1.length == 0) {
-      return ar2;
-    } else if (ar2.length == 0) {
-      return ar1;
-    } else {
-      return arrUnique(MathUtils.concatenate(ar1, ar2));
-    }
-  }
-
   static int[] arrIntersect(final int[] ar1, final int[] ar2) {
    final int[] res = new int[Math.max(ar1.length, ar2.length)];
    int k = 0;
@@ -101,12 +91,6 @@ final class Sparse {
    }
    return Arrays.copyOf(res, k);
  }
-
-
-  static SparseVector sparseDiff(final SparseVector left, final SparseVector right) {
-    return left.add(right.negate());
-  }
-
 
 // def make_sparse_nn_descent(sparse_dist, dist_args):
 //     """Create a numba accelerated version of nearest neighbor descent

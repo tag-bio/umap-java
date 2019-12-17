@@ -249,7 +249,7 @@ final class RandomProjectionTree {
     rightVec.divide(rightNorm);
 
     // Compute the normal vector to the hyperplane (the vector between the two points)
-    final SparseVector sd = Sparse.sparseDiff(leftVec, rightVec);
+    final SparseVector sd = leftVec.subtract(rightVec);
 
     float hyperplaneNorm = sd.norm();
     if (Math.abs(hyperplaneNorm) < EPS) {
@@ -265,7 +265,7 @@ final class RandomProjectionTree {
     final boolean[] side = new boolean[indices.length];
     for (int i = 0; i < indices.length; ++i) {
       final SparseVector iVec = matrix.vector(indices[i]);
-      final SparseVector spm = sd.multiply(iVec);
+      final SparseVector spm = sd.hadamardMultiply(iVec);
       final float margin = spm.sum();
       if (Math.abs(margin) < EPS) {
         side[i] = random.nextBoolean();
@@ -330,10 +330,10 @@ final class RandomProjectionTree {
 
     // Compute the normal vector to the hyperplane (the vector between
     // the two points) and the offset from the origin
-    final SparseVector sd = Sparse.sparseDiff(leftVec, rightVec);
+    final SparseVector sd = leftVec.subtract(rightVec);
     final SparseVector ss = leftVec.add(rightVec);
     ss.divide(2);
-    final SparseVector sm = sd.multiply(ss);
+    final SparseVector sm = sd.hadamardMultiply(ss);
     final float hyperplaneOffset = -sm.sum();
 
     // For each point compute the margin (project into normal vector, add offset)
@@ -345,7 +345,7 @@ final class RandomProjectionTree {
     for (int i = 0; i < indices.length; ++i) {
       final SparseVector iVec = matrix.vector(indices[i]);
 
-      final SparseVector spm = sd.multiply(iVec);
+      final SparseVector spm = sd.hadamardMultiply(iVec);
       final float margin = hyperplaneOffset + spm.sum();
 
       if (Math.abs(margin) < EPS) {

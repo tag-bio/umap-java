@@ -22,6 +22,7 @@ public class AllTests extends TestSuite {
     suite.addTestSuite(DigitDataTest.class);
     suite.addTestSuite(IrisDataTest.class);
     suite.addTestSuite(SortTest.class);
+    suite.addTestSuite(SparseVectorTest.class);
     suite.addTestSuite(UmapTest.class);
     suite.addTestSuite(UtilsTest.class);
     return suite;
