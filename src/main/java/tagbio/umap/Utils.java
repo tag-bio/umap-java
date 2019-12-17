@@ -215,57 +215,22 @@ final class Utils {
 
 //     return new_candidate_neighbors, old_candidate_neighbors
 
-
-//     """Return a submatrix given an original matrix and the indices to keep.
-//
-//     Parameters
-//     ----------
-//     mat: array, shape (n_samples, n_samples)
-//         Original matrix.
-//
-//     indicesCol: array, shape (n_samples, nNeighbors)
-//         Indices to keep. Each row consists of the indices of the columns.
-//
-//     nNeighbors: int
-//         Number of neighbors.
-//
-//     Returns
-//     -------
-//     submat: array, shape (n_samples, nNeighbors)
-//         The corresponding submatrix.
-//     """
-  static float[][] submatrix(float[][] dmat, int[][] indicesCol, int nNeighbors) {
+  /**
+   * Return a submatrix given an original matrix and the indices to keep.
+   * @param matrix Original matrix of shape <code>(nSamples, nSamples)</code>.
+   * @param indicesCol Indices to keep of shape <code>(nSamples, nNeighbors)</code>.
+   * Each row consists of the indices of the columns.
+   * @param nNeighbors Number of neighbors.
+   * @return array, shape <code>(nSamples, nNeighbors)</code>
+   * The corresponding submatrix.
+   */
+  static float[][] submatrix(Matrix matrix, int[][] indicesCol, int nNeighbors) {
     // todo parallel possible here
-    final int nSamplesTransform = dmat.length;
+    final int nSamplesTransform = matrix.rows();
     final float[][] submat = new float[nSamplesTransform][nNeighbors];
     for (int i = 0; i < nSamplesTransform; ++i) {
       for (int j = 0; j < nNeighbors; ++j) {
-        submat[i][j] = dmat[i][indicesCol[i][j]];
-      }
-    }
-    return submat;
-  }
-
-  static float[][] submatrix(Matrix dmat, int[][] indicesCol, int nNeighbors) {
-    // todo parallel possible here
-    // todo speed up for sparse input?
-    final int nSamplesTransform = dmat.rows();
-    final float[][] submat = new float[nSamplesTransform][nNeighbors];
-    for (int i = 0; i < nSamplesTransform; ++i) {
-      for (int j = 0; j < nNeighbors; ++j) {
-        submat[i][j] = dmat.get(i, indicesCol[i][j]);
-      }
-    }
-    return submat;
-  }
-
-  static int[][] submatrix(int[][] dmat, int[][] indicesCol, int nNeighbors) {
-    // todo parallel possible here
-    final int nSamplesTransform = dmat.length;
-    final int[][] submat = new int[nSamplesTransform][nNeighbors];
-    for (int i = 0; i < nSamplesTransform; ++i) {
-      for (int j = 0; j < nNeighbors; ++j) {
-        submat[i][j] = dmat[i][indicesCol[i][j]];
+        submat[i][j] = matrix.get(i, indicesCol[i][j]);
       }
     }
     return submat;
