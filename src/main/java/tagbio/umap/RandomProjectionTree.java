@@ -10,12 +10,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Random projection trees.
@@ -548,7 +546,6 @@ final class RandomProjectionTree {
         // sparse case
         ((float[][][]) hyperplanes)[nodeNum] = new float[][] {tree.getHyperplane().data()}; // todo dubious
         //hyperplanes[nodeNum][:, :tree.getHyperplane().shape[1]] =tree.getHyperplane();
-        throw new UnsupportedOperationException();
       } else {
         ((float[][]) hyperplanes)[nodeNum] = tree.getHyperplane().data();
       }

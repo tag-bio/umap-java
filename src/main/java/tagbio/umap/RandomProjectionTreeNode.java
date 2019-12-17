@@ -6,7 +6,9 @@
 package tagbio.umap;
 
 /**
+ * Node in a random projection tree.
  * @author Sean A. Irvine
+ * @author Richard Littin
  */
 class RandomProjectionTreeNode {
 
