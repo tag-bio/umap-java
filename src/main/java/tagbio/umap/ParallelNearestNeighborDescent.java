@@ -99,7 +99,6 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
         waitForFutures(futures);
       }
 
-      final boolean[] rejectStatus = new boolean[maxCandidates];
       for (int n = 0; n < nIters; ++n) {
         if (mVerbose) {
           Utils.message("NearestNeighborDescent: " + (n + 1) + " / " + nIters);
@@ -111,6 +110,7 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
           final int lo = t * chunkSize;
           final int hi = Math.min((t + 1) * chunkSize, nVertices);
           futures.add(executor.submit(() -> {
+            final boolean[] rejectStatus = new boolean[maxCandidates];
             int c = 0;
             for (int i = lo; i < hi; ++i) {
               for (int j = 0; j < maxCandidates; ++j) {
@@ -122,6 +122,7 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
                 if (p < 0) {
                   continue;
                 }
+
                 for (int k = 0; k <= j; ++k) {
                   final int q = candidateNeighbors.index(i, k);
                   if (q < 0 || (rejectStatus[j] && rejectStatus[k]) || (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k))) {

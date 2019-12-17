@@ -85,13 +85,7 @@ class NearestNeighborDescent {
           }
           for (int k = 0; k <= j; ++k) {
             final int q = candidateNeighbors.index(i, k);
-            if (q < 0) {
-              continue;
-            }
-            if (rejectStatus[j] && rejectStatus[k]) {
-              continue;
-            }
-            if (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k)) {
+            if (q < 0 || (rejectStatus[j] && rejectStatus[k]) || (!candidateNeighbors.isNew(i, j) && !candidateNeighbors.isNew(i, k))) {
               continue;
             }
 
