@@ -124,14 +124,6 @@ final class MathUtils {
     return res;
   }
 
-//  static float[][] multiply(final float[][] x, final float s) {
-//    final float[][] res = new float[x.length][];
-//    for (int k = 0; k < x.length; ++k) {
-//      res[k] = multiply(x[k], s);
-//    }
-//    return res;
-//  }
-
   static float[] divide(final float[] x, final float s) {
     return multiply(x, 1.0F / s);
   }
@@ -219,19 +211,4 @@ final class MathUtils {
     System.arraycopy(a, lo, res, 0, res.length);
     return res;
   }
-
-  static int[] concatenate(final int[] a, final int[] b) {
-    final int[] res = Arrays.copyOf(a, a.length + b.length);
-    System.arraycopy(b, 0, res, a.length, b.length);
-    return res;
-  }
-
-  static float[] negate(final float[] a) {
-    final float[] res = new float[a.length];
-    for (int k = 0; k < a.length; ++k) {
-      res[k] = a[k] == 0.0f ? a[k] : -a[k];
-    }
-    return res;
-  }
-
 }

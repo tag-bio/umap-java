@@ -212,17 +212,5 @@ public class MathUtilsTest extends TestCase {
     MathUtils.zeroEntriesBelowLimit(data, 9);
     assertTrue(Arrays.equals(new float[]{9, 0, 0, 0, 0, 12, 34, 26, 0, 0}, data));
   }
-
-  public void testNegate() {
-    final float[] negate = MathUtils.negate(new float[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43});
-    System.out.println(Arrays.toString(negate));
-    assertTrue(Arrays.equals(new float[]{-9, -2, -3, -5, -1, -12, -34, -26, 0, 43}, negate));
-    assertEquals(0.0F, negate[8]);
-  }
-
-  public void testConcatenate() {
-    final int[] res = MathUtils.concatenate(new int[]{9, 2, 3, 5, 1, 12}, new int[]{34, 26, 0, -43});
-    assertTrue(Arrays.equals(new int[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, res));
-  }
 }
 
