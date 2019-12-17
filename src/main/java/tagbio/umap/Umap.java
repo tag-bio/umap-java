@@ -16,12 +16,6 @@ import tagbio.umap.metric.Metric;
 import tagbio.umap.metric.PrecomputedMetric;
 import tagbio.umap.metric.ReducedEuclideanMetric;
 
-// init: string (optional, default 'spectral')
-//     How to initialize the low dimensional embedding. Options are:
-//         * 'spectral': use a spectral embedding of the fuzzy 1-skeleton
-//         * 'random': assign initial embedding positions at random.
-//         * A numpy array of initial embedding positions.
-
 /**
  * Uniform Manifold Approximation and Projection.
  *
@@ -162,8 +156,6 @@ public class Umap {
       // Compute indices of n nearest neighbors
       knnIndices = Utils.fastKnnIndices(instances, nNeighbors);
       // Compute the nearest neighbor distances
-      //   (equivalent to np.sort(X)[:,:nNeighbors])
-      //knnDists = X[np.arange(X.rows())[:, None],knnIndices].copy();
       knnDists = new float[knnIndices.length][nNeighbors];
       for (int i = 0; i < knnDists.length; ++i) {
         for (int j = 0; j < nNeighbors; ++j) {
@@ -172,8 +164,6 @@ public class Umap {
       }
       rpForest = Collections.emptyList();
     } else {
-//      Metric distanceFunc = metric;
-//      angular = distanceFunc.isAngular();
       boolean isAngular = metric.isAngular();
 
       if (instances instanceof CsrMatrix) {
@@ -457,7 +447,8 @@ public class Umap {
         if (epochOfNextSample[i] <= n) {
           final int j = head[i];
           final int k = tail[i];
-          // todo this assumes that "current" is a pointer to the internal matrix data
+          // Note this assumes that "current" is a pointer to the internal matrix data,
+          // not ideal from a data encapsulation point of view.
           final float[] current = headEmbedding.row(j);
           float[] other = tailEmbedding.row(k);
 
@@ -648,7 +639,7 @@ public class Umap {
       }
     }
 
-    final float[] params = Curve.curve_fit(xv, yv); // todo curve_fit in scipy
+    final float[] params = Curve.curve_fit(xv, yv);
     return new float[]{params[0], params[1]};
     */
     return Curve.curveFit(spread, minDist);
@@ -688,7 +679,6 @@ public class Umap {
   private float[][] mKnnDists;
   private List<FlatTree> mRpForest;
   private boolean mSmallData;
-//  private Metric mDistanceFunc;
   private Matrix mGraph;
   private Matrix mEmbedding;
   private NearestNeighborSearch mSearch;
@@ -1229,6 +1219,7 @@ public class Umap {
     } else if (mMetric instanceof PrecomputedMetric) {
       throw new IllegalArgumentException("Transform of new data not available for precomputed metric.");
     }
+    UmapProgress.reset(5);
 
     int[][] indices;
     final float[][] dists;
