@@ -1231,11 +1231,6 @@ public class Umap {
       }
       indices = MathUtils.subarray(indices, mRunNNeighbors);
       dists = Utils.submatrix(distanceMatrix, indices, mRunNNeighbors);
-//      indices = MathUtils.subarray(MathUtils.argpartition(distanceMatrix, mRunNNeighbors), mRunNNeighbors);
-//      final float[][] dmatShortened = Utils.submatrix(distanceMatrix, indices, mRunNNeighbors);
-//      final int[][] indicesSorted = MathUtils.argsort(dmatShortened);
-//      indices = Utils.submatrix(indices, indicesSorted, mRunNNeighbors);
-//      dists = Utils.submatrix(dmatShortened, indicesSorted, mRunNNeighbors);
     } else {
       final Heap init = NearestNeighborDescent.initialiseSearch(mRpForest, mRawData, instances, (int) (mRunNNeighbors * mTransformQueueSize), mSearch, mRandom);
       if (mSearchGraph == null) {
