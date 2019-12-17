@@ -203,4 +203,9 @@ class CsrMatrix extends Matrix {
       }
     }
   }
+
+  SparseVector vector(final int row) {
+    return new SparseVector(Arrays.copyOfRange(mIndices, mIndptr[row], mIndptr[row + 1]),
+      Arrays.copyOfRange(mData, mIndptr[row], mIndptr[row + 1]));
+  }
 }
