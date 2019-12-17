@@ -5,62 +5,6 @@
  */
 package tagbio.umap;
 
-//from umap.umap_ import (
-//    INT32_MAX,
-//    INT32_MIN,
-//    make_forest,
-//    rptree_leaf_array,
-//    nearest_neighbors,
-//    smooth_knn_dist,
-//    fuzzy_simplicial_set,
-//    UMAP,
-//)
-//from umap.utils import deheap_sort
-//from umap.nndescent import (
-//    make_initialisations,
-//    make_initialized_nnd_search,
-//    initialise_search,
-//)
-//import umap.validation as valid
-//import umap.sparse as spdist
-//import umap.distances as dist
-//from sklearn import datasets
-//from nose import SkipTest
-//from functools import wraps
-//from tempfile import mkdtemp
-//from scipy.stats import mode
-//from sklearn.cluster import KMeans
-//from sklearn.manifold.t_sne import trustworthiness
-//from sklearn.preprocessing import StandardScaler, normalize
-//from sklearn.utils import shuffle
-//from sklearn.neighbors import KDTree, BallTree
-//from sklearn.metrics import pairwise_distances, adjusted_rand_score
-//from sklearn.utils.testing import (
-//    assert_equal,
-//    assert_array_equal,
-//    assert_almost_equal,
-//    assert_array_almost_equal,
-//    assert_raises,
-//    assert_in,
-//    assert_not_in,
-//    assert_no_warnings,
-//)
-//from sklearn.utils.estimator_checks import check_estimator
-//from scipy import stats
-//from scipy import sparse
-//from scipy.spatial import distance
-//import numpy as np
-//import os.path
-//from nose.tools import assert_greater_equal
-//from nose.tools import assert_less
-//
-//"""
-//Tests for UMAP to ensure things are working as expected.
-//"""
-//import warnings
-//
-//warnings.filterwarnings("ignore", category=UserWarning)
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
