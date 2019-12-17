@@ -524,32 +524,6 @@ final class RandomProjectionTree {
   }
 
 
- private static boolean selectSide(final float[] hyperplane, final float offset, final float[] point, final Random random) {
-   float margin = offset;
-   for (int d = 0; d < point.length; ++d) {
-     margin += hyperplane[d] * point[d];
-   }
-
-   if (Math.abs(margin) < EPS) {
-     return random.nextBoolean();
-   } else {
-     return margin <= 0;
-   }
- }
-
- static int[] searchFlatTree(final float[] point, final float[][] hyperplanes, final float[] offsets, final int[][] children, final int[][] indices, final Random random) {
-   int node = 0;
-   while (children[node][0] > 0) {
-     final boolean side = selectSide(hyperplanes[node], offsets[node], point, random);
-     if (side) {
-       node = children[node][1];
-     } else {
-       node = children[node][0];
-     }
-   }
-   return indices[-children[node][0]];
- }
-
   /**
    * Build a random projection forest with specified number of trees.
    * @param data instances
@@ -593,11 +567,11 @@ final class RandomProjectionTree {
 
       final ArrayList<FlatTree> result = new ArrayList<>();
       try {
-        for (Future<FlatTree> future : futures) {
+        for (final Future<FlatTree> future : futures) {
           result.add(future.get());
           UmapProgress.update();
         }
-      } catch (InterruptedException | ExecutionException ex) {
+      } catch (final InterruptedException | ExecutionException ex) {
         Utils.message("Random Projection forest initialisation failed due to recursion limit being reached. Something is a little strange with your data, and this may take longer than normal to compute.");
         throw new RuntimeException(ex); // Python blindly continued from this point ... we die for now
       }
@@ -606,7 +580,6 @@ final class RandomProjectionTree {
       executor.shutdown();
     }
   }
-
 
   /**
    * Generate an array of sets of candidate nearest neighbors by

@@ -171,7 +171,7 @@ public class UmapTest extends TestCase {
 //    System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
 //    assertEquals(5902, matrix.length);
 //    assertEquals(2, matrix[0].length);
-//    assertEquals(2601.2939453125, MathUtils.sum(matrix), 1e-4);
+//    assertEquals(-5602.466796875, MathUtils.sum(matrix), 1e-4);
 ////    final int[] classIndexes = data.getSampleClassIndex();
 ////    for (int r = 0; r < matrix.length; ++r) {
 ////      System.out.println(matrix[r][0] + " " + matrix[r][1] + " " + classIndexes[r]);

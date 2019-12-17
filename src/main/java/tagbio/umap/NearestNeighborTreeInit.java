@@ -24,8 +24,8 @@ class NearestNeighborTreeInit {
 
   void init(final FlatTree tree, final Matrix data, final Matrix queryPoints, final Heap heap, final Random random) {
     for (int i = 0; i < queryPoints.rows(); ++i) {
-      final int[] indices = RandomProjectionTree.searchFlatTree(queryPoints.row(i), (float[][]) tree.getHyperplanes(), tree.getOffsets(), tree.getChildren(), tree.getIndices(), random);
-      for (int index : indices) {
+      final int[] indices = tree.searchFlatTree(queryPoints.row(i), random);
+      for (final int index : indices) {
         if (index < 0) { // todo is this check necessary?
           continue;
         }

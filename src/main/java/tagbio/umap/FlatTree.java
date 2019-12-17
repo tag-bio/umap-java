@@ -5,6 +5,8 @@
  */
 package tagbio.umap;
 
+import java.util.Random;
+
 /**
  * Flattened tree.
  * @author Leland McInnes (Python)
@@ -12,6 +14,9 @@ package tagbio.umap;
  * @author Richard Littin
  */
 class FlatTree {
+
+  // Used for a floating point "nearly zero" comparison
+  private static final float EPS = 1e-8F;
 
   private final Object mHyperplanes;
   private final float[] mOffsets;
@@ -25,19 +30,28 @@ class FlatTree {
     mIndices = indices;
   }
 
-  Object getHyperplanes() {
-    return mHyperplanes;
-  }
-
-  float[] getOffsets() {
-    return mOffsets;
-  }
-
-  int[][] getChildren() {
-    return mChildren;
-  }
-
   int[][] getIndices() {
     return mIndices;
+  }
+
+  private static boolean selectSide(final float[] hyperplane, final float offset, final float[] point, final Random random) {
+    float margin = offset;
+    for (int d = 0; d < point.length; ++d) {
+      margin += hyperplane[d] * point[d];
+    }
+    if (Math.abs(margin) < EPS) {
+      return random.nextBoolean();
+    } else {
+      return margin <= 0;
+    }
+  }
+
+  int[] searchFlatTree(final float[] point, final Random random) {
+    int node = 0;
+    while (mChildren[node][0] > 0) {
+      final boolean side = selectSide(((float[][]) mHyperplanes)[node], mOffsets[node], point, random);
+      node = mChildren[node][side ? 1 : 0];
+    }
+    return mIndices[-mChildren[node][0]];
   }
 }
