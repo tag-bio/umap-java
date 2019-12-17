@@ -374,18 +374,11 @@ public class Umap {
     return resetLocalConnectivity(simplicialSet.eliminateZeros());
   }
 
-  private static Matrix categoricalSimplicialSetIntersection(final CooMatrix simplicialSet, final float[] target, final float farDist) {
-    return categoricalSimplicialSetIntersection(simplicialSet, target, 1.0F, farDist);
-  }
-
   private static Matrix generalSimplicialSetIntersection(final Matrix simplicialSet1, final Matrix simplicialSet2, final float weight) {
-
     final CooMatrix result = simplicialSet1.add(simplicialSet2).toCoo();
     final CsrMatrix left = simplicialSet1.toCsr();
     final CsrMatrix right = simplicialSet2.toCsr();
-
-    Sparse.generalSsetIntersection(left.indptr(), left.indicies(), left.data(), right.indptr(), right.indicies(), right.data(), result.row(), result.col(), result.data(), weight);
-
+    left.intersect(right, result, weight);
     return result;
   }
 
@@ -1119,8 +1112,8 @@ public class Umap {
         throw new IllegalArgumentException("Length of x =  " + instances.length() + ", length of y = " + y.length + ", while it must be equal.");
       }
       if (CategoricalMetric.SINGLETON.equals(mTargetMetric)) {
-        final float farDist = mTargetWeight < 1.0 ? 2.5F * (1.0F / (1.0F - mTargetWeight)) : 1.0e12F;
-        mGraph = categoricalSimplicialSetIntersection((CooMatrix) mGraph, y, farDist);
+        final float farDist = mTargetWeight < 1 ? 2.5F * (1.0F / (1.0F - mTargetWeight)) : 1.0e12F;
+        mGraph = categoricalSimplicialSetIntersection((CooMatrix) mGraph, y, 1, farDist);
       } else {
         final int targetNNeighbors = mTargetNNeighbors == -1 ? mRunNNeighbors : mTargetNNeighbors;
 
@@ -1128,10 +1121,10 @@ public class Umap {
         // Handle the small case as precomputed as before
         if (y.length < SMALL_PROBLEM_THRESHOLD) {
           final Matrix ydmat = PairwiseDistances.pairwiseDistances(MathUtils.promoteTranspose(y), mTargetMetric);
-          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, false, 1.0F, 1, mThreads, false);
+          targetGraph = fuzzySimplicialSet(ydmat, targetNNeighbors, mRandom, PrecomputedMetric.SINGLETON, null, null, false, 1, 1, mThreads, false);
         } else {
           // Standard case
-          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, mRandom, mTargetMetric, null, null, false, 1.0F, 1, mThreads, false);
+          targetGraph = fuzzySimplicialSet(MathUtils.promoteTranspose(y), targetNNeighbors, mRandom, mTargetMetric, null, null, false, 1, 1, mThreads, false);
         }
         mGraph = generalSimplicialSetIntersection(mGraph, targetGraph, mTargetWeight);
         mGraph = resetLocalConnectivity(mGraph);

@@ -215,14 +215,12 @@ final class RandomProjectionTree {
    * random projection tree, which simply uses this splitting recursively.
    * This particular split uses cosine distance to determine the hyperplane
    * and which side each data sample falls on.
-   * @param inds CSR format index array of the matrix,
-   * @param indptr CSR format index pointer array of the matrix.
-   * @param data CSR format data array of the matrix
+   * @param matrix CSR format matrix
    * @param random randomness source
    * @return The elements of <code>indices</code> that fall on the "left" side of the
    * random hyperplane.
    */
-  private static Object[] sparseAngularRandomProjectionSplit(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final Random random) {
+  private static Object[] sparseAngularRandomProjectionSplit(final CsrMatrix matrix, final int[] indices, final Random random) {
     // Select two random points, set the hyperplane between them
     final int leftIndex = random.nextInt(indices.length);
     int rightIndex = random.nextInt(indices.length);
@@ -232,6 +230,9 @@ final class RandomProjectionTree {
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
 
+    final int[] indptr = matrix.indptr();
+    final int[] inds = matrix.indicies();
+    final float[] data = matrix.data();
     final int[] leftInds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
     final float[] leftData = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
     final int[] rightInds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
@@ -324,14 +325,12 @@ final class RandomProjectionTree {
    * random projection tree, which simply uses this splitting recursively.
    * This particular split uses Euclidean distance to determine the hyperplane
    * and which side each data sample falls on.
-   * @param inds CSR format index array of the matrix,
-   * @param indptr CSR format index pointer array of the matrix.
-   * @param data CSR format data array of the matrix
+   * @param matrix Csr format matrix
    * @param random randomness source
    * @return The elements of <code>indices</code> that fall on the "left" side of the
    * random hyperplane.
    */
-  private static Object[] sparseEuclideanRandomProjectionSplit(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final Random random) {
+  private static Object[] sparseEuclideanRandomProjectionSplit(final CsrMatrix matrix, final int[] indices, final Random random) {
     // Select two random points, set the hyperplane between them
     final int leftIndex = random.nextInt(indices.length);
     int rightIndex = random.nextInt(indices.length);
@@ -341,6 +340,9 @@ final class RandomProjectionTree {
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
 
+    final int[] indptr = matrix.indptr();
+    final int[] inds = matrix.indicies();
+    final float[] data = matrix.data();
     final int[] leftInds = MathUtils.subarray(inds, indptr[left], indptr[left + 1]);
     final float[] leftData = MathUtils.subarray(data, indptr[left], indptr[left + 1]);
     final int[] rightInds = MathUtils.subarray(inds, indptr[right], indptr[right + 1]);
@@ -449,16 +451,16 @@ final class RandomProjectionTree {
     }
   }
 
-  private static RandomProjectionTreeNode makeSparseEuclideanTree(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final Random random, final int leafSize) {
+  private static RandomProjectionTreeNode makeSparseEuclideanTree(final CsrMatrix matrix, final int[] indices, final Random random, final int leafSize) {
     if (indices.length > leafSize) {
-      final Object[] erps = sparseEuclideanRandomProjectionSplit(inds, indptr, data, indices, random);
+      final Object[] erps = sparseEuclideanRandomProjectionSplit(matrix, indices, random);
       final int[] leftIndices = (int[]) erps[0];
       final int[] rightIndices = (int[]) erps[1];
       final Hyperplane hyperplane = (Hyperplane) erps[2];
       final float offset = (float) erps[3];
 
-      final RandomProjectionTreeNode leftNode = makeSparseEuclideanTree(inds, indptr, data, leftIndices, random, leafSize);
-      final RandomProjectionTreeNode rightNode = makeSparseEuclideanTree(inds, indptr, data, rightIndices, random, leafSize);
+      final RandomProjectionTreeNode leftNode = makeSparseEuclideanTree(matrix, leftIndices, random, leafSize);
+      final RandomProjectionTreeNode rightNode = makeSparseEuclideanTree(matrix, rightIndices, random, leafSize);
 
       return new RandomProjectionTreeNode(null, hyperplane, offset, leftNode, rightNode);
     } else {
@@ -466,16 +468,16 @@ final class RandomProjectionTree {
     }
   }
 
-  private static RandomProjectionTreeNode makeSparseAngularTree(final int[] inds, final int[] indptr, final float[] data, final int[] indices, final Random random, final int leafSize) {
+  private static RandomProjectionTreeNode makeSparseAngularTree(final CsrMatrix matrix, final int[] indices, final Random random, final int leafSize) {
     if (indices.length > leafSize) {
-      final Object[] erps = sparseAngularRandomProjectionSplit(inds, indptr, data, indices, random);
+      final Object[] erps = sparseAngularRandomProjectionSplit(matrix, indices, random);
       final int[] leftIndices = (int[]) erps[0];
       final int[] rightIndices = (int[]) erps[1];
       final Hyperplane hyperplane = (Hyperplane) erps[2];
       final float offset = (float) erps[3];
 
-      final RandomProjectionTreeNode leftNode = makeSparseAngularTree(inds, indptr, data, leftIndices, random, leafSize);
-      final RandomProjectionTreeNode rightNode = makeSparseAngularTree(inds, indptr, data, rightIndices, random, leafSize);
+      final RandomProjectionTreeNode leftNode = makeSparseAngularTree(matrix, leftIndices, random, leafSize);
+      final RandomProjectionTreeNode rightNode = makeSparseAngularTree(matrix, rightIndices, random, leafSize);
 
       return new RandomProjectionTreeNode(null, hyperplane, offset, leftNode, rightNode);
     } else {
@@ -504,15 +506,10 @@ final class RandomProjectionTree {
     // Make a tree recursively until we get below the leaf size
     if (isSparse) {
       final CsrMatrix csrData = (CsrMatrix) data;
-      // todo is the following copy operation necessary?
-      final int[] inds = csrData.indicies();
-      final int[] indptr = csrData.indptr();
-      final float[] spdata = csrData.data();
-
       if (angular) {
-        return makeSparseAngularTree(inds, indptr, spdata, indices, random, leafSize);
+        return makeSparseAngularTree(csrData, indices, random, leafSize);
       } else {
-        return makeSparseEuclideanTree(inds, indptr, spdata, indices, random, leafSize);
+        return makeSparseEuclideanTree(csrData, indices, random, leafSize);
       }
     } else {
       if (angular) {

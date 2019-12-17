@@ -166,4 +166,41 @@ class CsrMatrix extends Matrix {
     return res;
   }
 
+  void intersect(final CsrMatrix other, final CooMatrix result, final float mixWeight) {
+
+    final float leftMin = Math.max(MathUtils.min(mData) / 2, 1.0e-8F);
+    final float rightMin = Math.max(MathUtils.min(other.mData) / 2, 1.0e-8F);
+
+    final int[] row = result.row();
+    final int[] col = result.col();
+    final float[] data = result.data();
+    for (int idx = 0; idx < row.length; ++idx) {
+      final int i = row[idx];
+      final int j = col[idx];
+
+      float leftVal = leftMin;
+      for (int k = mIndptr[i]; k < mIndptr[i + 1]; ++k) {
+        if (mIndices[k] == j) {
+          leftVal = mData[k];
+        }
+      }
+
+      float rightVal = rightMin;
+      for (int k = other.mIndptr[i]; k < other.mIndptr[i + 1]; ++k) {
+        if (other.mIndices[k] == j) {
+          rightVal = other.mData[k];
+        }
+      }
+
+      if (leftVal > leftMin || rightVal > rightMin) {
+        final float f;
+        if (mixWeight < 0.5) {
+          f = (float) (leftVal * Math.pow(rightVal, mixWeight / (1.0 - mixWeight)));
+        } else {
+          f = (float) (Math.pow(leftVal, (1.0 - mixWeight) / mixWeight) * rightVal);
+        }
+        data[idx] = f;
+      }
+    }
+  }
 }
