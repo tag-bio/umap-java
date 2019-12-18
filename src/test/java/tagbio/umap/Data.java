@@ -6,6 +6,7 @@
 package tagbio.umap;
 
 import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,7 +28,13 @@ abstract class Data {
   private final List<String> mSampleNames = new ArrayList<>();
 
   protected static InputStream getStream(final String resource) throws IOException {
-    final BufferedInputStream resourceAsStream = new BufferedInputStream(Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource)));
+    final InputStream inner;
+    if (resource.startsWith("/")) {
+      inner = new FileInputStream(resource);
+    } else {
+      inner = Objects.requireNonNull(Data.class.getClassLoader().getResourceAsStream(resource));
+    }
+    final BufferedInputStream resourceAsStream = new BufferedInputStream(inner);
     return resource.endsWith(".gz")
       ? new GZIPInputStream(resourceAsStream)
       : resourceAsStream;
@@ -40,10 +47,18 @@ abstract class Data {
       if (line == null) {
         throw new IOException("No header line");
       }
+
+      String delimiter;
+      if (dataFile.contains(".csv")) {
+        delimiter = ",";
+      } else {
+        delimiter = "\t";
+      }
+
       // Process header line
       line = line.trim();
       try (final Scanner rowScanner = new Scanner(line)) {
-        rowScanner.useDelimiter("\t");
+        rowScanner.useDelimiter(delimiter);
         if (rowScanner.hasNext()) {
           final String next = rowScanner.next();
           assert "sample".equals(next);
@@ -54,7 +69,7 @@ abstract class Data {
       }
       // Process data lines
       while ((line = r.readLine()) != null) {
-        final String[] parts = line.trim().split("\t");
+        final String[] parts = line.trim().split(delimiter);
         if (parts.length != mAttributes.size() + 1) {
           throw new RuntimeException("Incorrect number of fields in: " + line);
         }
@@ -69,6 +84,7 @@ abstract class Data {
         }
       }
       mData = records.toArray(new float[0][]);
+      Utils.message("Read " + records.size() + " records");
     }
   }
 
