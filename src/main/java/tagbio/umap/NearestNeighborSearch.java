@@ -12,6 +12,7 @@ import java.util.TreeSet;
 import tagbio.umap.metric.Metric;
 
 /**
+ * Nearest neighbor search.
  * @author Leland McInnes (Python)
  * @author Sean A. Irvine
  * @author Richard Littin
@@ -63,10 +64,8 @@ class NearestNeighborSearch {
         if (vertex == -1) {
           break;
         }
-        //final int[] candidates = new int[indptr[vertex + 1] - indptr[vertex]];
-        //System.arraycopy(indices, indptr[vertex], candidates, 0, candidates.length);
         for (final int candidate : searchGraph.row(vertex)) {
-          if (candidate == vertex || candidate == -1 || tried.contains(candidate)) { // todo is this -1 needed
+          if (candidate == vertex || candidate == -1 || tried.contains(candidate)) {
             continue;
           }
           final float d = mDist.distance(data.row(candidate), queryPoints.row(i));

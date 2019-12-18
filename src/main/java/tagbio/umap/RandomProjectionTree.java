@@ -155,15 +155,19 @@ final class RandomProjectionTree {
     final int left = indices[leftIndex];
     final int right = indices[rightIndex];
 
-    // Compute the normal vector to the hyperplane (the vector between
-    // the two points) and the offset from the origin
+    // Compute the normal vector to the hyperplane (the vector between the two points) and the offset from the origin
     float hyperplaneOffset = 0;
     final float[] hyperplaneVector = new float[dim];
 
+    // todo what is the matrix type here?  Getting multiple values from same row ...
     for (int d = 0; d < dim; ++d) {
-      hyperplaneVector[d] = data.get(left, d) - data.get(right, d);
-      hyperplaneOffset -= hyperplaneVector[d] * (data.get(left, d) + data.get(right, d)) / 2.0;
+      final float ld = data.get(left, d);
+      final float rd = data.get(right, d);
+      final float delta = ld - rd;
+      hyperplaneVector[d] = delta;
+      hyperplaneOffset -= delta * (ld + rd);
     }
+    hyperplaneOffset /= 2;
 
     // For each point compute the margin (project into normal vector, add offset)
     // If we are on lower side of the hyperplane put in one pile, otherwise
@@ -176,19 +180,20 @@ final class RandomProjectionTree {
       for (int d = 0; d < dim; ++d) {
         margin += hyperplaneVector[d] * data.get(indices[i], d);
       }
-      if (Math.abs(margin) < EPS) {
+      if (margin >= EPS) {
+        //side[i] = false;
+        ++nLeft;
+      } else if (margin <= -EPS) {
+        side[i] = true;
+        ++nRight;
+      } else {
+        // Margin is very close to 0
         side[i] = random.nextBoolean();
         if (side[i]) {
           ++nRight;
         } else {
           ++nLeft;
         }
-      } else if (margin > 0) {
-        side[i] = false;
-        ++nLeft;
-      } else {
-        side[i] = true;
-        ++nRight;
       }
     }
     // Now that we have the counts allocate arrays
@@ -196,13 +201,11 @@ final class RandomProjectionTree {
     final int[] indicesRight = new int[nRight];
 
     // Populate the arrays with indices according to which side they fell on
-    nLeft = 0;
-    nRight = 0;
-    for (int i = 0; i < side.length; ++i) {
+    for (int i = 0, l = 0, r = 0; i < side.length; ++i) {
       if (side[i]) {
-        indicesRight[nRight++] = indices[i];
+        indicesRight[r++] = indices[i];
       } else {
-        indicesLeft[nLeft++] = indices[i];
+        indicesLeft[l++] = indices[i];
       }
     }
     return new Object[]{indicesLeft, indicesRight, hyperplaneVector, hyperplaneOffset};
