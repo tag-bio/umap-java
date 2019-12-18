@@ -167,7 +167,7 @@ public class Umap {
       boolean isAngular = metric.isAngular();
 
       if (instances instanceof CsrMatrix) {
-//        final CsrMatrix csrInstances = (CsrMatrix) instances;
+//        final CsrMatrix csrInstances = instances.toCsr();
 //        // todo this is nonsense now, since metric cannot be a string at this point
 //        if (Sparse.SPARSE_NAMED_DISTANCES.containsKey(metric)) {
 //          distanceFunc = Sparse.SPARSE_NAMED_DISTANCES.get(metric);
@@ -1042,11 +1042,11 @@ public class Umap {
       mRunNNeighbors = mNNeighbors;
     }
 
-    if (instances instanceof CsrMatrix) {   // scipy.sparse.isspmatrix_csr(X)) {
-      final CsrMatrix csrInstances = (CsrMatrix) instances;
-      if (!csrInstances.hasSortedIndices()) {
-        csrInstances.sortIndices();
-      }
+    if (instances instanceof CsrMatrix) {
+//      final CsrMatrix csrInstances = instances.toCsr();
+//      if (!csrInstances.hasSortedIndices()) {
+//        csrInstances.sortIndices();
+//      }
       mSparseData = true;
     } else {
       mSparseData = false;

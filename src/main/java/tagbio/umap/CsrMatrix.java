@@ -55,26 +55,30 @@ class CsrMatrix extends Matrix {
 
   @Override
   Matrix add(final Matrix m) {
-    // todo this could do this without using super
-    return super.add(m).toCsr();
+    // Sparse implementation would be better than using super.
+    //return super.add(m).toCsr();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   Matrix subtract(final Matrix m) {
-    // todo this could do this without using super
-    return super.subtract(m).toCsr();
+    // Sparse implementation would be better than using super.
+    //return super.subtract(m).toCsr();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   Matrix multiply(final Matrix m) {
-    // todo this could do this without using super
-    return super.multiply(m).toCsr();
+    // Sparse implementation would be better than using super.
+    //return super.multiply(m).toCsr();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   Matrix transpose() {
-    // todo this could do this without using super
-    return super.transpose().toCsr();
+    // Sparse implementation would be better than using super.
+    //return super.transpose().toCsr();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -116,16 +120,6 @@ class CsrMatrix extends Matrix {
     }
     // Note would be safer to copy mIndptr and mIndices arrays
     return new CsrMatrix(d, mIndptr, mIndices, rows(), cols());
-  }
-
-  boolean hasSortedIndices() {
-    // todo
-    throw new UnsupportedOperationException();
-  }
-
-  void sortIndices() {
-    // todo
-    throw new UnsupportedOperationException();
   }
 
   int[][] reshapeIndicies(final int rows, final int cols) {
