@@ -432,7 +432,9 @@ public class Umap {
    */
   private Matrix optimizeLayout(final Matrix headEmbedding, final Matrix tailEmbedding, final int[] head, final int[] tail, final int nEpochs, final int nVertices, final float[] epochsPerSample, final float a, final float b, final Random random, final float gamma, final float initialAlpha, final float negativeSampleRate, final boolean verbose) {
 
-    assert headEmbedding instanceof DefaultMatrix; // because this routine directly modifies contents of rows in the matrix
+    if (!(headEmbedding instanceof DefaultMatrix)) {
+      throw new UnsupportedOperationException("Require matrix we can set entries on");
+    }
 
     final int dim = headEmbedding.cols();
     final boolean moveOther = headEmbedding.rows() == tailEmbedding.rows();
@@ -1021,12 +1023,6 @@ public class Umap {
 //      mRunB = mB;
 //    }
 
-//      if (isinstance(this.init, np.ndarray)) {
-//        init = check_array(this.init,        /*  dtype = */np.float32,         /* accept_sparse =*/ false);
-//      } else {
-//        init = this.init;
-//      }
-
     mInitialAlpha = mLearningRate;
 
     validateParameters();
@@ -1122,7 +1118,6 @@ public class Umap {
       Utils.message("Finished embedding");
     }
     UmapProgress.finished();
-    //this._input_hash = joblib.hash(this._raw_data);
   }
 
   /**
@@ -1219,7 +1214,7 @@ public class Umap {
     } else if (mMetric instanceof PrecomputedMetric) {
       throw new IllegalArgumentException("Transform of new data not available for precomputed metric.");
     }
-    UmapProgress.reset(5);
+    UmapProgress.reset(4);
 
     int[][] indices;
     final float[][] dists;
@@ -1248,11 +1243,15 @@ public class Umap {
       dists = MathUtils.subarray(result.weights(), mRunNNeighbors);
     }
 
+    UmapProgress.update();
+
     final int adjustedLocalConnectivity = Math.max(0, mLocalConnectivity - 1);
     final float[][] sigmasRhos = smoothKnnDist(dists, mRunNNeighbors, adjustedLocalConnectivity);
     final float[] sigmas = sigmasRhos[0];
     final float[] rhos = sigmasRhos[1];
     CooMatrix graph = computeMembershipStrengths(indices, dists, sigmas, rhos, instances.rows(), mRawData.rows());
+
+    UmapProgress.update();
 
     // This was a very specially constructed graph with constant degree.
     // That lets us do fancy unpacking by reshaping the Csr matrix indices
@@ -1282,7 +1281,13 @@ public class Umap {
     final int[] head = graph.row();
     final int[] tail = graph.col();
 
-    return optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, mRunA, mRunB, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
+    UmapProgress.update();
+
+    final Matrix matrix = optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, mRunA, mRunB, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
+
+    UmapProgress.finished();
+
+    return matrix;
   }
 
   /**
