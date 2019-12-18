@@ -672,7 +672,6 @@ public class Umap {
 
   private float mInitialAlpha;
   private int mRunNNeighbors;
-  private boolean mSparseData;
   private float mRunA;
   private float mRunB;
   private Matrix mRawData;
@@ -1042,16 +1041,6 @@ public class Umap {
       mRunNNeighbors = mNNeighbors;
     }
 
-    if (instances instanceof CsrMatrix) {
-//      final CsrMatrix csrInstances = instances.toCsr();
-//      if (!csrInstances.hasSortedIndices()) {
-//        csrInstances.sortIndices();
-//      }
-      mSparseData = true;
-    } else {
-      mSparseData = false;
-    }
-
     if (mVerbose) {
       Utils.message("Construct fuzzy simplicial set: " + instances.rows());
     }
@@ -1209,7 +1198,7 @@ public class Umap {
     if (mEmbedding.rows() == 1) {
       throw new IllegalArgumentException("Transform unavailable when model was fit with only a single data sample.");
     }
-    if (mSparseData) {
+    if (mRawData instanceof CsrMatrix) {
       throw new IllegalArgumentException("Transform not available for sparse input.");
     } else if (mMetric instanceof PrecomputedMetric) {
       throw new IllegalArgumentException("Transform of new data not available for precomputed metric.");
