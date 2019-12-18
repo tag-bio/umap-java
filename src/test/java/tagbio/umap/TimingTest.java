@@ -49,7 +49,6 @@ public final class TimingTest {
               System.out.print(data.getName() + "\t" + minDist + "\t" + neighbours + "\t" + seed);
 
               final Umap umap = new Umap();
-              umap.setInit("random");
               umap.setSeed(seed);
               umap.setMinDist(minDist);
               umap.setNumberNearestNeighbours(neighbours);

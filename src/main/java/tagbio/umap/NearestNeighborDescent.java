@@ -100,19 +100,6 @@ class NearestNeighborDescent {
         }
       }
 
-//      // todo delete this debug
-//      final int[][] idx = currentGraph.indices();
-//      final float[][] w = currentGraph.weights();
-//      float sum = 0;
-//      for (int i = 0; i < idx.length; ++i) {
-//        for (int j = 0; j < idx[i].length; ++j) {
-//          if (idx[i][j] >= 0) {
-//            sum += w[i][j];
-//          }
-//        }
-//      }
-//      System.out.println(n + " heap-weight " + sum + " c=" + c);
-
       if (c <= delta * nNeighbors * data.rows()) {
         UmapProgress.update(nIters - n);
         break;
@@ -123,12 +110,12 @@ class NearestNeighborDescent {
   }
 
 
-  static Heap initialiseSearch(final List<FlatTree> forest, final Matrix data, final Matrix queryPoints, final int nNeighbors, final NearestNeighborRandomInit initFromRandom, NearestNeighborTreeInit initFromTree, final Random random) {
+  static Heap initialiseSearch(final List<FlatTree> forest, final Matrix data, final Matrix queryPoints, final int nNeighbors, final NearestNeighborSearch nn, final Random random) {
     final Heap results = new Heap(queryPoints.rows(), nNeighbors);
-    initFromRandom.init(nNeighbors, data, queryPoints, results, random);
+    nn.randomInit(nNeighbors, data, queryPoints, results, random);
     if (forest != null) {
       for (final FlatTree tree : forest) {
-        initFromTree.init(tree, data, queryPoints, results, random);
+        nn.treeInit(tree, data, queryPoints, results, random);
       }
     }
     return results;

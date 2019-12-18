@@ -26,21 +26,6 @@ class CsrMatrix extends Matrix {
     mData = data;
   }
 
-  int[] indptr() {
-    return mIndptr;
-    //return Arrays.copyOf(mIndptr, mIndptr.length);
-  }
-
-  int[] indicies() {
-    return mIndices;
-    //return Arrays.copyOf(mIndices, mIndices.length);
-  }
-
-  float[] data() {
-    return mData;
-    //return Arrays.copyOf(mData, mData.length);
-  }
-
   @Override
   float get(final int row, final int col) {
     final int colStart = mIndptr[row];
@@ -202,5 +187,10 @@ class CsrMatrix extends Matrix {
         data[idx] = f;
       }
     }
+  }
+
+  SparseVector vector(final int row) {
+    return new SparseVector(Arrays.copyOfRange(mIndices, mIndptr[row], mIndptr[row + 1]),
+      Arrays.copyOfRange(mData, mIndptr[row], mIndptr[row + 1]));
   }
 }

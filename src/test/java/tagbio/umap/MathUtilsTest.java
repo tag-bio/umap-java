@@ -1,3 +1,8 @@
+/*
+ * BSD 3-Clause License
+ * Copyright (c) 2017, Leland McInnes, 2019 Tag.bio (Java port).
+ * See LICENSE.txt.
+ */
 package tagbio.umap;
 
 import java.util.Arrays;
@@ -104,10 +109,9 @@ public class MathUtilsTest extends TestCase {
     assertEquals(3, uniform.length);
 
     random = new Random(1234);
-    for (int i = 0; i < uniform.length; ++i) {
-      assertEquals(4, uniform[i].length);
-      for (int j = 0; j < uniform[i].length; ++j) {
-        final float value = uniform[i][j];
+    for (final float[] floats : uniform) {
+      assertEquals(4, floats.length);
+      for (final float value : floats) {
         assertTrue(value >= 1);
         assertTrue(value <= 5);
         assertEquals(1.0F + random.nextFloat() * 4.0F, value);
@@ -207,18 +211,6 @@ public class MathUtilsTest extends TestCase {
     final float[] data = {9, 2, 3, 5, 1, 12, 34, 26, 0, -43};
     MathUtils.zeroEntriesBelowLimit(data, 9);
     assertTrue(Arrays.equals(new float[]{9, 0, 0, 0, 0, 12, 34, 26, 0, 0}, data));
-  }
-
-  public void testNegate() {
-    final float[] negate = MathUtils.negate(new float[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43});
-    System.out.println(Arrays.toString(negate));
-    assertTrue(Arrays.equals(new float[]{-9, -2, -3, -5, -1, -12, -34, -26, 0, 43}, negate));
-    assertEquals(0.0F, negate[8]);
-  }
-
-  public void testConcatenate() {
-    final int[] res = MathUtils.concatenate(new int[]{9, 2, 3, 5, 1, 12}, new int[]{34, 26, 0, -43});
-    assertTrue(Arrays.equals(new int[]{9, 2, 3, 5, 1, 12, 34, 26, 0, -43}, res));
   }
 }
 
