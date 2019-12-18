@@ -33,7 +33,7 @@ final Umap umap = new Umap();
 umap.setNumberComponents(2);         // number of dimensions in result
 umap.setNumberNearestNeighbours(15);
 umap.setThreads(1);                  // use > 1 to enable parallelism
-final float[][] matrix = umap.fitTransform(data);
+final float[][] result = umap.fitTransform(data);
 ```
 
 There are a large number of potential parameters than can be set; the
