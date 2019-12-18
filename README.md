@@ -73,7 +73,7 @@ Python implementation:
 * Selection of curve parameters is more limited than in the Python version
   (an `IllegalArgumentException` will be reported if limits are exceeded).
 
-* Other limitations might occur as `UnsupportedOperationException`s.
+* Other limitations might occur as an `UnsupportedOperationException`.
 
 Citation
 --------
