@@ -33,11 +33,11 @@ class NearestNeighborDescent {
     mVerbose = flag;
   }
 
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray) {
-    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, 0.001F, 0.5F);
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final List<FlatTree> forest) {
+    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, forest, 0.001F, 0.5F);
   }
 
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final float delta, final float rho) {
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final List<FlatTree> forest, final float delta, final float rho) {
     final int nVertices = data.rows();
     final Heap currentGraph = new Heap(data.rows(), nNeighbors);
     for (int i = 0; i < data.rows(); ++i) {
@@ -51,13 +51,15 @@ class NearestNeighborDescent {
     UmapProgress.update();
 
     if (rpTreeInit) {
-      for (final int[] leaf : leafArray) {
-        for (int i = 0; i < leaf.length; ++i) {
-          final float[] iRow = data.row(leaf[i]);
-          for (int j = i + 1; j < leaf.length; ++j) {
-            final float d = mMetric.distance(iRow, data.row(leaf[j]));
-            currentGraph.push(leaf[i], d, leaf[j], true);
-            currentGraph.push(leaf[j], d, leaf[i], true);
+      for (final FlatTree tree : forest) {
+        for (final int[] leaf : tree.getIndices()) {
+          for (int i = 0; i < leaf.length; ++i) {
+            final float[] iRow = data.row(leaf[i]);
+            for (int j = i + 1; j < leaf.length; ++j) {
+              final float d = mMetric.distance(iRow, data.row(leaf[j]));
+              currentGraph.push(leaf[i], d, leaf[j], true);
+              currentGraph.push(leaf[j], d, leaf[i], true);
+            }
           }
         }
       }

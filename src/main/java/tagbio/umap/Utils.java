@@ -225,7 +225,6 @@ final class Utils {
    * The corresponding submatrix.
    */
   static float[][] submatrix(Matrix matrix, int[][] indicesCol, int nNeighbors) {
-    // todo parallel possible here
     final int nSamplesTransform = matrix.rows();
     final float[][] submat = new float[nSamplesTransform][nNeighbors];
     for (int i = 0; i < nSamplesTransform; ++i) {

@@ -40,12 +40,12 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
   }
 
   @Override
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray) {
-    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, leafArray, 0.001F, 0.5F);
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final List<FlatTree> forest) {
+    return descent(data, nNeighbors, random, maxCandidates, rpTreeInit, nIters, forest, 0.001F, 0.5F);
   }
 
   @Override
-  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final int[][] leafArray, final float delta, final float rho) {
+  Heap descent(final Matrix data, final int nNeighbors, final Random random, final int maxCandidates, final boolean rpTreeInit, final int nIters, final List<FlatTree> forest, final float delta, final float rho) {
     final ExecutorService executor = Executors.newFixedThreadPool(mThreads);
     try {
       UmapProgress.incTotal(nIters);
@@ -76,20 +76,21 @@ class ParallelNearestNeighborDescent extends  NearestNeighborDescent {
       waitForFutures(futures);
 
       if (rpTreeInit) {
-        final int cs = (leafArray.length + jobs - 1) / jobs;
+        final int cs = (forest.size() + jobs - 1) / jobs;
         for (int t = 0; t < jobs; ++t) {
           final int lo = t * cs;
-          final int hi = Math.min((t + 1) * cs, leafArray.length);
+          final int hi = Math.min((t + 1) * cs, forest.size());
           futures.add(executor.submit(() -> {
             //System.out.println("T: " + lo + ":" + hi + " : " + leafArray.length);
             for (int l = lo; l < hi; ++l) {
-              int[] leaf = leafArray[l];
-              for (int i = 0; i < leaf.length; ++i) {
-                final float[] iRow = data.row(leaf[i]);
-                for (int j = i + 1; j < leaf.length; ++j) {
-                  final float d = mMetric.distance(iRow, data.row(leaf[j]));
-                  currentGraph.push(leaf[i], d, leaf[j], true);
-                  currentGraph.push(leaf[j], d, leaf[i], true);
+              for (final int[] leaf : forest.get(l).getIndices()) {
+                for (int i = 0; i < leaf.length; ++i) {
+                  final float[] iRow = data.row(leaf[i]);
+                  for (int j = i + 1; j < leaf.length; ++j) {
+                    final float d = mMetric.distance(iRow, data.row(leaf[j]));
+                    currentGraph.push(leaf[i], d, leaf[j], true);
+                    currentGraph.push(leaf[j], d, leaf[i], true);
+                  }
                 }
               }
             }

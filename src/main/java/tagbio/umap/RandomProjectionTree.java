@@ -6,7 +6,6 @@
 package tagbio.umap;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -545,30 +544,6 @@ final class RandomProjectionTree {
       return result;
     } finally {
       executor.shutdown();
-    }
-  }
-
-  /**
-   * Generate an array of sets of candidate nearest neighbors by
-   * constructing a random projection forest and taking the leaves of all the
-   * trees. Any given tree has leaves that are a set of potential nearest
-   * neighbors. Given enough trees the set of all such leaves gives a good
-   * likelihood of getting a good set of nearest neighbors in composite. Since
-   * such a random projection forest is inexpensive to compute, this can be a
-   * useful means of seeding other nearest neighbor algorithms.
-   * @param rpForest forest
-   * @return array of shape <code>(nLeaves, max(10, nNeighbors))</code>
-   * Each row of leaf array is a list of indices found in a given leaf.
-   */
-  static int[][] rptreeLeafArray(final List<FlatTree> rpForest) {
-    if (rpForest.size() > 0) {
-      final List<int[]> leafArray = new ArrayList<>();
-      for (final FlatTree flatTree : rpForest) {
-        Collections.addAll(leafArray, flatTree.getIndices());
-      }
-      return leafArray.toArray(new int[0][]);
-    } else {
-      return new int[0][];
     }
   }
 }

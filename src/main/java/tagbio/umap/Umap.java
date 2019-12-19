@@ -205,12 +205,22 @@ public class Umap {
           Utils.message("Building random projection forest with " + nTrees + " trees");
         }
         rpForest = RandomProjectionTree.makeForest(instances, nNeighbors, nTrees, random, isAngular, threads);
-        final int[][] leafArray = RandomProjectionTree.rptreeLeafArray(rpForest);
         if (verbose) {
+          long nodeCount = 0;
+          for (final FlatTree tree : rpForest) {
+            for (final int[] a : tree.getIndices()) {
+              for (final int b : a) {
+                if (b >= 0) {
+                  ++nodeCount;
+                }
+              }
+            }
+          }
+          Utils.message("Total number of values in forest: " + nodeCount);
           Utils.message("NN descent for " + nIters + " iterations");
         }
         metricNearestNeighborsDescent.setVerbose(verbose);
-        final Heap nn = metricNearestNeighborsDescent.descent(instances, nNeighbors, random, 60, true, nIters, leafArray);
+        final Heap nn = metricNearestNeighborsDescent.descent(instances, nNeighbors, random, 60, true, nIters, rpForest);
         knnIndices = nn.indices();
         knnDists = nn.weights();
       }
