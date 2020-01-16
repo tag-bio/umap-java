@@ -1281,7 +1281,7 @@ public class Umap {
     final int[] tail = graph.col();
 
     UmapProgress.update();
-
+    UmapProgress.incTotal(nEpochs);
     final Matrix matrix = optimizeLayout(embedding, mEmbedding.copy(), head, tail, nEpochs, graph.cols(), epochsPerSample, mRunA, mRunB, mRandom, mRepulsionStrength, mInitialAlpha, mNegativeSampleRate, mVerbose);
 
     UmapProgress.finished();
