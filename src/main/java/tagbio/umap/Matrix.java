@@ -33,6 +33,8 @@ abstract class Matrix {
 
   abstract void set(final int row, final int col, final float val);
 
+  abstract boolean isFinite();
+
   /**
    * Get the number of rows in the matrix.
    * @return number of rows

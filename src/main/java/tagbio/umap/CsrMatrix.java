@@ -44,6 +44,16 @@ class CsrMatrix extends Matrix {
   }
 
   @Override
+  boolean isFinite() {
+    for (final float v : mData) {
+      if (!Float.isFinite(v)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
   Matrix copy() {
     return new CsrMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mIndptr, mIndptr.length), Arrays.copyOf(mIndices, mIndices.length), rows(), cols());
   }

@@ -1012,8 +1012,14 @@ public class Umap {
    * A target array for supervised dimension reduction. How this is
    * handled is determined by parameters UMAP was instantiated with.
    * The relevant metric is <code>mTargetMetric</code>.
+   * @throws IllegalArgumentException if the matrix contains non-finite elements.
    */
   private void fit(Matrix instances, float[] y) {
+
+    if (!instances.isFinite()) {
+      throw new IllegalArgumentException("Supplied matrix of instances contains non-finite elements");
+    }
+
     UmapProgress.reset(5);
 
     if (mVerbose) {

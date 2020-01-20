@@ -216,6 +216,16 @@ class CooMatrix extends Matrix {
   }
 
   @Override
+  boolean isFinite() {
+    for (final float v : mData) {
+      if (!Float.isFinite(v)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
   Matrix copy() {
     return new CooMatrix(Arrays.copyOf(mData, mData.length), Arrays.copyOf(mRow, mRow.length), Arrays.copyOf(mCol, mCol.length), rows(), cols());
   }

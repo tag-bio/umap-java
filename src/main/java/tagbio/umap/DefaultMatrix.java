@@ -46,6 +46,18 @@ class DefaultMatrix extends Matrix {
   }
 
   @Override
+  boolean isFinite() {
+    for (final float[] row : mData) {
+      for (final float v : row) {
+        if (!Float.isFinite(v)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  @Override
   Matrix copy() {
     final float[][] copy = new float[mData.length][];
     for (int k = 0; k < copy.length; ++k) {

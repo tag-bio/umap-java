@@ -428,4 +428,30 @@ public class UmapTest extends TestCase {
     assertEquals(-4.0F, Umap.clip(-4.01F));
     assertEquals(-4.0F, Umap.clip(Float.NEGATIVE_INFINITY));
   }
+
+  public void testNaNQuery() {
+    final float[][] data = new float[5000][3];
+    final Umap umap = new Umap();
+    data[0][0] = Float.NaN;
+    try {
+      umap.fitTransform(data);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+    data[0][0] = Float.POSITIVE_INFINITY;
+    try {
+      umap.fitTransform(data);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+    data[0][0] = Float.NEGATIVE_INFINITY;
+    try {
+      umap.fitTransform(data);
+      fail();
+    } catch (final IllegalArgumentException e) {
+      // expected
+    }
+  }
 }
