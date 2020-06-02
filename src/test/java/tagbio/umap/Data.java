@@ -61,7 +61,7 @@ abstract class Data {
         rowScanner.useDelimiter(delimiter);
         if (rowScanner.hasNext()) {
           final String next = rowScanner.next();
-          assert "sample".equals(next);
+          //assert "sample".equals(next);
         }
         while (rowScanner.hasNext()) {
           mAttributes.add(rowScanner.next());
@@ -79,7 +79,7 @@ abstract class Data {
           values[k] = Float.parseFloat(parts[k + 1]);
         }
         records.add(values);
-        if (records.size() % 100 == 0) {
+        if (records.size() % 10000 == 0) {
           Utils.message("Read " + records.size() + " records");
         }
       }
