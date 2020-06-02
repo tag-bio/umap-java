@@ -15,7 +15,7 @@ import tagbio.umap.metric.PrecomputedMetric;
 
 class Heyler10gbData extends Data {
   public Heyler10gbData() throws IOException {
-    super( java.lang.System.getenv("TAGBIO_HEYLERTEST_10GB"))
+    super( java.lang.System.getenv("TAGBIO_HEYLERTEST_10GB"));
   }
 
   @Override
@@ -26,7 +26,7 @@ class Heyler10gbData extends Data {
 
 class Heyler20gbData extends Data {
   public Heyler20gbData() throws IOException {
-    super( java.lang.System.getenv("TAGBIO_HEYLERTEST_20GB"))
+    super( java.lang.System.getenv("TAGBIO_HEYLERTEST_20GB"));
   }
 
   @Override
@@ -37,7 +37,7 @@ class Heyler20gbData extends Data {
 
 class Heyler30gbData extends Data {
   public Heyler30gbData() throws IOException {
-    super( java.lang.System.getenv("TAGBIO_HEYLERTEST_30GB"))
+    super( java.lang.System.getenv("TAGBIO_HEYLERTEST_30GB"));
   }
 
   @Override
@@ -54,7 +54,9 @@ public class HeylerTest extends TestCase {
   public void test10gb() throws IOException {
     final Data data = new Heyler10gbData();
     final Umap umap = new Umap();
+    umap.setThreads(Integer.parseInt(System.getenv("TAGBIO_THREADS")));
     umap.setVerbose(true);
+
     final float[][] d = data.getData();
     final long start = System.currentTimeMillis();
     final float[][] matrix = umap.fitTransform(d);
@@ -64,6 +66,7 @@ public class HeylerTest extends TestCase {
   public void test20gb() throws IOException {
     final Data data = new Heyler20gbData();
     final Umap umap = new Umap();
+    umap.setThreads(Integer.parseInt(System.getenv("TAGBIO_THREADS")));
     umap.setVerbose(true);
     final float[][] d = data.getData();
     final long start = System.currentTimeMillis();
@@ -74,6 +77,7 @@ public class HeylerTest extends TestCase {
   public void test30gb() throws IOException {
     final Data data = new Heyler30gbData();
     final Umap umap = new Umap();
+    umap.setThreads(Integer.parseInt(System.getenv("TAGBIO_THREADS")));
     umap.setVerbose(true);
     final float[][] d = data.getData();
     final long start = System.currentTimeMillis();
