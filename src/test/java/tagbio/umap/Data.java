@@ -71,7 +71,8 @@ abstract class Data {
       while ((line = r.readLine()) != null) {
         final String[] parts = line.trim().split(delimiter);
         if (parts.length != mAttributes.size() + 1) {
-          throw new RuntimeException("Incorrect number of fields in: " + line);
+          Utils.message("Incorrect number of fields in: " + line + " ...skipping");
+          continue;
         }
         mSampleNames.add(parts[0]);
         final float[] values = new float[mAttributes.size()];
