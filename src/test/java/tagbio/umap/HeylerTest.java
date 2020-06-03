@@ -57,7 +57,9 @@ public class HeylerTest extends TestCase {
     umap.setThreads(Integer.parseInt(System.getenv("TAGBIO_THREADS")));
     umap.setVerbose(true);
 
+    Systemt.out.println("Loading 10gb data.");
     final float[][] d = data.getData();
+    Systemt.out.println("Loading 10gb data complete.");
     final long start = System.currentTimeMillis();
     final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 1000.0) + " s");
@@ -68,7 +70,9 @@ public class HeylerTest extends TestCase {
     final Umap umap = new Umap();
     umap.setThreads(Integer.parseInt(System.getenv("TAGBIO_THREADS")));
     umap.setVerbose(true);
+    Systemt.out.println("Loading 20gb data.");
     final float[][] d = data.getData();
+    Systemt.out.println("Loading 20gb data complete.");
     final long start = System.currentTimeMillis();
     final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 2000.0) + " s");
@@ -79,7 +83,9 @@ public class HeylerTest extends TestCase {
     final Umap umap = new Umap();
     umap.setThreads(Integer.parseInt(System.getenv("TAGBIO_THREADS")));
     umap.setVerbose(true);
+    Systemt.out.println("Loading 30gb data.");
     final float[][] d = data.getData();
+    Systemt.out.println("Loading 30gb data complete.");
     final long start = System.currentTimeMillis();
     final float[][] matrix = umap.fitTransform(d);
     System.out.println("UMAP time: " + Math.round((System.currentTimeMillis() - start) / 3000.0) + " s");
