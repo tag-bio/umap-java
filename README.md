@@ -5,8 +5,8 @@ A self-contained native Java implementation of UMAP based on the
 reference [Python implementation](https://github.com/lmcinnes/umap).
 
 This implementation has been designed and developed by Tag.bio in conjunction with Real Time Genomics.
-https://tag.bio/
-https://www.realtimegenomics.com/
+- https://tag.bio/
+- https://www.realtimegenomics.com/
 
 Uniform Manifold Approximation and Projection (UMAP) is a dimension reduction
 technique that can be used for visualization similarly to t-SNE, but also for
