@@ -4,7 +4,7 @@ Java UMAP
 A self-contained native Java implementation of UMAP based on the
 reference [Python implementation](https://github.com/lmcinnes/umap).
 
-This implementation has been designed and developed by Tag.bio in conjunction with Real Time Genomics.
+This implementation has been designed and developed by Tag.bio in collaboration with Real Time Genomics.
 - https://tag.bio/
 - https://www.realtimegenomics.com/
 
