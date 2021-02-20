@@ -12,7 +12,7 @@ import java.util.Arrays;
  * @author Sean A. Irvine
  * @author Richard Littin
  */
-abstract class Matrix {
+public abstract class Matrix {
 
   /** Dimensions of the matrix */
   private final int mRowCount;
