@@ -12,7 +12,7 @@ import java.util.Arrays;
  * @author Sean A. Irvine
  * @author Richard Littin
  */
-class DefaultMatrix extends Matrix {
+public class DefaultMatrix extends Matrix {
 
   private final float[][] mData;
 
