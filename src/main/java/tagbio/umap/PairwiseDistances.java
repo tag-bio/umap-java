@@ -13,7 +13,7 @@ import tagbio.umap.metric.PrecomputedMetric;
  * @author Sean A. Irvine
  * @author Richard Littin
  */
-final class PairwiseDistances {
+public class PairwiseDistances {
 
   // replacement for sklearn.pairwise_distances
 
