@@ -7,3 +7,6 @@ build
 src/test/resources/tagbio/umap/gene_exp_data.tsv.gz
 src/test/resources/tagbio/umap/gene_exp_info.tsv
 src/test/resources/tagbio/umap/mammoth.tsv
+.project
+.classpath
+.settings/
