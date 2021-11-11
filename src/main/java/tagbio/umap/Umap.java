@@ -702,11 +702,12 @@ public class Umap {
    * values should be in the range 2 to 100.  The default is 15.
    * @param neighbors number of neighbors
    */
-  public void setNumberNearestNeighbours(final int neighbors) {
+  public Umap setNumberNearestNeighbours(final int neighbors) {
     if (neighbors < 2) {
       throw new IllegalArgumentException("Number of neighbors must be greater than 2.");
     }
     mNNeighbors = neighbors;
+    return this;
   }
 
   /**
@@ -715,11 +716,12 @@ public class Umap {
    * integer value in the range 2 to 100.
    * @param components dimension of embedding space
    */
-  public void setNumberComponents(final int components) {
+  public Umap setNumberComponents(final int components) {
     if (components < 1) {
       throw new IllegalArgumentException("Number of components must be greater than 0.");
     }
     mNComponents = components;
+    return this;
   }
 
   /**
@@ -730,11 +732,12 @@ public class Umap {
    * The minimum value is 11.
    * @param epochs number of epochs or null
    */
-  public void setNumberEpochs(final Integer epochs) {
+  public Umap setNumberEpochs(final Integer epochs) {
     if (epochs != null && epochs <= 10) {
       throw new IllegalArgumentException("Epochs must be larger than 10.");
     }
     mNEpochs = epochs;
+    return this;
   }
 
   /**
@@ -743,11 +746,12 @@ public class Umap {
    * already appropriately initialized.
    * @param metric metric function
    */
-  public void setMetric(final Metric metric) {
+  public Umap setMetric(final Metric metric) {
     if (metric == null) {
       throw new NullPointerException("Null metric not permitted.");
     }
     mMetric = metric;
+    return this;
   }
 
   /**
@@ -773,8 +777,9 @@ public class Umap {
    * yule.
    * @param metric metric function specified by name
    */
-  public void setMetric(final String metric) {
+  public Umap setMetric(final String metric) {
     setMetric(Metric.getMetric(metric));
+    return this;
   }
 
   /**
@@ -782,11 +787,12 @@ public class Umap {
    * Default 1.0.
    * @param rate learning rate
    */
-  public void setLearningRate(final float rate) {
+  public Umap setLearningRate(final float rate) {
     if (rate <= 0.0) {
       throw new IllegalArgumentException("Learning rate must be positive.");
     }
     mLearningRate = rate;
+    return this;
   }
 
   /**
@@ -795,11 +801,12 @@ public class Umap {
    * being given to negative samples. Default 1.0.
    * @param repulsionStrength repulsion strength
    */
-  public void setRepulsionStrength(final float repulsionStrength) {
+  public Umap setRepulsionStrength(final float repulsionStrength) {
     if (repulsionStrength < 0.0) {
       throw new IllegalArgumentException("Repulsion strength cannot be negative.");
     }
     mRepulsionStrength = repulsionStrength;
+    return this;
   }
 
   /**
@@ -811,11 +818,12 @@ public class Umap {
    * embedded points will be spread out. Default 0.1.
    * @param minDist minimum distance
    */
-  public void setMinDist(final float minDist) {
+  public Umap setMinDist(final float minDist) {
     if (minDist < 0.0) {
       throw new IllegalArgumentException("Minimum distance must be greater than 0.0.");
     }
     mMinDist = minDist;
+    return this;
   }
 
   /**
@@ -823,8 +831,9 @@ public class Umap {
    * this determines how clustered/clumped the embedded points are. Default 1.0.
    * @param spread spread value
    */
-  public void setSpread(final float spread) {
+  public Umap setSpread(final float spread) {
     mSpread = spread;
+    return this;
   }
 
   /**
@@ -836,11 +845,12 @@ public class Umap {
    * intersection. Default 1.0.
    * @param setOpMixRatio set operation mixing ratio
    */
-  public void setSetOpMixRatio(final float setOpMixRatio) {
+  public Umap setSetOpMixRatio(final float setOpMixRatio) {
     if (setOpMixRatio < 0.0 || setOpMixRatio > 1.0) {
       throw new IllegalArgumentException("Set operation mixing ratio be between 0.0 and 1.0.");
     }
     mSetOpMixRatio = setOpMixRatio;
+    return this;
   }
 
   /**
@@ -851,8 +861,9 @@ public class Umap {
    * dimension of the manifold. Default 1.
    * @param localConnectivity local connectivity
    */
-  public void setLocalConnectivity(final int localConnectivity) {
+  public Umap setLocalConnectivity(final int localConnectivity) {
     mLocalConnectivity = localConnectivity;
+    return this;
   }
 
   /**
@@ -862,11 +873,12 @@ public class Umap {
    * cost, but slightly more accuracy. Default 5.
    * @param negativeSampleRate negative sample rate
    */
-  public void setNegativeSampleRate(final int negativeSampleRate) {
+  public Umap setNegativeSampleRate(final int negativeSampleRate) {
     if (negativeSampleRate <= 0) {
       throw new IllegalArgumentException("Negative sample rate must be positive.");
     }
     mNegativeSampleRate = negativeSampleRate;
+    return this;
   }
 
   /**
@@ -879,40 +891,45 @@ public class Umap {
    * or 'l2' is probably more appropriate.
    * @param targetMetric target metric
    */
-  public void setTargetMetric(final Metric targetMetric) {
+  public Umap setTargetMetric(final Metric targetMetric) {
     mTargetMetric = targetMetric;
+    return this;
   }
 
   /**
    * Set the target metric by name (see <code>setMetric</code> for a list of values).
    * @param targetMetric target metric
    */
-  public void setTargetMetric(final String targetMetric) {
+  public Umap setTargetMetric(final String targetMetric) {
     setTargetMetric(Metric.getMetric(targetMetric));
+    return this;
   }
 
   /**
    * If true, turn on additional diagnostic output.
    * @param verbose verbose level
    */
-  public void setVerbose(final boolean verbose) {
+  public Umap setVerbose(final boolean verbose) {
     mVerbose = verbose;
+    return this;
   }
 
   /**
    * Set the random number generator to be used.
    * @param random randomness source
    */
-  public void setRandom(final Random random) {
+  public Umap setRandom(final Random random) {
     mRandom = random;
+    return this;
   }
 
   /**
    * Set the seed of the random number generator.
    * @param seed seed value
    */
-  public void setSeed(final long seed) {
+  public Umap setSeed(final long seed) {
     mRandom.setSeed(seed);
+    return this;
   }
 
   /**
@@ -922,8 +939,9 @@ public class Umap {
    * nearest neighbor evaluation. Default 4.0.
    * @param transformQueueSize queue size
    */
-  public void setTransformQueueSize(final float transformQueueSize) {
+  public Umap setTransformQueueSize(final float transformQueueSize) {
     mTransformQueueSize = transformQueueSize;
+    return this;
   }
 
   /**
@@ -934,8 +952,9 @@ public class Umap {
    * will be chosen automatically.
    * @param angularRpForest true for an angular random projection forest
    */
-  public void setAngularRpForest(final boolean angularRpForest) {
+  public Umap setAngularRpForest(final boolean angularRpForest) {
     mAngularRpForest = angularRpForest;
+    return this;
   }
 
   /**
@@ -943,11 +962,12 @@ public class Umap {
    * set. If set to -1 use the <code>nNeighbors</code> value.
    * @param targetNNeighbors target nearest neighbours
    */
-  public void setTargetNNeighbors(final int targetNNeighbors) {
+  public Umap setTargetNNeighbors(final int targetNNeighbors) {
     if (targetNNeighbors < 2 && targetNNeighbors != -1) {
       throw new IllegalArgumentException("targetNNeighbors must be greater than 2");
     }
     mTargetNNeighbors = targetNNeighbors;
+    return this;
   }
 
 // a: float (optional, default null)
@@ -965,8 +985,9 @@ public class Umap {
    * The default of 0.5 balances the weighting equally between data and target.
    * @param targetWeight target weighting factor
    */
-  public void setTargetWeight(final float targetWeight) {
+  public Umap setTargetWeight(final float targetWeight) {
     mTargetWeight = targetWeight;
+    return this;
   }
 
 //  /**
@@ -974,7 +995,7 @@ public class Umap {
 //   * This ensures consistency in transform operations. Default: 42.
 //   * @param transformSeed random number generator seed
 //   */
-//  public void setTransformSeed(final int transformSeed) {
+//  public Umap setTransformSeed(final int transformSeed) {
 //    mTransformSeed = transformSeed;
 //  }
 
@@ -982,11 +1003,12 @@ public class Umap {
    * Set the maximum number of threads to use (default 1).
    * @param threads number of threads
    */
-  public void setThreads(final int threads) {
+  public Umap setThreads(final int threads) {
     if (threads < 1) {
       throw new IllegalArgumentException("threads must be at least 1");
     }
     mThreads = threads;
+    return this;
   }
 
   private void validateParameters() {
