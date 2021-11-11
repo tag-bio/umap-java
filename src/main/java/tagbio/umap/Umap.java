@@ -701,6 +701,7 @@ public class Umap {
    * values result in more local data being preserved. In general
    * values should be in the range 2 to 100.  The default is 15.
    * @param neighbors number of neighbors
+   * @return this Umap object
    */
   public Umap setNumberNearestNeighbours(final int neighbors) {
     if (neighbors < 2) {
@@ -715,6 +716,7 @@ public class Umap {
    * provide easy visualization, but can reasonably be set to any
    * integer value in the range 2 to 100.
    * @param components dimension of embedding space
+   * @return this Umap object
    */
   public Umap setNumberComponents(final int components) {
     if (components < 1) {
@@ -731,6 +733,7 @@ public class Umap {
    * the size of the input dataset (200 for large datasets, 500 for small).
    * The minimum value is 11.
    * @param epochs number of epochs or null
+   * @return this Umap object
    */
   public Umap setNumberEpochs(final Integer epochs) {
     if (epochs != null && epochs <= 10) {
@@ -745,6 +748,7 @@ public class Umap {
    * metric requires additional parameters, then they are assumed to have been
    * already appropriately initialized.
    * @param metric metric function
+   * @return this Umap object
    */
   public Umap setMetric(final Metric metric) {
     if (metric == null) {
@@ -776,6 +780,7 @@ public class Umap {
    * sokalsneath,
    * yule.
    * @param metric metric function specified by name
+   * @return this Umap object
    */
   public Umap setMetric(final String metric) {
     setMetric(Metric.getMetric(metric));
@@ -786,6 +791,7 @@ public class Umap {
    * Set the initial learning rate for the embedding optimization.
    * Default 1.0.
    * @param rate learning rate
+   * @return this Umap object
    */
   public Umap setLearningRate(final float rate) {
     if (rate <= 0.0) {
@@ -800,6 +806,7 @@ public class Umap {
    * optimization. Values higher than one will result in greater weight
    * being given to negative samples. Default 1.0.
    * @param repulsionStrength repulsion strength
+   * @return this Umap object
    */
   public Umap setRepulsionStrength(final float repulsionStrength) {
     if (repulsionStrength < 0.0) {
@@ -817,6 +824,7 @@ public class Umap {
    * relative to the <code>spread</code> value, which determines the scale at which
    * embedded points will be spread out. Default 0.1.
    * @param minDist minimum distance
+   * @return this Umap object
    */
   public Umap setMinDist(final float minDist) {
     if (minDist < 0.0) {
@@ -830,6 +838,7 @@ public class Umap {
    * Set the effective scale of embedded points. In combination with <code>minDist</code>
    * this determines how clustered/clumped the embedded points are. Default 1.0.
    * @param spread spread value
+   * @return this Umap object
    */
   public Umap setSpread(final float spread) {
     mSpread = spread;
@@ -844,6 +853,7 @@ public class Umap {
    * 1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy
    * intersection. Default 1.0.
    * @param setOpMixRatio set operation mixing ratio
+   * @return this Umap object
    */
   public Umap setSetOpMixRatio(final float setOpMixRatio) {
     if (setOpMixRatio < 0.0 || setOpMixRatio > 1.0) {
@@ -860,6 +870,7 @@ public class Umap {
    * locally. In practice this should be not more than the local intrinsic
    * dimension of the manifold. Default 1.
    * @param localConnectivity local connectivity
+   * @return this Umap object
    */
   public Umap setLocalConnectivity(final int localConnectivity) {
     mLocalConnectivity = localConnectivity;
@@ -872,6 +883,7 @@ public class Umap {
    * in greater repulsive force being applied, greater optimization
    * cost, but slightly more accuracy. Default 5.
    * @param negativeSampleRate negative sample rate
+   * @return this Umap object
    */
   public Umap setNegativeSampleRate(final int negativeSampleRate) {
     if (negativeSampleRate <= 0) {
@@ -890,6 +902,7 @@ public class Umap {
    * continuous values (e.g. for a regression problem) then metric of 'l1'
    * or 'l2' is probably more appropriate.
    * @param targetMetric target metric
+   * @return this Umap object
    */
   public Umap setTargetMetric(final Metric targetMetric) {
     mTargetMetric = targetMetric;
@@ -899,6 +912,7 @@ public class Umap {
   /**
    * Set the target metric by name (see <code>setMetric</code> for a list of values).
    * @param targetMetric target metric
+   * @return this Umap object
    */
   public Umap setTargetMetric(final String targetMetric) {
     setTargetMetric(Metric.getMetric(targetMetric));
@@ -908,6 +922,7 @@ public class Umap {
   /**
    * If true, turn on additional diagnostic output.
    * @param verbose verbose level
+   * @return this Umap object
    */
   public Umap setVerbose(final boolean verbose) {
     mVerbose = verbose;
@@ -917,6 +932,7 @@ public class Umap {
   /**
    * Set the random number generator to be used.
    * @param random randomness source
+   * @return this Umap object
    */
   public Umap setRandom(final Random random) {
     mRandom = random;
@@ -926,6 +942,7 @@ public class Umap {
   /**
    * Set the seed of the random number generator.
    * @param seed seed value
+   * @return this Umap object
    */
   public Umap setSeed(final long seed) {
     mRandom.setSeed(seed);
@@ -938,6 +955,7 @@ public class Umap {
    * Larger values will result in slower performance but more accurate
    * nearest neighbor evaluation. Default 4.0.
    * @param transformQueueSize queue size
+   * @return this Umap object
    */
   public Umap setTransformQueueSize(final float transformQueueSize) {
     mTransformQueueSize = transformQueueSize;
@@ -951,6 +969,7 @@ public class Umap {
    * as cosine, correlation etc. In the case of those metrics angular forests
    * will be chosen automatically.
    * @param angularRpForest true for an angular random projection forest
+   * @return this Umap object
    */
   public Umap setAngularRpForest(final boolean angularRpForest) {
     mAngularRpForest = angularRpForest;
@@ -961,6 +980,7 @@ public class Umap {
    * The number of nearest neighbors to use to construct the target simplicial
    * set. If set to -1 use the <code>nNeighbors</code> value.
    * @param targetNNeighbors target nearest neighbours
+   * @return this Umap object
    */
   public Umap setTargetNNeighbors(final int targetNNeighbors) {
     if (targetNNeighbors < 2 && targetNNeighbors != -1) {
@@ -984,6 +1004,7 @@ public class Umap {
    * 0.0 weights entirely on data, a value of 1.0 weights entirely on target.
    * The default of 0.5 balances the weighting equally between data and target.
    * @param targetWeight target weighting factor
+   * @return this Umap object
    */
   public Umap setTargetWeight(final float targetWeight) {
     mTargetWeight = targetWeight;
@@ -1002,6 +1023,7 @@ public class Umap {
   /**
    * Set the maximum number of threads to use (default 1).
    * @param threads number of threads
+   * @return this Umap object
    */
   public Umap setThreads(final int threads) {
     if (threads < 1) {
