@@ -123,7 +123,7 @@ final class RandomProjectionTree {
       }
     }
 
-    return new Object[]{indicesLeft, indicesRight, hyperplaneVector, null};
+    return new Object[]{indicesLeft, indicesRight, hyperplaneVector, 0.0f};
   }
 
 
