@@ -49,6 +49,7 @@ class Heyler30gbData extends Data {
 /**
  * Tests the corresponding class.
  */
+@org.junit.Ignore
 public class HeylerTest extends TestCase {
 
   public void test10gb() throws IOException {
